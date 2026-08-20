@@ -1,0 +1,14 @@
+{
+  "name": "phone-store",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Phone Store — a single-page storefront served from Cloudflare Workers",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "start": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^4.123.0"
+  }
+}

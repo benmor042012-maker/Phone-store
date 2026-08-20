@@ -1,0 +1,3738 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phone Store · אלי חזות · סלולר בנתניה</title>
+<meta name="description" content="חנות סלולר בנתניה. טלפונים, טאבלטים, שעונים חכמים ואביזרים. בחירה בשיחה אישית והזמנה בוואטסאפ.">
+<meta property="og:title" content="Phone Store · אלי חזות · סלולר בנתניה">
+<meta property="og:description" content="בוחרים טלפון בשיחה, לא בסל קניות. שד' בן גוריון 2, נתניה.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Phone Store">
+<meta property="og:locale" content="he_IL">
+<meta property="og:url" content="https://phonestore.co.il/">
+<!-- Generic brand shot for link previews. A purpose-made 1200×630 image is a
+     client asset task — swap it here when one exists. -->
+<meta property="og:image" content="https://phonestore.co.il/assets/products/hero-phone.webp">
+<meta property="og:image:alt" content="Phone Store · חנות סלולר בנתניה">
+<link rel="canonical" href="https://phonestore.co.il/">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<!-- Store-level structured data. Valid as shipped even with no Worker or KV;
+     when content is published, the Worker rewrites this block from the
+     edited settings so phone/address changes propagate. No AggregateRating
+     on purpose until the reviews are verifiably real. -->
+<script id="ld-business" type="application/ld+json">
+{"@context":"https://schema.org","@type":"ElectronicsStore","name":"Phone Store","url":"https://phonestore.co.il/","telephone":"050-477-7470","email":"phonestore770@gmail.com","address":{"@type":"PostalAddress","streetAddress":"שד' בן גוריון 2","addressLocality":"נתניה","addressCountry":"IL"}}
+</script>
+<!-- The Worker replaces the null below with the published site content, so
+     the page boots on live data with no extra round trip. Served without the
+     Worker (file://, cache, KV not yet provisioned) it stays null and boot
+     falls back to /api/data, then the local draft, then DEFAULTS. -->
+<script id="server-data" type="application/json">null</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&family=Assistant:wght@200;300;400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Resolves the bare "three" specifier without a build step, keeping this a
+     single self-contained file. Must appear before any module script. -->
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+}}
+</script>
+<style>
+/* ============================================================
+   PHONE STORE
+   palette from device anodizing: graphite ground, machined
+   surfaces, one warm bronze accent (desert titanium)
+
+   The theme is dark. Tokens are split by ROLE, because the old
+   --ink meant both "primary text" and "dark surface" — two jobs
+   that pull apart the moment the ground goes dark. The legacy
+   names below are kept as aliases so the ~110 existing var()
+   call sites keep working and keep reading naturally.
+   ============================================================ */
+:root{
+  /* grounds, lightest-on-top ordering — black, warm-neutral, matching the logo */
+  --surface-0:#000000;   /* the page itself — full black like the logo ground */
+  --surface-1:#0C0C0E;   /* cards, rails, raised panels */
+  --surface-2:#16161A;   /* the layer above that: inputs, hovers */
+  --surface-3:#212127;   /* chips, active tabs */
+
+  /* foreground */
+  --fg:#ECEEF1;          /* primary text */
+  --fg-2:#98A0AB;        /* labels, secondary copy */
+  --fg-3:#6B7480;        /* faint meta */
+  --on-accent:#000000;   /* text on a gold fill — black, as on the logo */
+
+  --ink:#000000;         /* the darkest ink, for fills that must recede */
+  --ink-soft:#C4CAD3;    /* was a dark stroke on light; now a light stroke on dark */
+
+  --line:rgba(255,255,255,.085);
+  --line-strong:rgba(255,255,255,.16);
+
+  /* GOLD — warm, bright, logo-matching. These are the source of truth; the
+     legacy --bronze* names below are kept as aliases so the ~110 existing
+     var(--bronze) call sites keep working and simply read gold now. */
+  --gold:#E9B84C;        /* primary accent */
+  --gold-bright:#F8D673; /* the lift on hover / the "deep"→brighter role */
+  --gold-deep:#C6821F;   /* amber / bronze — the foot of the logo gradient */
+  --gold-wash:rgba(233,184,76,.12);
+  --gold-grad:linear-gradient(180deg,#F8D673 0%,#E9B84C 48%,#C6821F 100%);
+
+  --bronze:var(--gold);          /* alias */
+  --bronze-deep:var(--gold-bright);
+  --bronze-wash:var(--gold-wash);
+  --wa:#128C7E;
+  --wa-bright:#25D366;
+
+  /* legacy aliases — every existing var(--paper) etc. still resolves */
+  --aluminum:var(--surface-0);
+  --aluminum-deep:var(--surface-2);
+  --paper:var(--surface-1);
+  --slate:var(--fg-2);
+
+  --f-display:"Frank Ruhl Libre",Georgia,serif;
+  --f-body:"Assistant","Segoe UI",sans-serif;
+  --f-data:"IBM Plex Mono",ui-monospace,monospace;
+
+  --r-sm:4px; --r-md:8px; --r-lg:14px;
+  --util-h:40px;   /* utility bar height; the hero subtracts it from 100svh */
+  /* shadows do not read on a dark ground — elevation is carried by a bronze
+     ring plus a wide, very soft warm bloom */
+  --shadow-2:0 0 0 1px rgba(233,184,76,.16), 0 26px 60px -26px rgba(233,184,76,.30);
+  --shadow-modal:0 40px 120px -30px rgba(0,0,0,.85);
+  --fg-bright:#fff;              /* the lift on an already-light fill, on hover */
+  --wash:rgba(255,255,255,.022); /* barely-there tint on a card foot */
+  --head-glass:rgba(12,14,17,.82);
+  /* The utility bar, the process band, the footer and the admin header stay
+     dark in BOTH themes, so their text cannot ride on --fg/--fg-2/--fg-3:
+     those flip to near-black in light mode and vanish. These three are fixed
+     to the dark-surface scale and are deliberately NOT redefined below. */
+  --on-ink:#F2F4F7;
+  --on-ink-2:#B7BEC8;
+  --on-ink-3:#8A929D;
+  --line-ink:rgba(255,255,255,.085);
+  --wrap:1280px;
+  --hair:1px solid var(--line);
+  --band-bg:#000000;
+}
+/* The site is a single dark identity — black & gold. There is no light
+   theme; the accessibility high-contrast mode (body.hc) is separate and
+   remains below. */
+/* Russian swaps the type stack to the Cyrillic faces loaded on demand.
+   Without this the request was pure waste: the page would quietly fall
+   back to Georgia, which happens to carry Cyrillic on desktop but is not
+   on most Android or Linux devices. */
+:root[lang="ru"]{
+  --f-display:"PT Serif",Georgia,serif;
+  --f-body:"PT Sans","Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+/* makes the browser render native controls dark: checkboxes, the price range
+   thumb, select popups, and the scrollbar. Without it they stay light and
+   give the whole theme away. */
+html{scroll-behavior:smooth;color-scheme:dark}
+body.hc{color-scheme:light}
+body{
+  margin:0;background:var(--surface-0);color:var(--fg);
+  font-family:var(--f-body);font-size:17px;line-height:1.65;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+img,video{max-width:100%;display:block}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--bronze);outline-offset:3px;border-radius:2px}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 24px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+h1,h2,h3,h4{font-family:var(--f-display);font-weight:700;line-height:1.2;margin:0;letter-spacing:-.015em}
+.eyebrow{
+  font-family:var(--f-data);font-size:11.5px;font-weight:500;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--slate);margin:0 0 14px;display:flex;align-items:center;gap:10px;
+}
+.eyebrow::after{content:"";flex:1;height:1px;background:var(--line);max-width:80px}
+.price{font-family:var(--f-data);font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  padding:15px 28px;border-radius:var(--r-md);font-weight:600;font-size:16px;
+  transition:transform .25s cubic-bezier(.16,1,.3,1),background .25s,color .25s,border-color .25s;
+  border:1px solid transparent;white-space:nowrap;
+}
+.btn:hover{transform:scale(1.03)}
+.btn:active{transform:scale(.99)}
+/* on a dark ground the primary button inverts: light fill, dark label */
+.btn-primary{background:var(--fg);color:var(--on-accent)}
+.btn-primary:hover{background:var(--fg-bright)}
+.btn-ghost{border-color:var(--line-strong);background:var(--surface-2);color:var(--fg)}
+.btn-ghost:hover{border-color:var(--bronze);background:var(--surface-3)}
+.btn-wa{background:var(--wa);color:#fff}
+.btn-wa:hover{background:#0f7a6d}
+.btn-light{border:1px solid rgba(255,255,255,.35);color:#fff;backdrop-filter:blur(6px);background:rgba(255,255,255,.06)}
+.btn-light:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.6)}
+.btn-sm{padding:9px 16px;font-size:14.5px;border-radius:var(--r-sm)}
+.btn-block{width:100%}
+
+/* ---------- utility bar ---------- */
+.util{background:var(--ink);color:var(--on-ink-2);font-size:13.5px;position:relative;z-index:62;border-bottom:1px solid var(--line-ink)}
+.util .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:var(--util-h)}
+.util-list{display:flex;gap:22px;align-items:center;font-family:var(--f-data);font-size:12px;letter-spacing:.04em}
+.util a{color:var(--on-ink);font-weight:600}
+@media(max-width:860px){.util-list span:nth-child(n+2){display:none}}
+
+/* ---------- header ---------- */
+.head{
+  position:fixed;top:40px;inset-inline:0;z-index:60;
+  transition:background .45s ease,border-color .45s ease,backdrop-filter .45s ease,top .3s;
+  border-bottom:1px solid transparent;
+}
+.head-in{display:flex;align-items:center;gap:26px;height:78px}
+.logo{display:flex;flex-direction:column;line-height:1;flex-shrink:0}
+.logo b{font-family:var(--f-display);font-size:23px;font-weight:900;letter-spacing:-.02em;
+  background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;
+  color:transparent;-webkit-text-fill-color:transparent}
+.logo small{font-family:var(--f-data);font-size:9.5px;letter-spacing:.22em;margin-top:5px;text-transform:uppercase;color:var(--gold-deep);opacity:.9}
+.nav{display:flex;gap:4px;margin-inline-start:auto;flex-wrap:wrap}
+.nav a{padding:8px 13px;border-radius:var(--r-sm);font-size:15.5px;font-weight:600;transition:opacity .2s;opacity:.75}
+.nav a:hover{opacity:1}
+.head-acts{display:flex;align-items:center;gap:8px}
+.icon-btn{
+  width:42px;height:42px;border-radius:var(--r-md);border:1px solid;display:grid;place-items:center;position:relative;
+  transition:border-color .2s,background .2s;
+}
+.icon-btn svg{width:19px;height:19px;fill:none;stroke-width:1.5}
+.badge{
+  position:absolute;top:-6px;inset-inline-start:-6px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;
+  background:var(--bronze);color:#fff;font-family:var(--f-data);font-size:11px;display:grid;place-items:center;
+}
+/* over the dark hero */
+.head.over{color:#fff}
+.head.over .icon-btn{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.05)}
+.head.over .icon-btn svg{stroke:#fff}
+.head.over .icon-btn:hover{border-color:#fff}
+/* scrolled past the hero */
+.head.solid{top:0;background:var(--head-glass);backdrop-filter:blur(14px) saturate(1.3);border-bottom-color:var(--line);color:var(--fg)}
+.head.solid .icon-btn{border-color:var(--line);background:var(--paper)}
+.head.solid .icon-btn svg{stroke:var(--fg)}
+.burger{display:none}
+@media(max-width:1000px){.nav{display:none}.burger{display:grid}}
+
+/* ============================================================
+   HERO  ·  cinematic, ~100svh, video slot + coded motion scene
+   ============================================================ */
+.hero{
+  /* the utility bar sits above the hero in normal flow, so a full 100svh here
+     always pushed the bottom of the hero past the fold. Subtracting it is what
+     keeps the slider controls on screen, phones included. */
+  position:relative;min-height:calc(100vh - var(--util-h));min-height:calc(100svh - var(--util-h));
+  display:flex;align-items:flex-end;overflow:clip;background:var(--ink);isolation:isolate;
+}
+.hero-media{position:absolute;inset:-1.5%;z-index:0;will-change:transform;transform:translate3d(0,0,0) scale(1.03)}
+.hero-media::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(0,0,0,.05) 0%,rgba(0,0,0,.2) 34%,rgba(0,0,0,.72) 72%,rgba(0,0,0,.94) 100%),linear-gradient(0deg,rgba(0,0,0,.72) 0%,transparent 46%)}
+.hero-media video{width:100%;height:100%;object-fit:cover;display:none;filter:saturate(.92) contrast(1.06)}
+.hero-media.has-video video{display:block}
+.hero-media.has-video .hero-scene{display:block;opacity:.18}
+.hero-media.has-video #heroGl{display:none}
+
+/* coded motion scene, used when no video URL is set */
+.hero-scene{position:absolute;inset:0;background:radial-gradient(120% 90% at 70% 20%,#232833 0%,#16181D 55%,#0F1115 100%)}
+.glow{
+  position:absolute;width:70vw;height:70vw;max-width:900px;max-height:900px;border-radius:50%;
+  background:radial-gradient(circle,rgba(166,124,78,.30),rgba(166,124,78,0) 62%);
+  top:-12%;inset-inline-start:38%;filter:blur(20px);animation:drift 26s ease-in-out infinite alternate;
+}
+.glow.b{
+  width:46vw;height:46vw;top:44%;inset-inline-start:6%;animation-duration:34s;animation-direction:alternate-reverse;
+  background:radial-gradient(circle,rgba(120,150,190,.20),rgba(120,150,190,0) 62%);
+}
+@keyframes drift{from{transform:translate3d(0,0,0)}to{transform:translate3d(-6%,7%,0) scale(1.14)}}
+.rules{position:absolute;inset:0;opacity:.5;
+  background-image:linear-gradient(to right,rgba(255,255,255,.055) 1px,transparent 1px);
+  background-size:calc(100%/6) 100%;
+}
+.scene-devices{position:absolute;inset:0;display:grid;place-items:center}
+.scene-devices svg{width:min(300px,44vw);height:auto;overflow:visible;transform:translateY(-4%)}
+.dl{fill:none;stroke:rgba(255,255,255,.55);stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.dl-soft{stroke:rgba(255,255,255,.18)}
+.dl-acc{stroke:var(--bronze);stroke-width:1.5}
+.float{animation:float 9s ease-in-out infinite alternate}
+@keyframes float{from{transform:translateY(-4%)}to{transform:translateY(1%)}}
+.sheen{
+  position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.09) 48%,transparent 58%);
+  background-size:280% 100%;animation:sheen 8.5s linear infinite;
+}
+@keyframes sheen{from{background-position:180% 0}to{background-position:-80% 0}}
+.hero-veil{
+  position:absolute;inset:0;z-index:1;
+  background:radial-gradient(70% 100% at 22% 42%,rgba(233,184,76,.08),transparent 62%),linear-gradient(to top,rgba(0,0,0,.94) 0%,rgba(0,0,0,.44) 42%,rgba(0,0,0,.22) 100%);
+}
+/* Floats over the media on the side OPPOSITE the copy. The copy always
+   hugs the inline-start edge, so anchoring this to inline-start (as first
+   authored) parked it exactly on top of the lead paragraph in both
+   directions; inline-end is the empty side in RTL and LTR alike. */
+.hero-signal{position:absolute;z-index:4;inset-inline-end:32px;top:44%;transform:translateY(-50%);width:190px;padding:16px 18px;border:1px solid rgba(255,255,255,.18);border-radius:12px;background:rgba(11,14,18,.38);backdrop-filter:blur(16px);box-shadow:0 20px 60px rgba(0,0,0,.2);color:#fff}
+.hero-signal::before{content:'';display:block;width:7px;height:7px;border-radius:50%;background:var(--wa-bright);box-shadow:0 0 0 5px rgba(37,211,102,.12);margin-bottom:14px}
+.hero-signal strong{display:block;font-family:var(--f-data);font-size:22px;font-weight:500;letter-spacing:-.04em}
+.hero-signal span{display:block;margin-top:4px;font-size:13px;line-height:1.35;color:rgba(255,255,255,.62)}
+.grain{
+  position:absolute;inset:0;z-index:2;pointer-events:none;opacity:.22;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+/* The same noise tile the hero already used, lifted to the whole page at a
+   much lower strength. Flat dark backgrounds band on cheap panels; a little
+   grain kills the banding and is what stops the theme reading as "just black".
+   position:fixed so it never adds scroll height. */
+body::after{
+  content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
+  opacity:.05;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+body.hc::after{display:none}
+/* the side values matter: this shorthand overrides .wrap's own 0 24px, so
+   leaving them at 0 ran the hero copy flush into the viewport edge on phones */
+.hero-inner{position:relative;z-index:3;width:100%;padding:150px 24px 0;color:#fff;max-width:1280px;margin:0 auto}
+.hero-mark{font-family:var(--f-data);font-size:11.5px;letter-spacing:.28em;text-transform:uppercase;color:rgba(255,255,255,.62);margin-bottom:26px}
+.hero h1{
+  font-size:clamp(42px,7.4vw,96px);font-weight:900;line-height:.98;letter-spacing:-.035em;color:#fff;
+  max-width:15ch;
+}
+.hero h1 em{font-style:normal;color:var(--bronze)}
+.line-mask{display:block;overflow:hidden}
+.line-mask > span{display:block}
+.hero .lead{
+  font-size:clamp(17px,2vw,21px);font-weight:200;color:rgba(255,255,255,.78);
+  max-width:48ch;margin:26px 0 34px;
+}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap}
+.hero-foot{
+  margin-top:clamp(44px,7vh,90px);border-top:1px solid rgba(255,255,255,.16);
+  display:grid;grid-template-columns:repeat(4,1fr);
+}
+.hero-foot div{padding:20px 16px 26px;border-inline-start:1px solid rgba(255,255,255,.16)}
+.hero-foot div:first-child{border-inline-start:0;padding-inline-start:0}
+.hero-foot b{display:block;font-family:var(--f-data);font-size:clamp(17px,2vw,22px);font-weight:500;letter-spacing:-.03em;color:#fff}
+.hero-foot span{font-size:13px;color:rgba(255,255,255,.55);display:block;margin-top:4px;line-height:1.35}
+.cue{
+  position:absolute;bottom:22px;inset-inline-end:24px;z-index:4;display:flex;align-items:center;gap:10px;
+  font-family:var(--f-data);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.5);
+}
+.cue i{display:block;width:1px;height:34px;background:linear-gradient(rgba(255,255,255,.6),transparent);animation:cue 2.4s ease-in-out infinite}
+@keyframes cue{0%,100%{transform:scaleY(.4);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}}
+@media(max-width:900px){
+  .hero-foot{grid-template-columns:1fr 1fr}
+  .hero-foot div:nth-child(3){border-inline-start:0;padding-inline-start:0}
+  .hero-foot div:nth-child(n+3){border-top:1px solid rgba(255,255,255,.16)}
+  .cue{display:none}
+  /* a phone screen has no empty side — the badge is decoration, drop it */
+  .hero-signal{display:none}
+  .rules{background-size:calc(100%/3) 100%}
+  /* tighten the stack so the slider controls stay above the fold on a phone */
+  .hero-inner{padding:104px 24px 0}
+  .hero-foot{margin-top:clamp(22px,3.2vh,48px)}
+  .hero-foot div{padding:13px 14px 16px}
+  .hero .lead{margin:18px 0 24px}
+}
+
+/* ============================================================
+   HERO SLIDER  ·  ambient layers + slide stack + controls
+   Layer wrappers exist so no DOM node is ever animated by two
+   sources at once: .par is owned by the scroll timeline, .ptr
+   by the pointer drift, and .glow / .float keep their own
+   CSS @keyframes untouched.
+   ============================================================ */
+.hero-layer{position:absolute;inset:-6%}          /* bleed, so drift never uncovers an edge */
+
+/* ---------- WebGL stage ---------- */
+#heroGl{
+  position:absolute;inset:0;width:100%;height:100%;display:block;
+  z-index:1;opacity:0;transition:opacity .9s ease;pointer-events:none;
+}
+#heroGl.on{opacity:1}
+/* once the real devices are on screen the coded stand-in has done its job */
+.hero-media.gl-live .scene-devices{opacity:0;transition:opacity .7s ease}
+.hero-media.gl-live .rules{opacity:.28}
+
+/* slide stack. grid, not absolute: the track keeps the height of the
+   TALLEST slide, so the pinned hero never changes height mid-transition */
+.hero-copy{position:relative}
+.hero-slides{display:grid;position:relative;touch-action:pan-y}
+.hero-slide{grid-area:1/1;align-self:end;min-width:0}
+.hero-slide:not(.is-active){opacity:0;visibility:hidden;pointer-events:none}
+.hero-slide{transition:opacity .5s cubic-bezier(.16,1,.3,1),visibility .5s}
+.hero-slide .hs-title{
+  font-size:clamp(42px,7.4vw,96px);font-weight:900;line-height:.98;
+  letter-spacing:-.035em;color:#fff;max-width:15ch;margin:0;
+}
+.hero-slide .hs-title em{font-style:normal;color:var(--hero-accent,var(--bronze))}
+
+/* controls */
+.hero-ui{position:relative;z-index:4;display:flex;align-items:center;gap:18px;margin-top:20px;padding-bottom:26px}
+.hs-arrows{display:flex;gap:8px}   /* DOM order prev,next → RTL puts "next" on the left */
+.hs-arrow{
+  width:44px;height:44px;border-radius:var(--r-md);
+  border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.06);
+  backdrop-filter:blur(6px);display:grid;place-items:center;cursor:pointer;
+  transition:background .25s,border-color .25s,transform .25s cubic-bezier(.16,1,.3,1);
+}
+.hs-arrow:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.6)}
+.hs-arrow:active{transform:scale(.94)}
+.hs-arrow svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.hs-arrow.hs-next svg{transform:scaleX(-1)}
+.hs-dots{display:flex;gap:8px;margin-inline-end:auto}
+.hs-dot{
+  position:relative;width:46px;height:3px;border-radius:2px;padding:0;border:0;
+  background:rgba(255,255,255,.22);overflow:hidden;cursor:pointer;
+}
+.hs-dot::before{content:'';position:absolute;inset:-11px 0}  /* 25px tall touch target */
+.hs-dot i{
+  position:absolute;inset:0;display:block;background:var(--hero-accent,var(--bronze));
+  transform:scaleX(0);transform-origin:right center;         /* RTL: fills right → left */
+}
+.hs-dot[aria-current="true"]{background:rgba(255,255,255,.34)}
+.hs-play{width:34px;height:34px;display:grid;place-items:center;opacity:.6;background:none;border:0;cursor:pointer;transition:opacity .25s}
+.hs-play:hover{opacity:1}
+.hs-play svg{width:13px;height:13px;fill:#fff}
+.hs-play .ic-play{display:none}
+.hs-play[aria-pressed="true"] .ic-play{display:block}
+.hs-play[aria-pressed="true"] .ic-pause{display:none}
+@media(max-width:900px){
+  .hs-dot{width:22px}
+  .hs-arrow{width:38px;height:38px}
+  /* both bottom corners are taken by fixed buttons: the WhatsApp FAB sits at
+     inset-inline-start (the right, in RTL) and the a11y button at inline-end.
+     Inset the control row past both so nothing lands under them. */
+  .hero-ui{gap:8px;margin-top:14px;padding-bottom:18px;padding-inline-start:62px;padding-inline-end:52px}
+}
+
+/* ---------- section frame ---------- */
+.sec{padding:clamp(64px,9vw,120px) 0;position:relative}
+.sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:44px}
+.sec-head h2{font-size:clamp(28px,4vw,48px);letter-spacing:-.03em}
+.sec-head p{margin:12px 0 0;color:var(--slate);font-size:17px;font-weight:300;max-width:52ch}
+.sec-link{font-family:var(--f-data);font-size:13px;letter-spacing:.06em;color:var(--bronze-deep);white-space:nowrap;border-bottom:1px solid var(--bronze);padding-bottom:2px}
+.idx{font-family:var(--f-data);font-size:11px;letter-spacing:.2em;color:var(--bronze);margin-inline-end:12px}
+
+/* ---------- categories ---------- */
+.cats{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.cat{
+  background:var(--paper);border:var(--hair);border-radius:var(--r-lg);padding:24px 20px;
+  display:flex;flex-direction:column;align-items:flex-start;gap:16px;text-align:start;position:relative;overflow:hidden;
+  transition:border-color .35s,transform .45s cubic-bezier(.16,1,.3,1),box-shadow .35s;
+}
+.cat::after{content:"";position:absolute;inset:auto 0 0 0;height:2px;background:var(--bronze);transform:scaleX(0);transform-origin:100% 50%;transition:transform .45s cubic-bezier(.16,1,.3,1)}
+.cat:hover{border-color:rgba(233,184,76,.45);background:var(--surface-2);transform:translateY(-4px);box-shadow:var(--shadow-2)}
+.cat:hover::after{transform:scaleX(1)}
+.cat svg{width:38px;height:38px;fill:none;stroke:var(--fg);stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;transition:stroke .3s}
+.cat:hover svg{stroke:var(--bronze)}
+.cat b{font-size:15.5px;font-weight:600;line-height:1.3}
+.cat span{font-family:var(--f-data);font-size:11px;color:var(--slate)}
+@media(max-width:1000px){.cats{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:620px){.cats{grid-template-columns:repeat(2,1fr);gap:10px}.cat{padding:16px 14px}.cat svg{width:30px;height:30px}}
+
+/* ---------- catalog ---------- */
+.cat-layout{display:grid;grid-template-columns:262px 1fr;gap:32px;align-items:start}
+.rail{position:sticky;top:140px;background:var(--paper);border:var(--hair);border-radius:var(--r-lg);padding:22px}
+.rail h4{font-family:var(--f-data);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--slate);font-weight:500;margin:0 0 12px}
+.rail-block{padding-bottom:20px;margin-bottom:20px;border-bottom:var(--hair)}
+.rail-block:last-of-type{border-bottom:0;padding-bottom:0;margin-bottom:0}
+.check{display:flex;align-items:center;gap:9px;padding:5px 0;font-size:15px;cursor:pointer;color:var(--ink-soft)}
+.check input{accent-color:var(--bronze);width:15px;height:15px;cursor:pointer}
+.rng{width:100%;accent-color:var(--bronze);margin-top:6px}
+.rng-val{font-family:var(--f-data);font-size:13px;display:flex;justify-content:space-between;margin-top:6px}
+.rail-reset{font-family:var(--f-data);font-size:12px;color:var(--slate);text-decoration:underline;text-underline-offset:3px}
+.cat-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.count{font-family:var(--f-data);font-size:13px;color:var(--slate)}
+.count b{color:var(--fg)}
+.sel{border:var(--hair);background:var(--surface-2);border-radius:var(--r-sm);padding:9px 12px;font-size:14.5px}
+.filters-toggle{display:none}
+@media(max-width:940px){
+  .cat-layout{grid-template-columns:1fr}
+  .rail{position:static;display:none}
+  .rail.open{display:block}
+  .filters-toggle{display:inline-flex}
+}
+
+/* ---------- product card ---------- */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:1100px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.grid{grid-template-columns:1fr}}
+.card{
+  background:var(--paper);border:var(--hair);border-radius:var(--r-lg);overflow:hidden;
+  display:flex;flex-direction:column;position:relative;
+  transition:border-color .35s,box-shadow .45s,transform .45s cubic-bezier(.16,1,.3,1);
+}
+.card:hover{border-color:rgba(233,184,76,.45);box-shadow:var(--shadow-2);transform:translateY(-4px)}
+.card-art{
+  height:200px;display:grid;place-items:center;border-bottom:var(--hair);position:relative;cursor:pointer;overflow:hidden;
+  background:
+    radial-gradient(240px 160px at var(--mx,50%) var(--my,40%),rgba(166,124,78,.16),transparent 70%),
+    linear-gradient(160deg,#161619,#000000);
+}
+.card-art svg{width:76px;height:auto;fill:none;stroke:var(--ink-soft);stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round;transition:transform .55s cubic-bezier(.16,1,.3,1),stroke .3s}
+.card:hover .card-art svg{transform:scale(1.07) translateY(-3px);stroke:var(--fg)}
+
+/* ---------- real product photography ----------
+   The photo covers the coded line art rather than replacing it, so a missing
+   or broken file just reveals the drawing underneath (see .art-img.failed).
+   The treatment layer matters: these come from many photographers and many
+   lighting setups, and without a common filter + vignette they read as a
+   scrapbook. Dimming also lets a shot on a white backdrop live on a dark card. */
+.art-img{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;
+  filter:brightness(.84) saturate(.92) contrast(1.05);
+  transition:transform .6s cubic-bezier(.16,1,.3,1),filter .45s ease;
+}
+.art-img.failed{display:none}                 /* fall back to the drawing */
+.card:hover .art-img{transform:scale(1.06);filter:brightness(1) saturate(1.02) contrast(1.05)}
+/* vignette, above the photo but below the chrome */
+.card-art::after{
+  content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:
+    radial-gradient(150% 100% at 50% 35%,transparent 38%,rgba(8,10,13,.62) 100%),
+    radial-gradient(240px 160px at var(--mx,50%) var(--my,40%),rgba(233,184,76,.20),transparent 70%);
+}
+.tag,.fav{z-index:3}
+.modal-art .art-img{position:relative;inset:auto;height:340px;border-radius:var(--r-md)}
+.cart-item .thumb{position:relative;overflow:hidden}
+.cart-item .thumb .art-img{border-radius:var(--r-sm)}
+.cat .art-img{opacity:.42;filter:brightness(.7) saturate(.8);z-index:0}
+.cat:hover .art-img{opacity:.6;filter:brightness(.85) saturate(1)}
+.cat > *{position:relative;z-index:1}
+.tag{position:absolute;top:12px;inset-inline-start:12px;font-family:var(--f-data);font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:5px 9px;border-radius:3px}
+.tag-new{background:var(--fg);color:var(--on-accent)}
+.tag-deal{background:var(--bronze);color:#fff}
+/* sits on top of a photograph now, and the corner vignette darkens exactly
+   where it lives — so it needs its own contrast rather than borrowing the
+   card's */
+.fav{position:absolute;top:10px;inset-inline-end:10px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(10,12,15,.62);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.18)}
+.fav:hover{background:rgba(10,12,15,.8);border-color:rgba(255,255,255,.32)}
+.fav svg{width:16px;height:16px;stroke:#E4E8ED;fill:none;stroke-width:1.7}
+.fav.on svg{fill:var(--bronze);stroke:var(--bronze)}
+.card-body{padding:18px;display:flex;flex-direction:column;flex:1}
+.brandline{font-family:var(--f-data);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--slate);margin-bottom:7px}
+.card h3{font-size:17.5px;font-weight:700;line-height:1.28;margin-bottom:12px;font-family:var(--f-body);letter-spacing:0}
+.specs{border-top:var(--hair);margin-top:auto;padding-top:12px}
+.spec-row{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:3px 0;color:var(--slate)}
+.spec-row b{color:var(--ink-soft);font-weight:600;font-family:var(--f-data);font-size:12.5px}
+.card-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px;border-top:var(--hair);background:var(--wash)}
+.card-price{display:flex;flex-direction:column;line-height:1.15}
+.card-price .now{font-size:20px;font-weight:600}
+.card-price .was{font-family:var(--f-data);font-size:12.5px;color:var(--slate);text-decoration:line-through}
+.empty{grid-column:1/-1;text-align:center;padding:70px 20px;border:1px dashed var(--line);border-radius:var(--r-lg);background:var(--paper)}
+.empty b{display:block;font-family:var(--f-display);font-size:21px;margin-bottom:8px}
+.empty p{color:var(--slate);margin:0 0 18px}
+
+/* ---------- dark band ---------- */
+.band{background:var(--band-bg);color:var(--on-ink);transition:background .6s linear}
+.band .wrap{padding-top:clamp(64px,9vw,110px);padding-bottom:clamp(64px,9vw,110px)}
+.band h2{color:var(--on-ink);font-size:clamp(28px,4vw,48px);letter-spacing:-.03em}
+.band-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+.band p{color:var(--fg-2);font-weight:200;font-size:18px;max-width:48ch}
+.band .eyebrow{color:var(--fg-3)}
+.band .eyebrow::after{background:var(--line-strong)}
+.band-lines{border-top:1px solid var(--line-strong)}
+.band-lines div{display:flex;gap:18px;padding:18px 0;border-bottom:1px solid var(--line-strong);align-items:baseline}
+.band-lines i{font-family:var(--f-data);font-size:11.5px;color:var(--bronze);font-style:normal;letter-spacing:.1em;min-width:26px}
+.band-lines b{font-weight:600;font-size:16.5px}
+.band-lines span{color:var(--fg-3);font-size:14.5px;margin-inline-start:auto;text-align:end}
+@media(max-width:900px){.band-grid{grid-template-columns:1fr;gap:28px}}
+
+/* ---------- brands ---------- */
+.brands{display:flex;flex-wrap:wrap;gap:10px}
+.brand-chip{font-family:var(--f-data);font-size:14px;letter-spacing:.06em;padding:12px 22px;border:var(--hair);border-radius:var(--r-sm);background:var(--paper);color:var(--ink-soft);transition:all .3s}
+.brand-chip:hover{border-color:var(--line-strong);background:var(--surface-3);color:var(--fg)}
+.brand-chip.on{background:var(--bronze);color:var(--on-accent);border-color:var(--bronze)}
+
+/* ---------- reviews ---------- */
+.reviews{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.review{background:var(--paper);border:var(--hair);border-radius:var(--r-lg);padding:30px;display:flex;flex-direction:column}
+.stars{color:var(--bronze);font-size:14px;letter-spacing:2px;margin-bottom:16px}
+.review q{font-family:var(--f-display);font-size:19px;line-height:1.55;quotes:"„" "”";display:block;margin-bottom:22px}
+.rev-who{display:flex;align-items:center;gap:11px;margin-top:auto;padding-top:16px;border-top:var(--hair)}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--bronze-wash);color:var(--bronze-deep);display:grid;place-items:center;font-weight:700}
+.rev-who b{font-size:15px;display:block;font-weight:600}
+.rev-who span{font-family:var(--f-data);font-size:11.5px;color:var(--slate)}
+@media(max-width:900px){.reviews{grid-template-columns:1fr}}
+
+/* ---------- contact ---------- */
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.contact-card{background:var(--paper);border:var(--hair);border-radius:var(--r-lg);padding:38px}
+.contact-card h3{font-size:26px;margin-bottom:10px}
+.contact-card > p{color:var(--slate);margin:0 0 24px;font-weight:300}
+.info-row{display:flex;gap:14px;padding:15px 0;border-top:var(--hair);align-items:center}
+.info-row svg{width:18px;height:18px;stroke:var(--bronze);fill:none;stroke-width:1.5;flex-shrink:0}
+.info-row b{font-weight:600;font-size:15.5px}
+.info-row span{display:block;color:var(--slate);font-size:13.5px}
+.spec-table{border-top:var(--hair)}
+.spec-table div{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:var(--hair);font-size:14.5px}
+.spec-table span{color:var(--slate)}
+.spec-table b{font-family:var(--f-data);font-size:13.5px;font-weight:500}
+@media(max-width:820px){.contact-grid{grid-template-columns:1fr}}
+
+/* ---------- footer ---------- */
+.foot{background:var(--ink);color:var(--on-ink-2);padding:64px 0 0;font-size:15px;border-top:1px solid var(--line-ink)}
+.foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:36px;padding-bottom:44px}
+.foot h5{font-family:var(--f-data);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--on-ink);margin:0 0 16px;font-weight:500}
+.foot ul{list-style:none;margin:0;padding:0}
+.foot li{margin-bottom:9px}
+.foot a:hover{color:var(--on-ink)}
+.foot .logo b{color:var(--on-ink)}
+.foot-note{color:var(--on-ink-3);font-size:14px;margin-top:16px;max-width:34ch;font-weight:300}
+.foot-bottom{border-top:1px solid var(--line-ink);padding:20px 0;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-family:var(--f-data);font-size:12px;color:var(--on-ink-3)}
+.pay{display:flex;gap:7px}
+.pay span{border:1px solid rgba(255,255,255,.16);border-radius:3px;padding:3px 8px;font-size:10.5px}
+@media(max-width:860px){.foot-grid{grid-template-columns:1fr 1fr;gap:28px}}
+
+/* ---------- floating ---------- */
+.fab{position:fixed;bottom:22px;inset-inline-start:22px;z-index:70;width:56px;height:56px;border-radius:50%;background:var(--wa-bright);display:grid;place-items:center;box-shadow:0 10px 30px -8px rgba(37,211,102,.7);transition:transform .3s cubic-bezier(.16,1,.3,1)}
+.fab:hover{transform:scale(1.06)}
+.fab svg{width:28px;height:28px;fill:#fff}
+.a11y-btn{position:fixed;bottom:22px;inset-inline-end:22px;z-index:70;width:48px;height:48px;border-radius:50%;background:var(--paper);border:var(--hair);display:grid;place-items:center;box-shadow:var(--shadow-2)}
+.a11y-btn svg{width:22px;height:22px;stroke:var(--fg);fill:none;stroke-width:1.5}
+.a11y-panel{position:fixed;bottom:82px;inset-inline-end:22px;z-index:71;background:var(--paper);border:var(--hair);border-radius:var(--r-lg);padding:20px;width:250px;box-shadow:var(--shadow-2);display:none}
+.a11y-panel.on{display:block}
+.a11y-panel h4{font-family:var(--f-data);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);font-weight:500;margin:0 0 14px}
+.a11y-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:14.5px;border-top:var(--hair)}
+.a11y-row:first-of-type{border-top:0}
+.a11y-row button{border:var(--hair);border-radius:var(--r-sm);padding:4px 10px;font-size:13px;background:var(--aluminum)}
+.a11y-row button:hover{background:var(--fg);color:var(--on-accent);border-color:var(--fg)}
+/* High contrast forces the site LIGHT — that is the point of the mode, and it
+   has to override every token the dark theme introduced or it silently stops
+   working. --ink flips to white here because it is used as a dark *fill*
+   (.util/.foot/.admin-head); leaving it black would put dark text on black. */
+body.hc{
+  --surface-0:#fff;--surface-1:#fff;--surface-2:#fff;--surface-3:#fff;
+  --aluminum:#fff;--aluminum-deep:#fff;--paper:#fff;
+  --fg:#000;--fg-2:#000;--fg-3:#000;--slate:#000;
+  --ink:#fff;--ink-soft:#000;
+  --on-accent:#fff;            /* so .btn-primary/.tag-new/.toast go black-on-white */
+  --line:#000;--line-strong:#000;
+  --bronze:#6A4A22;--bronze-deep:#6A4A22;--bronze-wash:#fff;
+  --band-bg:#fff;
+  --shadow-2:0 0 0 2px #000;
+}
+/* these two carry a hardcoded white text colour for the dark theme */
+body.hc .band,body.hc .band h2{color:#000}
+body.hc .util,body.hc .foot,body.hc .admin-head{--on-ink:#000;--on-ink-2:#000;--on-ink-3:#000;--line-ink:#000}
+body.hc .foot h5,body.hc .foot a{color:#000}
+body.no-anim *{animation:none !important;transition:none !important}
+/* the rule above cannot stop a JS timer, so the slider checks no-anim itself.
+   this just keeps the autoplay bar from freezing at a meaningless position. */
+body.no-anim .hs-dot i{transform:scaleX(1) !important}
+body.links a{text-decoration:underline !important;text-underline-offset:3px}
+
+/* ---------- drawers / modal ---------- */
+.scrim{position:fixed;inset:0;background:rgba(4,5,7,.72);backdrop-filter:blur(4px);z-index:80;opacity:0;pointer-events:none;transition:opacity .35s}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;inset-inline-end:0;height:100%;width:min(420px,92vw);background:var(--surface-1);border-inline-start:var(--hair);z-index:90;transform:translateX(100%);transition:transform .5s cubic-bezier(.16,1,.3,1);display:flex;flex-direction:column}
+/* The drawer hangs off the inline-end edge, but `transform` has no logical
+   form: the offset that parks it off-screen has to flip with the writing
+   direction, or the drawer sits open in the middle of an LTR page. */
+[dir="rtl"] .drawer{transform:translateX(-100%)}
+.drawer.on,[dir="rtl"] .drawer.on{transform:none}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:var(--hair);background:var(--paper)}
+.drawer-head h3{font-size:20px}
+.drawer-body{flex:1;overflow-y:auto;padding:20px 24px}
+.drawer-foot{padding:20px 24px;border-top:var(--hair);background:var(--paper)}
+.x{width:36px;height:36px;border-radius:var(--r-sm);display:grid;place-items:center;font-size:20px;color:var(--slate)}
+.x:hover{background:var(--surface-3);color:var(--fg)}
+.cart-item{display:flex;gap:14px;padding:14px 0;border-bottom:var(--hair);align-items:center}
+.cart-item .thumb{width:52px;height:52px;border-radius:var(--r-sm);background:var(--paper);border:var(--hair);display:grid;place-items:center;flex-shrink:0}
+.cart-item .thumb svg{width:26px;height:auto;fill:none;stroke:var(--ink-soft);stroke-width:1.2}
+.cart-item b{display:block;font-size:15px;font-weight:600;line-height:1.3}
+.cart-item .p{font-family:var(--f-data);font-size:13.5px;color:var(--slate);margin-top:2px}
+.qty{display:flex;align-items:center;gap:2px;border:var(--hair);border-radius:var(--r-sm);background:var(--surface-2);margin-inline-start:auto}
+.qty button{width:28px;height:28px;display:grid;place-items:center;color:var(--slate)}
+.qty span{font-family:var(--f-data);font-size:14px;min-width:22px;text-align:center}
+.totals{font-family:var(--f-data);font-size:14px}
+.totals div{display:flex;justify-content:space-between;padding:6px 0}
+.totals .grand{border-top:var(--hair);margin-top:8px;padding-top:12px;font-size:20px;font-weight:600}
+.modal{position:fixed;inset:0;z-index:90;display:none;place-items:center;padding:20px;overflow-y:auto}
+.modal.on{display:grid}
+.modal-box{background:var(--surface-1);border:var(--hair);border-radius:var(--r-lg);width:min(880px,100%);overflow:hidden;box-shadow:var(--shadow-modal);margin:auto}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr}
+.modal-art{background:linear-gradient(160deg,#161619,#000000);display:grid;place-items:center;padding:50px 30px;min-height:340px}
+.modal-art svg{width:120px;height:auto;fill:none;stroke:var(--fg);stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round}
+.modal-side{padding:34px;display:flex;flex-direction:column}
+.modal-side h3{font-family:var(--f-body);font-size:26px;font-weight:700;line-height:1.25;margin-bottom:8px}
+.modal-desc{color:var(--ink-soft);font-weight:300;font-size:16px;margin:14px 0}
+.modal-price{font-family:var(--f-data);font-size:32px;font-weight:600;letter-spacing:-.03em;margin:6px 0 4px}
+.modal-pay{font-size:13.5px;color:var(--slate);margin-bottom:20px}
+#mSpecs{margin:6px 0 22px}
+@media(max-width:760px){.modal-grid{grid-template-columns:1fr}.modal-art{min-height:210px;padding:30px}.modal-art svg{width:80px}.modal-side{padding:24px}}
+.toast{position:fixed;bottom:24px;inset-inline-end:24px;z-index:120;background:var(--fg);color:var(--on-accent);padding:14px 20px;border-radius:var(--r-md);font-size:15px;box-shadow:var(--shadow-2);transform:translateY(20px);opacity:0;pointer-events:none;transition:all .3s}
+.toast.on{transform:none;opacity:1}
+
+/* ---------- admin ---------- */
+.admin{position:fixed;inset:0;z-index:130;background:var(--aluminum);display:none;flex-direction:column}
+.admin.on{display:flex}
+.admin-head{display:flex;align-items:center;gap:16px;padding:16px 24px;background:var(--ink);color:var(--on-ink);border-bottom:1px solid var(--line-ink)}
+.admin-head b{font-family:var(--f-display);font-size:19px}
+.admin-head .tabs{display:flex;gap:4px;margin-inline-start:auto;flex-wrap:wrap}
+.admin-head .tabs button{padding:8px 15px;border-radius:var(--r-sm);color:var(--on-ink-2);font-size:14.5px;font-weight:600}
+.admin-head .tabs button.on{background:rgba(255,255,255,.14);color:var(--on-ink)}
+.admin-body{flex:1;overflow-y:auto;padding:28px 24px}
+.admin-wrap{max-width:1080px;margin:0 auto}
+.panel{display:none}
+.panel.on{display:block}
+.field{margin-bottom:16px}
+.field label{display:block;font-family:var(--f-data);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;padding:11px 13px;border:var(--hair);border-radius:var(--r-sm);background:var(--surface-2);color:var(--fg)}
+.field input:disabled{opacity:.55;cursor:not-allowed}
+.field input::placeholder,.field textarea::placeholder{color:var(--fg-3)}
+.field textarea{min-height:84px;resize:vertical}
+.form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0 16px}
+@media(max-width:800px){.form-grid{grid-template-columns:1fr}}
+.box{background:var(--paper);border:var(--hair);border-radius:var(--r-lg);padding:24px;margin-bottom:20px}
+.box h3{font-size:20px;margin-bottom:4px}
+.box .hint{color:var(--slate);font-size:14px;margin:0 0 20px;font-weight:300}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th{font-family:var(--f-data);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);text-align:start;padding:10px 8px;border-bottom:var(--hair);font-weight:500}
+td{padding:11px 8px;border-bottom:var(--hair);vertical-align:middle}
+td.act{white-space:nowrap;text-align:end}
+.gate{max-width:380px;margin:12vh auto;background:var(--surface-1);border:var(--hair);border-radius:var(--r-lg);padding:34px;text-align:center}
+.gate h3{font-size:22px;margin-bottom:6px}
+.gate p{color:var(--slate);font-size:14.5px;margin:0 0 20px;font-weight:300}
+.lang-pick{font-family:var(--f-data);font-size:12px;letter-spacing:.06em;padding:7px 8px;border:1px solid currentColor;border-radius:var(--r-sm);background:transparent;color:inherit;cursor:pointer}
+.lang-pick option{background:var(--surface-1);color:var(--fg)}
+.mini{font-family:var(--f-data);font-size:12px;padding:5px 10px;border:var(--hair);border-radius:3px;margin-inline-start:6px}
+.mini:hover{background:var(--fg);color:var(--on-accent);border-color:var(--fg)}
+.mini.del:hover{background:#B3261E;border-color:#B3261E}
+.img-preview{margin-top:10px;display:flex;align-items:center;gap:10px}
+.img-preview img{width:64px;height:64px;object-fit:cover;border-radius:var(--r-sm);border:var(--hair);background:var(--surface-2)}
+.warn{background:var(--bronze-wash);border:1px solid rgba(233,184,76,.32);border-radius:var(--r-md);padding:14px 16px;font-size:14px;color:var(--bronze-deep);margin-bottom:20px}
+
+/* ============================================================
+   MOTION  ·  base states applied only after GSAP is confirmed,
+   so the page is fully readable if JS or the CDN fails
+   ============================================================ */
+html.motion .r-item{opacity:0}
+html.motion .parallax-in{will-change:transform}
+@media (prefers-reduced-motion:reduce){
+  html.motion .r-item{opacity:1}
+  *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+  html{scroll-behavior:auto}
+  .hero-slide{transition-duration:.01ms}   /* slide swaps are instant, autoplay is off in JS */
+}
+</style>
+</head>
+<body>
+
+<!-- ============ utility bar ============ -->
+<div class="util">
+  <div class="wrap">
+    <div class="util-list">
+      <span id="uAddr">שד' בן גוריון 2, נתניה</span>
+      <span id="uShip">משלוח חינם מעל ₪299</span>
+      <span id="uPay">עד 36 תשלומים</span>
+    </div>
+    <div><a href="#" id="uTel">050-477-7470</a></div>
+  </div>
+</div>
+
+<!-- ============ header ============ -->
+<header class="head over" id="head">
+  <div class="wrap head-in">
+    <a href="#top" class="logo"><b id="brandName">Phone Store</b><small id="brandSub">Netanya · Since 2016</small></a>
+    <nav class="nav">
+      <a href="#catalog" data-i18n="nav.catalog">המלאי</a>
+      <a href="#categories" data-i18n="nav.categories">קטגוריות</a>
+      <a href="#how" data-i18n="nav.how">איך זה עובד</a>
+      <a href="#reviews" data-i18n="nav.reviews">לקוחות</a>
+      <a href="#contact" data-i18n="nav.contact">צור קשר</a>
+    </nav>
+    <div class="head-acts">
+      <button class="icon-btn burger" id="burger" aria-label="תפריט" data-i18n-attr="aria-label:a.menu"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      <select class="lang-pick" id="langPick" aria-label="שפה" data-i18n-attr="aria-label:lang.label"></select>
+      <button class="icon-btn" id="searchBtn" aria-label="חיפוש" data-i18n-attr="aria-label:a.search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+      <button class="icon-btn" id="cartBtn" aria-label="עגלת קניות" data-i18n-attr="aria-label:a.cart">
+        <svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/></svg>
+        <span class="badge" id="cartCount" style="display:none">0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ============================================================
+     HERO
+     media layer = <video> when a URL is set in the admin panel,
+     otherwise the coded motion scene below it
+     ============================================================ -->
+<section class="hero" id="hero">
+  <div class="hero-media" id="heroMedia">
+    <div class="hero-layer par" data-par="0.55"><div class="hero-layer ptr" data-ptr="10">
+      <video id="heroVideo" muted loop playsinline preload="metadata" aria-hidden="true"></video>
+    </div></div>
+    <div class="hero-scene" aria-hidden="true">
+      <div class="hero-layer par" data-par="1"><div class="hero-layer ptr" data-ptr="26"><div class="glow"></div></div></div>
+      <div class="hero-layer par" data-par="-0.6"><div class="hero-layer ptr" data-ptr="-18"><div class="glow b"></div></div></div>
+      <div class="hero-layer par" data-par="0.25"><div class="hero-layer ptr" data-ptr="6"><div class="rules"></div></div></div>
+      <div class="hero-layer par" data-par="-0.35"><div class="hero-layer ptr" data-ptr="-34" data-tilt="1">
+        <div class="scene-devices">
+          <svg viewBox="0 0 200 400" class="float">
+            <rect class="dl" x="16" y="10" width="168" height="380" rx="34"/>
+            <rect class="dl dl-soft" x="24" y="18" width="152" height="364" rx="28"/>
+            <rect class="dl dl-acc" x="72" y="24" width="56" height="15" rx="7.5"/>
+            <rect class="dl" x="118" y="52" width="52" height="52" rx="16"/>
+            <circle class="dl" cx="132" cy="66" r="8.5"/><circle class="dl" cx="156" cy="66" r="8.5"/><circle class="dl" cx="132" cy="90" r="8.5"/>
+            <path class="dl dl-soft" d="M186 96v40M186 156v40M14 110v30"/>
+            <path class="dl dl-acc" d="M70 372h60"/>
+          </svg>
+        </div>
+      </div></div>
+      <div class="hero-layer ptr" data-ptr="14"><div class="sheen"></div></div>
+    </div>
+    <!-- The WebGL stage. Sits above the coded scene and stays hidden until the
+         module has actually rendered a frame, so a failed import, a missing
+         GPU or reduced-motion all leave the scene above untouched. -->
+    <canvas id="heroGl" aria-hidden="true"></canvas>
+  </div>
+  <div class="hero-veil" id="heroVeil" aria-hidden="true"></div>
+  <!-- decorative stock badge; count and copy come from DATA + the i18n
+       dictionary in renderHeroSignal(), so it never lies about the stock
+       and follows the visitor's language -->
+  <div class="hero-signal" aria-hidden="true" id="heroSignal"><strong>15 דגמים</strong><span>זמינים עכשיו · משלוח מהיר מנתניה</span></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <div class="wrap hero-inner">
+    <div class="hero-copy" id="heroCopy">
+      <div class="hero-slider" id="heroSlider" role="region" aria-roledescription="קרוסלה" aria-label="מסרים ראשיים" data-i18n-attr="aria-label:a.slides,aria-roledescription:a.carousel">
+        <div class="hero-slides" id="heroSlides" aria-live="off">
+          <!-- Slide 1 ships in the HTML, byte-identical to the old static hero.
+               renderSlides() rebuilds the stack from DATA on boot. With JS or the
+               CDN dead, this is what the visitor sees, and it is complete. -->
+          <article class="hero-slide is-active" data-i="0" role="group" aria-roledescription="שקופית" aria-label="שקופית 1 מתוך 3">
+            <div class="hero-mark hs-mark">Phone Store · נתניה</div>
+            <h1 class="hs-title">
+              <span class="line-mask"><span>טלפון חדש</span></span>
+              <span class="line-mask"><span>מתחיל <em>בשיחה</em>.</span></span>
+            </h1>
+            <p class="lead hs-lead">אלי חזות מוכר סלולר בשד' בן גוריון כבר שנים. שולחים הודעה בוואטסאפ, מקבלים המלצה אמיתית ומחיר סופי, והמכשיר מגיע עד הבית תוך 24 שעות.</p>
+            <div class="hero-cta hs-cta">
+              <button class="btn btn-wa hs-wa">
+                <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15L2 22l5.2-1.4A10 10 0 1012 2zm5.8 14.2c-.2.7-1.2 1.3-1.9 1.4-.5.1-1.2.1-1.9-.1-.4-.1-1-.3-1.7-.6-3-1.3-5-4.3-5.1-4.5-.2-.2-1.2-1.6-1.2-3s.7-2.1 1-2.4c.3-.3.6-.4.8-.4h.6c.2 0 .4 0 .6.5l.9 2c.1.2.1.4 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.7 1.2 1.6 2 1.1 1 2 1.3 2.3 1.4.3.1.4.1.6-.1l.8-1c.2-.2.4-.2.6-.1l2 .9c.2.1.4.2.4.3.1.2.1.6-.1 1.2z"/></svg>
+                דברו עם אלי בוואטסאפ
+              </button>
+              <a href="#catalog" class="btn btn-light hs-alt">לצפייה במלאי</a>
+            </div>
+          </article>
+        </div>
+      </div>
+      <div class="hero-foot" id="hFoot">
+        <div><b>24 שע׳</b><span data-i18n="hero.f1">משלוח עד הבית</span></div>
+        <div><b>36</b><span data-i18n="hero.f2">תשלומים ללא ריבית</span></div>
+        <div><b>30 יום</b><span data-i18n="hero.f3">החזרה ללא עלות</span></div>
+        <div><b>₪299</b><span data-i18n="hero.f4">מעל זה, משלוח חינם</span></div>
+      </div>
+    </div>
+
+    <div class="hero-ui" id="heroUi">
+      <div class="hs-arrows">
+        <button class="hs-arrow hs-prev" type="button" aria-label="השקופית הקודמת" data-i18n-attr="aria-label:a.slidePrev" aria-controls="heroSlides"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+        <button class="hs-arrow hs-next" type="button" aria-label="השקופית הבאה" data-i18n-attr="aria-label:a.slideNext" aria-controls="heroSlides"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+      <div class="hs-dots" id="hsDots" role="tablist" aria-label="בחירת שקופית" data-i18n-attr="aria-label:a.slidePick"></div>
+      <button class="hs-play" id="hsPlay" type="button" aria-label="עצירת ההחלפה האוטומטית" data-i18n-attr="aria-label:a.slideStop" aria-pressed="false">
+        <svg class="ic-pause" viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
+        <svg class="ic-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="cue" aria-hidden="true"><span data-i18n="hero.scroll">גללו</span><i></i></div>
+</section>
+
+<!-- ============ categories ============ -->
+<section class="sec" id="categories" data-reveal>
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <p class="eyebrow r-item"><span class="idx">01</span><span data-i18n="cats.eyebrow">מה יש בחנות</span></p>
+        <h2 class="r-item" data-i18n="cats.title">קטגוריות</h2>
+        <p class="r-item" data-i18n="cats.lead">כל מה שמסביב למכשיר: מטענים, כבלים, הגנה וסוללות. אם משהו לא מופיע כאן, שאלו בוואטסאפ; רוב הפריטים מגיעים תוך יום.</p>
+      </div>
+      <a href="#catalog" class="sec-link r-item" data-i18n="cats.all">לכל המלאי ←</a>
+    </div>
+    <div class="cats r-item" id="catsGrid"></div>
+  </div>
+</section>
+
+<!-- ============ catalog ============ -->
+<section class="sec" id="catalog" style="padding-top:0" data-reveal>
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <p class="eyebrow r-item"><span class="idx">02</span><span data-i18n="cat.eyebrow">מלאי מלא</span></p>
+        <h2 class="r-item" data-i18n="cat.title">המלאי שלנו</h2>
+      </div>
+      <button class="btn btn-ghost btn-sm filters-toggle r-item" id="filtersToggle" data-i18n="cat.filters">סינון</button>
+    </div>
+    <div class="cat-layout">
+      <aside class="rail r-item" id="rail">
+        <div class="rail-block">
+          <h4 data-i18n="cat.search">חיפוש</h4>
+          <input type="search" id="q" placeholder="שם דגם או מותג" data-i18n-attr="placeholder:cat.searchPh" style="width:100%;padding:10px 12px;border:var(--hair);border-radius:var(--r-sm);background:var(--aluminum)">
+        </div>
+        <div class="rail-block"><h4 data-i18n="cat.category">קטגוריה</h4><div id="railCats"></div></div>
+        <div class="rail-block"><h4 data-i18n="cat.brand">מותג</h4><div id="railBrands"></div></div>
+        <div class="rail-block">
+          <h4 data-i18n="cat.price">מחיר</h4>
+          <input type="range" class="rng" id="rng" min="0" max="6000" step="100" value="6000">
+          <div class="rng-val"><span>₪0</span><span id="rngMax">₪6,000</span></div>
+        </div>
+        <button class="rail-reset" id="reset" data-i18n="cat.reset">איפוס כל הסינונים</button>
+      </aside>
+      <div>
+        <div class="cat-bar r-item">
+          <div class="count"><b id="cnt">0</b> <span data-i18n="cat.count">מוצרים</span></div>
+          <select class="sel" id="sort">
+            <option value="pop" data-i18n="sort.pop">מיון: פופולריות</option>
+            <option value="new" data-i18n="sort.new">חדש ביותר</option>
+            <option value="asc" data-i18n="sort.asc">מחיר: נמוך לגבוה</option>
+            <option value="desc" data-i18n="sort.desc">מחיר: גבוה לנמוך</option>
+          </select>
+        </div>
+        <div class="grid" id="grid"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ how it works ============ -->
+<section class="band" id="how" data-reveal>
+  <div class="wrap band-grid">
+    <div>
+      <p class="eyebrow r-item"><span class="idx">03</span><span data-i18n="how.eyebrow">התהליך</span></p>
+      <h2 class="r-item" data-i18n="how.title">ארבעה צעדים, בלי טפסים</h2>
+      <p class="r-item" style="margin-top:16px" data-i18n="how.lead">אין כאן קופה אוטומטית ואין המתנה לנציג. בוחרים מה שמעניין, שולחים הודעה, ואלי עונה בעצמו.</p>
+      <button class="btn btn-wa r-item" style="margin-top:26px" id="howWa" data-i18n="how.cta">התחילו שיחה</button>
+    </div>
+    <div class="band-lines">
+      <div class="r-item"><i>01</i><b data-i18n="how.s1">בוחרים מכשיר</b><span data-i18n="how.s1s">או פשוט מתארים מה צריך</span></div>
+      <div class="r-item"><i>02</i><b data-i18n="how.s2">שולחים בוואטסאפ</b><span data-i18n="how.s2s">ההודעה נבנית לבד</span></div>
+      <div class="r-item"><i>03</i><b data-i18n="how.s3">מקבלים מחיר סופי</b><span data-i18n="how.s3s">כולל אחריות ותשלומים</span></div>
+      <div class="r-item"><i>04</i><b data-i18n="how.s4">מקבלים עד הבית</b><span data-i18n="how.s4s">תוך 24 שעות</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ brands ============ -->
+<section class="sec" data-reveal>
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <p class="eyebrow r-item"><span class="idx">04</span><span data-i18n="brands.eyebrow">מותגים</span></p>
+        <h2 class="r-item" data-i18n="brands.title">מה שאנחנו מחזיקים</h2>
+      </div>
+    </div>
+    <div class="brands r-item" id="brandChips"></div>
+  </div>
+</section>
+
+<!-- ============ reviews ============ -->
+<section class="sec" id="reviews" style="padding-top:0" data-reveal>
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <p class="eyebrow r-item"><span class="idx">05</span><span data-i18n="rev.eyebrow">לקוחות</span></p>
+        <h2 class="r-item" data-i18n="rev.title">מה אומרים עלינו</h2>
+      </div>
+    </div>
+    <div class="reviews r-item" id="reviewsGrid"></div>
+  </div>
+</section>
+
+<!-- ============ contact ============ -->
+<section class="sec" id="contact" style="padding-top:0" data-reveal>
+  <div class="wrap contact-grid">
+    <div class="contact-card r-item">
+      <p class="eyebrow"><span class="idx">06</span><span data-i18n="con.eyebrow">דברו איתנו</span></p>
+      <h3 data-i18n="con.title">אלי עונה בעצמו</h3>
+      <p data-i18n="con.lead">שאלה על דגם, מחיר או זמינות. הודעה בוואטסאפ היא הדרך המהירה ביותר לקבל תשובה.</p>
+      <button class="btn btn-wa btn-block" id="cWa" data-i18n="con.cta">שליחת הודעה בוואטסאפ</button>
+      <div class="info-row" style="margin-top:26px">
+        <svg viewBox="0 0 24 24"><path d="M12 21s7-6 7-11a7 7 0 10-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        <div><b id="cAddr">שד' בן גוריון 2, נתניה</b><span data-i18n="con.parking">חניה ברחוב, כניסה מהשדרה</span></div>
+      </div>
+      <div class="info-row">
+        <svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a1 1 0 01-1 1A16 16 0 014 5a1 1 0 011-1z"/></svg>
+        <div><b id="cTel">050-477-7470</b><span data-i18n="con.hours">ראשון עד חמישי 09:00 עד 19:00 · שישי 09:00 עד 14:00</span></div>
+      </div>
+      <div class="info-row">
+        <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+        <div><b id="cMail">phonestore770@gmail.com</b><span data-i18n="con.mailNote">לחשבוניות ופניות שאינן דחופות</span></div>
+      </div>
+    </div>
+    <div class="contact-card r-item" style="display:flex;flex-direction:column">
+      <p class="eyebrow" data-i18n="terms.eyebrow">אחריות ותנאים</p>
+      <h3 data-i18n="terms.title">מה מובטח לכם</h3>
+      <p data-i18n="terms.lead">התנאים תקפים לכל מכשיר שנרכש דרך החנות.</p>
+      <div class="spec-table" style="margin-top:auto">
+        <div><span data-i18n="terms.warranty">אחריות יבואן רשמי</span><b data-i18n="terms.warrantyV">12 חודשים</b></div>
+        <div><span data-i18n="terms.returns">החזרה או החלפה</span><b data-i18n="terms.returnsV">עד 30 יום</b></div>
+        <div><span data-i18n="terms.delivery">משלוח עד הבית</span><b data-i18n="terms.deliveryV">24 שעות</b></div>
+        <div><span data-i18n="terms.freeFrom">משלוח חינם החל מ</span><b>₪299</b></div>
+        <div><span data-i18n="terms.instal">תשלומים ללא ריבית</span><b data-i18n="terms.instalV">עד 36</b></div>
+        <div><span data-i18n="terms.payment">אמצעי תשלום</span><b data-i18n="terms.paymentV">אשראי · ביט · מזומן</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ footer ============ -->
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="logo"><b id="fBrand">Phone Store</b><small>Netanya</small></div>
+        <p class="foot-note" data-i18n="foot.note">חנות סלולר עצמאית בנתניה. מכירה, ייעוץ ואביזרים, עם שירות אישי של אלי חזות.</p>
+      </div>
+      <div><h5 data-i18n="cats.title">קטגוריות</h5><ul id="footCats"></ul></div>
+      <div>
+        <h5 data-i18n="foot.service">שירות</h5>
+        <ul>
+          <li><a href="#" id="fWa" data-i18n="a.wa">וואטסאפ</a></li>
+          <li><a href="#" id="fTel" data-i18n="foot.phone">טלפון</a></li>
+          <li><a href="#contact" data-i18n="foot.hours">שעות פתיחה</a></li>
+          <li><a href="#how" data-i18n="foot.shipping">מדיניות משלוחים</a></li>
+          <li><a href="#how" data-i18n="foot.returns">החזרות</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5 data-i18n="foot.shop">החנות</h5>
+        <ul>
+          <li><a href="#top" data-i18n="foot.home">עמוד הבית</a></li>
+          <li><a href="#catalog" data-i18n="nav.catalog">המלאי</a></li>
+          <li><a href="#reviews" data-i18n="nav.reviews">לקוחות</a></li>
+          <li><a href="#" id="adminLink" data-i18n="foot.admin">ניהול תוכן</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <div>© <span id="yr"></span> Phone Store · אלי חזות · שד' בן גוריון 2, נתניה</div>
+      <div class="pay"><span>VISA</span><span>MASTERCARD</span><span>AMEX</span><span data-i18n="pay.bit">ביט</span><span data-i18n="pay.cash">מזומן</span></div>
+    </div>
+  </div>
+</footer>
+
+<a href="#" class="fab" id="fab" aria-label="וואטסאפ" data-i18n-attr="aria-label:a.wa"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 00-8.6 15L2 22l5.2-1.4A10 10 0 1012 2zm5.8 14.2c-.2.7-1.2 1.3-1.9 1.4-.5.1-1.2.1-1.9-.1-.4-.1-1-.3-1.7-.6-3-1.3-5-4.3-5.1-4.5-.2-.2-1.2-1.6-1.2-3s.7-2.1 1-2.4c.3-.3.6-.4.8-.4h.6c.2 0 .4 0 .6.5l.9 2c.1.2.1.4 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.7 1.2 1.6 2 1.1 1 2 1.3 2.3 1.4.3.1.4.1.6-.1l.8-1c.2-.2.4-.2.6-.1l2 .9c.2.1.4.2.4.3.1.2.1.6-.1 1.2z"/></svg></a>
+
+<button class="a11y-btn" id="a11yBtn" aria-label="הגדרות נגישות" data-i18n-attr="aria-label:a.a11y"><svg viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="1.8"/><path d="M4 8.5l8 1.5 8-1.5M12 10v5m0 0l-3 6m3-6l3 6"/></svg></button>
+<div class="a11y-panel" id="a11yPanel">
+  <h4 data-i18n="a11y.title">נגישות</h4>
+  <div class="a11y-row"><span data-i18n="a11y.fontSize">גודל טקסט</span><div><button data-a11y="dec">A-</button> <button data-a11y="reset-font">A</button> <button data-a11y="inc">A+</button></div></div>
+  <div class="a11y-row"><span data-i18n="a11y.contrast">ניגודיות גבוהה</span><button data-a11y="hc" data-i18n="a11y.on">הפעלה</button></div>
+  <div class="a11y-row"><span data-i18n="a11y.links">הדגשת קישורים</span><button data-a11y="links" data-i18n="a11y.on">הפעלה</button></div>
+  <div class="a11y-row"><span data-i18n="a11y.motion">עצירת אנימציות</span><button data-a11y="anim" data-i18n="a11y.on">הפעלה</button></div>
+  <div class="a11y-row"><span data-i18n="a11y.reset"><span data-i18n="a11y.reset">איפוס</span></span><button data-a11y="reset">איפוס</button></div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="cartDrawer">
+  <div class="drawer-head"><h3 data-i18n="cart.title">הפריטים שלכם</h3><button class="x" data-close>✕</button></div>
+  <div class="drawer-body" id="cartBody"></div>
+  <div class="drawer-foot">
+    <div class="totals">
+      <div><span data-i18n="cart.sub">סכום ביניים</span><span id="tSub">₪0</span></div>
+      <div><span data-i18n="cart.ship">משלוח</span><span id="tShip" data-i18n="cart.free">חינם</span></div>
+      <div class="grand"><span data-i18n="cart.total">סה״כ</span><span id="tGrand">₪0</span></div>
+    </div>
+    <button class="btn btn-wa btn-block" style="margin-top:16px" id="checkout" data-i18n="cart.checkout">שליחת ההזמנה בוואטסאפ</button>
+    <p style="font-size:13px;color:var(--slate);text-align:center;margin:10px 0 0" data-i18n="cart.note">ההודעה נפתחת מוכנה. התשלום מסוכם בשיחה.</p>
+  </div>
+</aside>
+
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-grid">
+      <div class="modal-art" id="mArt"></div>
+      <div class="modal-side">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+          <div><div class="brandline" id="mBrand"></div><h3 id="mName"></h3></div>
+          <button class="x" data-close>✕</button>
+        </div>
+        <p class="modal-desc" id="mDesc"></p>
+        <div class="spec-table" id="mSpecs"></div>
+        <div style="margin-top:auto">
+          <div class="modal-price" id="mPrice"></div>
+          <div class="modal-pay" id="mPay"></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-wa" id="mWa" style="flex:1" data-i18n="modal.order">הזמנה בוואטסאפ</button>
+            <button class="btn btn-ghost" id="mAdd" data-i18n="modal.add">הוספה לרשימה</button>
+            <button class="btn btn-ghost" id="mShare" aria-label="העתקת קישור למוצר" data-i18n-attr="aria-label:a.share" data-i18n="modal.share">שיתוף</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ============ admin ============ -->
+<div class="admin" id="admin">
+  <div class="admin-head">
+    <b>ניהול תוכן <span id="pubState" style="font-size:12px;font-weight:400;color:var(--on-ink-3);margin-inline-start:8px"></span></b>
+    <div class="tabs" id="adminTabs">
+      <button data-tab="products" class="on">מוצרים</button>
+      <button data-tab="cats">קטגוריות</button>
+      <button data-tab="texts">טקסטים ופרטי עסק</button>
+      <button data-tab="slides">שקופיות פתיחה</button>
+      <button data-tab="media">וידאו פתיחה</button>
+      <button data-tab="reviews">ביקורות</button>
+      <button data-tab="backup">גיבוי</button>
+    </div>
+    <button class="x" style="color:#fff" id="adminClose">✕</button>
+  </div>
+  <div class="admin-body">
+    <div class="admin-wrap">
+      <div class="gate" id="gate">
+        <h3>כניסה לניהול</h3>
+        <p>הזינו את סיסמת הניהול כדי לערוך את תוכן האתר.</p>
+        <input type="password" id="pw" placeholder="סיסמה" style="width:100%;padding:12px;border:var(--hair);border-radius:var(--r-sm);text-align:center">
+        <button class="btn btn-primary btn-block" style="margin-top:14px" id="pwGo">כניסה</button>
+      </div>
+
+      <div id="adminPanels" style="display:none">
+
+        <div class="warn" id="draftBar" style="display:none;align-items:center;gap:10px;flex-wrap:wrap">
+          <span style="flex:1">נמצאה בדפדפן הזה טיוטה ששונה מהתוכן שבאוויר.</span>
+          <button class="mini" id="draftLoad">טעינת הטיוטה</button>
+          <button class="mini del" id="draftDrop">מחיקת הטיוטה</button>
+        </div>
+
+        <div class="panel on" data-panel="products">
+          <div class="box">
+            <h3 id="pfTitle">מוצר חדש</h3>
+            <p class="hint">המוצר יופיע במלאי מיד לאחר השמירה.</p>
+            <div class="form-grid">
+              <div class="field"><label>שם המוצר</label><input id="pName" placeholder="Samsung Galaxy S25 Ultra"></div>
+              <div class="field"><label>מותג</label><input id="pBrand" placeholder="Samsung"></div>
+              <div class="field"><label>קטגוריה</label><select id="pCat"></select></div>
+              <div class="field"><label>מחיר בשקלים</label><input id="pPrice" type="number" placeholder="4799"></div>
+              <div class="field"><label>מחיר לפני הנחה (לא חובה)</label><input id="pWas" type="number" placeholder="5299"></div>
+              <div class="field"><label>תגית</label><select id="pTag"><option value="">ללא</option><option value="new">חדש</option><option value="deal">מבצע</option></select></div>
+            </div>
+            <div class="field">
+              <label>תמונת המוצר · העלו קובץ מהמחשב, או הדביקו נתיב/כתובת. ריק = תמונת הקטגוריה</label>
+              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                <input id="pImg" placeholder="assets/products/p1.webp" style="flex:1;min-width:220px">
+                <label class="btn btn-ghost btn-sm" style="cursor:pointer;white-space:nowrap">העלאת תמונה<input type="file" id="pImgFile" accept="image/*" hidden></label>
+              </div>
+              <div id="pImgPreview" class="img-preview" hidden><img alt=""><button type="button" class="mini del" id="pImgClear">הסרה</button></div>
+            </div>
+            <div class="field"><label>תיאור קצר</label><textarea id="pDesc"></textarea></div>
+            <div class="field"><label>מפרט · שורה בכל שורה, בפורמט: מאפיין = ערך</label><textarea id="pSpecs" placeholder="מסך = 6.8 אינץ׳&#10;אחסון = 512GB"></textarea></div>
+            <div style="display:flex;gap:10px"><button class="btn btn-primary" id="pSave">שמירת מוצר</button><button class="btn btn-ghost" id="pClear">ניקוי הטופס</button></div>
+          </div>
+          <div class="box">
+            <h3>המלאי הקיים</h3>
+            <p class="hint"><span id="pCount">0</span> מוצרים באתר</p>
+            <div style="overflow-x:auto"><table id="pTable"></table></div>
+          </div>
+        </div>
+
+        <div class="panel" data-panel="cats">
+          <div class="box">
+            <h3>הוספת קטגוריה</h3>
+            <div class="form-grid">
+              <div class="field"><label>שם</label><input id="cName" placeholder="רמקולים"></div>
+              <div class="field"><label>איור</label><select id="cIcon"></select></div>
+              <div class="field" style="display:flex;align-items:flex-end"><button class="btn btn-primary btn-block" id="cAdd">הוספה</button></div>
+            </div>
+          </div>
+          <div class="box"><h3>הקטגוריות באתר</h3><div style="overflow-x:auto"><table id="cTable"></table></div></div>
+        </div>
+
+        <div class="panel" data-panel="texts">
+          <div class="box">
+            <h3>פרטי העסק</h3>
+            <p class="hint">כל שינוי כאן מתעדכן בכותרת, בפוטר, בכפתורי הוואטסאפ ובעמוד צור קשר.</p>
+            <div class="form-grid">
+              <div class="field"><label>שם העסק</label><input id="sName"></div>
+              <div class="field"><label>שורת משנה בלוגו</label><input id="sSub"></div>
+              <div class="field"><label>טלפון להצגה</label><input id="sTelShow"></div>
+              <div class="field"><label>מספר וואטסאפ (972 בלי אפס)</label><input id="sWa"></div>
+              <div class="field"><label>אימייל</label><input id="sMail"></div>
+              <div class="field"><label>כתובת</label><input id="sAddr"></div>
+            </div>
+            <div class="field"><label>פסקת פתיחה</label><textarea id="sLead"></textarea></div>
+            <div class="form-grid">
+              <div class="field"><label>סף משלוח חינם</label><input id="sShip"></div>
+              <div class="field"><label>מספר תשלומים</label><input id="sPay"></div>
+              <div class="field"><label>סיסמת ניהול</label><input id="sPw" value="מנוהלת בשרת" disabled title="הסיסמה נשמרת בקלאודפלייר ולא בדפדפן. לשינוי: npx wrangler secret put ADMIN_PASSWORD"></div>
+            </div>
+            <button class="btn btn-primary" id="sSave">שמירת השינויים</button>
+          </div>
+        </div>
+
+        <div class="panel" data-panel="slides">
+          <div class="box">
+            <h3>שקופיות הפתיחה</h3>
+            <p class="hint">השקופיות מתחלפות בראש האתר. גררו, לחצו על החצים או על הפסים כדי לעבור ביניהן. עד 6 שקופיות.</p>
+            <div class="form-grid">
+              <div class="field"><label>זמן על כל שקופית (שניות)</label><input id="slHold" type="number" min="2" max="30" step="1"></div>
+            </div>
+          </div>
+          <div id="slidesEditor"></div>
+          <div class="box">
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn btn-primary" id="slSave">שמירת השקופיות</button>
+              <button class="btn btn-ghost" id="slAdd">הוספת שקופית</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" data-panel="media">
+          <div class="box">
+            <div class="warn">
+              איפה משיגים סרטון חינמי לשימוש מסחרי, בלי קרדיט: <b>coverr.co</b> (מיועד בדיוק לרקעי אתרים), <b>pexels.com/videos</b>, <b>mixkit.co/free-stock-video</b>, <b>pixabay.com/videos</b>. מורידים קליפ של 10 עד 15 שניות, עד 6MB, ברזולוציית 720p, מעלים לתיקייה של האתר ומדביקים כאן את הכתובת. אם השדה ריק, מוצגת סצנת התנועה המובנית.
+            </div>
+            <h3>וידאו הפתיחה</h3>
+            <p class="hint">הסרטון מנוגן בלי קול, בלולאה, מאחורי הכותרת.</p>
+            <div class="field"><label>כתובת קובץ וידאו (mp4 או webm)</label><input id="sVideo" placeholder="assets/hero.mp4"></div>
+            <div class="field"><label>תמונת פוסטר, מוצגת עד שהווידאו נטען</label><input id="sPoster" placeholder="assets/hero.jpg"></div>
+            <button class="btn btn-primary" id="mSave">שמירה</button>
+          </div>
+        </div>
+
+        <div class="panel" data-panel="reviews">
+          <div class="box">
+            <h3>הוספת ביקורת</h3>
+            <div class="form-grid">
+              <div class="field"><label>שם הלקוח</label><input id="rName"></div>
+              <div class="field"><label>מתי</label><input id="rWhen" placeholder="לפני שבוע"></div>
+              <div class="field"><label>כוכבים</label><select id="rStars"><option>5</option><option>4</option><option>3</option></select></div>
+            </div>
+            <div class="field"><label>הביקורת</label><textarea id="rText"></textarea></div>
+            <button class="btn btn-primary" id="rAdd">הוספה</button>
+          </div>
+          <div class="box"><h3>הביקורות באתר</h3><div style="overflow-x:auto"><table id="rTable"></table></div></div>
+        </div>
+
+        <div class="panel" data-panel="backup">
+          <div class="box">
+            <div class="warn"><b>איך זה עובד:</b> כל שמירה נשמרת קודם כטיוטה בדפדפן הזה, ומתפרסמת לאתר החי אוטומטית כמה שניות אחר כך (או מיד, בלחיצה על "פרסום עכשיו"). מומלץ להוריד קובץ גיבוי אחרי כל עדכון גדול.</div>
+            <h3>גיבוי ושחזור</h3>
+            <p class="hint">קובץ הגיבוי מכיל את כל המוצרים, הקטגוריות, הביקורות והטקסטים.</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn btn-primary" id="bPublish">פרסום עכשיו</button>
+              <button class="btn btn-primary" id="bExport">הורדת קובץ גיבוי</button>
+              <label class="btn btn-ghost" style="cursor:pointer">טעינת קובץ גיבוי<input type="file" id="bImport" accept="application/json" hidden></label>
+              <button class="btn btn-ghost" id="bReset">חזרה לתוכן המקורי</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js" defer></script>
+
+<script>
+/* =========================================================
+   1. hairline device drawings
+   ========================================================= */
+const ART = {
+  phone:'<rect x="14" y="4" width="72" height="142" rx="14"/><rect x="20" y="10" width="60" height="130" rx="9"/><rect x="38" y="12" width="24" height="6" rx="3"/><rect x="54" y="22" width="26" height="26" rx="8"/><circle cx="61" cy="29" r="4"/><circle cx="73" cy="29" r="4"/><circle cx="61" cy="41" r="4"/><path d="M36 138h28"/>',
+  tablet:'<rect x="6" y="10" width="88" height="130" rx="10"/><rect x="12" y="16" width="76" height="118" rx="5"/><rect x="66" y="20" width="18" height="18" rx="6"/><circle cx="75" cy="29" r="3.4"/><path d="M42 137h16"/>',
+  watch:'<rect x="24" y="42" width="52" height="66" rx="16"/><rect x="30" y="48" width="40" height="54" rx="11"/><path d="M36 42V22a8 8 0 018-8h12a8 8 0 018 8v20M36 108v20a8 8 0 008 8h12a8 8 0 008-8v-20"/><path d="M76 62h5a3 3 0 013 3v10a3 3 0 01-3 3h-5"/>',
+  buds:'<path d="M32 34c9 0 15 7 15 16v34c0 9-6 16-15 16s-16-7-16-16 7-16 16-16"/><path d="M68 34c-9 0-15 7-15 16v34c0 9 6 16 15 16s16-7 16-16-7-16-16-16"/><circle cx="32" cy="88" r="5"/><circle cx="68" cy="88" r="5"/>',
+  charger:'<rect x="24" y="46" width="52" height="52" rx="12"/><path d="M40 46V26a4 4 0 014-4h2a4 4 0 014 4v20M56 46V26a4 4 0 014-4h2a4 4 0 014 4v20"/><path d="M40 66h20M40 78h12"/>',
+  cable:'<rect x="34" y="14" width="18" height="26" rx="4"/><path d="M43 40v18c0 22 30 22 30 44v14"/><rect x="64" y="90" width="18" height="26" rx="4"/><path d="M38 14v-6M48 14v-6"/>',
+  shield:'<path d="M50 12l32 12v34c0 26-18 44-32 50-14-6-32-24-32-50V24z"/><path d="M36 56l10 10 20-22"/>',
+  case:'<rect x="20" y="8" width="60" height="134" rx="16"/><rect x="27" y="15" width="46" height="120" rx="10"/><rect x="50" y="20" width="22" height="22" rx="7"/><path d="M20 46h-5v16h5M20 74h-5v14h5"/>',
+  battery:'<rect x="26" y="20" width="48" height="110" rx="10"/><rect x="40" y="12" width="20" height="8" rx="3"/><path d="M38 44h24M38 60h24M38 76h14"/><path d="M52 92l-8 16h12l-8 16"/>',
+  tag:'<path d="M18 18h40l30 30-40 40-30-30z"/><circle cx="36" cy="36" r="6"/>'
+};
+const ICONS = Object.keys(ART);
+const ICON_HE = {phone:'טלפון',tablet:'טאבלט',watch:'שעון',buds:'אוזניות',charger:'מטען',cable:'כבל',shield:'מגן מסך',case:'כיסוי',battery:'סוללה',tag:'מבצע'};
+const svg = (k,cls='') => `<svg class="${cls}" viewBox="0 0 100 150">${ART[k]||ART.phone}</svg>`;
+
+/* Product artwork = a real photograph layered OVER the coded drawing.
+   Resolution order: the product's own image, then its category's, then
+   nothing — and "nothing" still leaves the drawing showing. A file that 404s
+   is caught below and hidden, which lands on the same drawing. */
+function imgOf(p){
+  if(p.img) return p.img;
+  const c=(DATA.cats||[]).find(c=>c.id===p.cat);
+  return (c&&c.img)||'';
+}
+function art(p,cls=''){
+  const drawing=svg(iconOf(p.cat),cls), src=imgOf(p);
+  if(!src) return drawing;
+  return drawing+`<img class="art-img" src="${esc(src)}" alt="" loading="lazy" decoding="async">`;
+}
+/* `error` does not bubble, so this listens in the capture phase. One handler
+   covers every card, the modal and the cart, including rows added later. */
+document.addEventListener('error',e=>{
+  const t=e.target;
+  if(t&&t.tagName==='IMG'&&t.classList.contains('art-img'))t.classList.add('failed');
+},true);
+
+/* =========================================================
+   2. content
+   ========================================================= */
+const DEFAULTS = {
+  settings:{
+    name:'Phone Store', sub:'Netanya · Since 2016',
+    telShow:'050-477-7470', wa:'9720504777470',
+    mail:'phonestore770@gmail.com', addr:"שד' בן גוריון 2, נתניה",
+    lead:'אלי חזות מוכר סלולר בשד\' בן גוריון כבר שנים. שולחים הודעה בוואטסאפ, מקבלים המלצה אמיתית ומחיר סופי, והמכשיר מגיע עד הבית תוך 24 שעות.',
+    /* no `pw` here on purpose: the admin password is a Cloudflare secret,
+       checked by the Worker at /api/admin/login. It must never ship in the
+       page, and it must never be round-tripped through localStorage. */
+    ship:299, pay:36, video:'', poster:'', slideHold:6
+  },
+  /* Hero slides. `title` is one entry per line; *word* becomes the bronze <em>.
+     Empty `mark` / `lead` inherit from settings, so a store that customised
+     "פסקת פתיחה" before slides existed keeps seeing its own text. */
+  slides:[
+    {id:'s1', mark:'', accent:'',
+     title:['טלפון חדש','מתחיל *בשיחה*.'],
+     lead:'',
+     ctaWa:'דברו עם אלי בוואטסאפ', ctaLabel:'לצפייה במלאי', ctaHref:'#catalog'},
+    {id:'s2', mark:'מבצעי החודש', accent:'#C08A4E',
+     title:['המחיר הסופי','נסגר *בהודעה*.'],
+     lead:'בלי קופה אוטומטית ובלי הפתעות. שולחים את הדגם שמעניין, ומקבלים מחיר סופי כולל אחריות יבואן ופריסת תשלומים.',
+     ctaWa:'בקשת הצעת מחיר', ctaLabel:'למבצעים', ctaHref:'#catalog'},
+    {id:'s3', mark:'שירות בנתניה', accent:'#7E9BC0',
+     title:['מגיע עד הבית','תוך *24 שעות*.'],
+     lead:'משלוח לכל הארץ, ובנתניה גם באותו היום. שלושים יום להחזרה ללא עלות, ואחריות יבואן רשמי מלאה.',
+     ctaWa:'בדיקת זמינות', ctaLabel:'איך זה עובד', ctaHref:'#how'}
+  ],
+  cats:[
+    {id:'c1',name:'טלפונים סלולריים',icon:'phone', img:'assets/products/cat-c1.webp'},
+    {id:'c2',name:'טאבלטים',icon:'tablet', img:'assets/products/cat-c2.webp'},
+    {id:'c3',name:'שעונים חכמים',icon:'watch', img:'assets/products/cat-c3.webp'},
+    {id:'c4',name:'אוזניות',icon:'buds', img:'assets/products/cat-c4.webp'},
+    {id:'c5',name:'מטענים',icon:'charger', img:'assets/products/cat-c5.webp'},
+    {id:'c6',name:'כבלים',icon:'cable', img:'assets/products/cat-c6.webp'},
+    {id:'c7',name:'מגני מסך',icon:'shield', img:'assets/products/cat-c7.webp'},
+    {id:'c8',name:'כיסויים',icon:'case', img:'assets/products/cat-c8.webp'},
+    {id:'c9',name:'סוללות גיבוי',icon:'battery', img:'assets/products/cat-c9.webp'},
+    {id:'c10',name:'מבצעים',icon:'tag', img:'assets/products/cat-c10.webp'}
+  ],
+  products:[
+    {id:'p1', img:'assets/products/p1.webp',name:'iPhone 17 Pro Max 256GB',brand:'Apple',cat:'c1',price:4900,was:5400,tag:'deal',pop:284,
+     desc:'הדגם המבוקש ביותר בחנות. מתאים למי שרוצה מצלמה ברמה הגבוהה ביותר ומכשיר שיחזיק חמש שנים.',
+     specs:{'מעבד':'A18 Pro','מסך':'6.9 אינץ׳','אחסון':'256GB','מצלמה':'48MP'}},
+    {id:'p2', img:'assets/products/p2.webp',name:'Samsung Galaxy S25 Ultra',brand:'Samsung',cat:'c1',price:4799,was:5299,tag:'deal',pop:198,
+     desc:'עט S Pen מובנה ומסך גדול במיוחד. בחירה טובה למי שעובד מהטלפון.',
+     specs:{'מעבד':'Snapdragon 8 Elite','מסך':'6.9 אינץ׳','אחסון':'512GB','מצלמה':'200MP'}},
+    {id:'p3', img:'assets/products/p3.webp',name:'AirPods Pro 2',brand:'Apple',cat:'c4',price:799,was:899,tag:'deal',pop:512,
+     desc:'ביטול רעשים אקטיבי. הפריט הנמכר ביותר בחנות.',
+     specs:{'סוללה':'עד 6 שעות','טעינה':'MagSafe','עמידות':'IPX4'}},
+    {id:'p4', img:'assets/products/p4.webp',name:'iPad Pro M4 11"',brand:'Apple',cat:'c2',price:4299,was:null,tag:'new',pop:156,
+     desc:'מסך Tandem OLED ומעבד M4. מתאים לעבודה גרפית ולסטודנטים.',
+     specs:{'מעבד':'M4','מסך':'11 אינץ׳ OLED','אחסון':'256GB'}},
+    {id:'p5', img:'assets/products/p5.webp',name:'Apple Watch Ultra 2',brand:'Apple',cat:'c3',price:3299,was:3599,tag:'deal',pop:201,
+     desc:'שעון לספורט ולשטח. סוללה שמחזיקה יומיים מלאים.',
+     specs:{'מסך':'49 מ״מ','סוללה':'עד 72 שעות','עמידות':'100 מטר'}},
+    {id:'p6', img:'assets/products/p6.webp',name:'Xiaomi 14 Ultra',brand:'Xiaomi',cat:'c1',price:3499,was:null,tag:'new',pop:142,
+     desc:'עדשות Leica. המכשיר עם יחס המחיר לתמונה הטוב בחנות.',
+     specs:{'מעבד':'Snapdragon 8 Gen 3','מסך':'6.73 אינץ׳','מצלמה':'Leica 50MP'}},
+    {id:'p7', img:'assets/products/p7.webp',name:'Google Pixel 9 Pro',brand:'Google',cat:'c1',price:3999,was:null,tag:'new',pop:87,
+     desc:'עיבוד תמונה חכם ואנדרואיד נקי עם שבע שנות עדכונים.',
+     specs:{'מעבד':'Tensor G4','מסך':'6.3 אינץ׳','אחסון':'256GB'}},
+    {id:'p8', img:'assets/products/p8.webp',name:'Samsung Galaxy Watch 7',brand:'Samsung',cat:'c3',price:1299,was:null,tag:'new',pop:234,
+     desc:'מדידת שינה ודופק. מתחבר לכל טלפון אנדרואיד.',
+     specs:{'מסך':'44 מ״מ','סוללה':'עד 40 שעות'}},
+    {id:'p9', img:'assets/products/p9.webp',name:'Anker PowerCore 20000',brand:'Anker',cat:'c9',price:229,was:279,tag:'deal',pop:301,
+     desc:'סוללת גיבוי שמטעינה טלפון ארבע פעמים מלאות.',
+     specs:{'קיבולת':'20,000mAh','הספק':'30W','יציאות':'2'}},
+    {id:'p10', img:'assets/products/p10.webp',name:'מטען קיר 65W USB-C',brand:'Anker',cat:'c5',price:169,was:null,tag:'',pop:188,
+     desc:'מטען מהיר שמתאים גם למחשב נייד קל.',
+     specs:{'הספק':'65W','יציאות':'2 × USB-C'}},
+    {id:'p11', img:'assets/products/p11.webp',name:'כבל USB-C קלוע 2 מטר',brand:'Anker',cat:'c6',price:69,was:89,tag:'deal',pop:410,
+     desc:'כבל מחוזק שלא נשבר ליד המחבר.',
+     specs:{'אורך':'2 מטר','תמיכה':'100W'}},
+    {id:'p12', img:'assets/products/p12.webp',name:'מגן מסך זכוכית מחוסמת',brand:'Apple',cat:'c7',price:79,was:null,tag:'',pop:365,
+     desc:'הדבקה בחנות ללא בועות, ללא תוספת תשלום.',
+     specs:{'עובי':'0.33 מ״מ','קשיות':'9H'}},
+    {id:'p13', img:'assets/products/p13.webp',name:'כיסוי סיליקון MagSafe',brand:'Apple',cat:'c8',price:139,was:null,tag:'',pop:277,
+     desc:'מגנט חזק ואחיזה נעימה. במגוון צבעים בחנות.',
+     specs:{'חומר':'סיליקון','תאימות':'MagSafe'}},
+    {id:'p14', img:'assets/products/p14.webp',name:'Sony WH-1000XM5',brand:'Sony',cat:'c4',price:1449,was:1699,tag:'deal',pop:163,
+     desc:'אוזניות על האוזן עם ביטול הרעשים הטוב בשוק לטיסות.',
+     specs:{'סוללה':'30 שעות','חיבור':'Bluetooth 5.2'}},
+    {id:'p15', img:'assets/products/p15.webp',name:'OnePlus 13',brand:'OnePlus',cat:'c1',price:3199,was:null,tag:'new',pop:74,
+     desc:'טעינה מלאה בפחות מחצי שעה. חלופה משתלמת לדגמי הדגל.',
+     specs:{'מעבד':'Snapdragon 8 Elite','טעינה':'100W','אחסון':'256GB'}}
+  ],
+  reviews:[
+    {id:'r1',name:'דנה לוי',when:'לפני 3 ימים',stars:5,text:'שירות מעולה. הטלפון הגיע תוך 24 שעות בדיוק כמו שהובטח, ואלי ענה מיד בוואטסאפ ועזר לי לבחור את הדגם המתאים.'},
+    {id:'r2',name:'משה כהן',when:'לפני שבוע',stars:5,text:'קניתי AirPods Pro במחיר מצוין. ההזמנה דרך וואטסאפ הייתה פשוטה, בלי טפסים ובלי המתנה.'},
+    {id:'r3',name:'רונית אברהם',when:'לפני שבועיים',stars:4,text:'מגוון גדול ומחירים תחרותיים. אלי מקצועי ויודע להסביר על כל מוצר. חנות מומלצת בנתניה.'}
+  ]
+};
+
+/* =========================================================
+   2b. i18n
+   The storefront speaks Hebrew, English, French and Russian.
+   Only the interface is translated: product names, descriptions
+   and reviews are content the shop owner types, and they stay
+   exactly as entered. The admin panel stays Hebrew — one
+   Hebrew-speaking person uses it.
+
+   The markup keeps its Hebrew as written, so a visitor whose JS
+   or CDN failed still gets a complete, readable page; applyLang()
+   only overwrites it once a different language is chosen.
+   ========================================================= */
+const LANG_NAMES={he:'עברית',en:'English',fr:'Français',ru:'Русский'};
+const RTL_LANGS=['he'];
+const LOCALES={he:'he-IL',en:'en-IL',fr:'fr-FR',ru:'ru-RU'};
+const LANG_KEY='phonestore.lang.v1';
+const I18N={
+he:{'util.ship':'משלוח חינם מעל {v}',
+  'util.pay':'עד {v} תשלומים',
+  'nav.catalog':'המלאי',
+  'nav.categories':'קטגוריות',
+  'nav.how':'איך זה עובד',
+  'nav.reviews':'לקוחות',
+  'nav.contact':'צור קשר',
+  'a.menu':'תפריט',
+  'a.search':'חיפוש',
+  'a.cart':'עגלת קניות',
+  'a.slides':'מסרים ראשיים',
+  'a.slidePrev':'השקופית הקודמת',
+  'a.slideNext':'השקופית הבאה',
+  'a.slidePick':'בחירת שקופית',
+  'a.slideStop':'עצירת ההחלפה האוטומטית',
+  'a.wa':'וואטסאפ',
+  'a.a11y':'הגדרות נגישות',
+  'a.share':'העתקת קישור למוצר',
+  'hero.scroll':'גללו',
+  'hero.f1':'משלוח עד הבית',
+  'hero.f1v':'24 שע׳',
+  'hero.f2':'תשלומים ללא ריבית',
+  'hero.f3':'החזרה ללא עלות',
+  'hero.f3v':'30 יום',
+  'hero.f4':'מעל זה, משלוח חינם',
+  'cats.eyebrow':'מה יש בחנות',
+  'cats.title':'קטגוריות',
+  'cats.lead':'כל מה שמסביב למכשיר: מטענים, כבלים, הגנה וסוללות. אם משהו לא מופיע כאן, שאלו בוואטסאפ; רוב הפריטים מגיעים תוך יום.',
+  'cats.all':'לכל המלאי ←',
+  'cat.eyebrow':'מלאי מלא',
+  'cat.title':'המלאי שלנו',
+  'cat.filters':'סינון',
+  'cat.search':'חיפוש',
+  'cat.searchPh':'שם דגם או מותג',
+  'cat.category':'קטגוריה',
+  'cat.brand':'מותג',
+  'cat.price':'מחיר',
+  'cat.reset':'איפוס כל הסינונים',
+  'cat.count':'מוצרים',
+  'sort.pop':'מיון: פופולריות',
+  'sort.new':'חדש ביותר',
+  'sort.asc':'מחיר: נמוך לגבוה',
+  'sort.desc':'מחיר: גבוה לנמוך',
+  'how.eyebrow':'התהליך',
+  'how.title':'ארבעה צעדים, בלי טפסים',
+  'how.lead':'אין כאן קופה אוטומטית ואין המתנה לנציג. בוחרים מה שמעניין, שולחים הודעה, ואלי עונה בעצמו.',
+  'how.cta':'התחילו שיחה',
+  'how.s1':'בוחרים מכשיר',
+  'how.s1s':'או פשוט מתארים מה צריך',
+  'how.s2':'שולחים בוואטסאפ',
+  'how.s2s':'ההודעה נבנית לבד',
+  'how.s3':'מקבלים מחיר סופי',
+  'how.s3s':'כולל אחריות ותשלומים',
+  'how.s4':'מקבלים עד הבית',
+  'how.s4s':'תוך 24 שעות',
+  'brands.eyebrow':'מותגים',
+  'brands.title':'מה שאנחנו מחזיקים',
+  'rev.eyebrow':'לקוחות',
+  'rev.title':'מה אומרים עלינו',
+  'con.eyebrow':'דברו איתנו',
+  'con.title':'אלי עונה בעצמו',
+  'con.lead':'שאלה על דגם, מחיר או זמינות. הודעה בוואטסאפ היא הדרך המהירה ביותר לקבל תשובה.',
+  'con.cta':'שליחת הודעה בוואטסאפ',
+  'con.parking':'חניה ברחוב, כניסה מהשדרה',
+  'con.hours':'ראשון עד חמישי 09:00 עד 19:00 · שישי 09:00 עד 14:00',
+  'con.mailNote':'לחשבוניות ופניות שאינן דחופות',
+  'terms.eyebrow':'אחריות ותנאים',
+  'terms.title':'מה מובטח לכם',
+  'terms.lead':'התנאים תקפים לכל מכשיר שנרכש דרך החנות.',
+  'terms.warranty':'אחריות יבואן רשמי',
+  'terms.warrantyV':'12 חודשים',
+  'terms.returns':'החזרה או החלפה',
+  'terms.returnsV':'עד 30 יום',
+  'terms.delivery':'משלוח עד הבית',
+  'terms.deliveryV':'24 שעות',
+  'terms.freeFrom':'משלוח חינם החל מ',
+  'terms.instal':'תשלומים ללא ריבית',
+  'terms.instalV':'עד 36',
+  'terms.payment':'אמצעי תשלום',
+  'terms.paymentV':'אשראי · ביט · מזומן',
+  'foot.note':'חנות סלולר עצמאית בנתניה. מכירה, ייעוץ ואביזרים, עם שירות אישי של אלי חזות.',
+  'foot.service':'שירות',
+  'foot.phone':'טלפון',
+  'foot.hours':'שעות פתיחה',
+  'foot.shipping':'מדיניות משלוחים',
+  'foot.returns':'החזרות',
+  'foot.shop':'החנות',
+  'foot.home':'עמוד הבית',
+  'foot.admin':'ניהול תוכן',
+  'pay.bit':'ביט',
+  'pay.cash':'מזומן',
+  'a11y.title':'נגישות',
+  'a11y.theme':'מצב תצוגה',
+  'a11y.light':'בהיר',
+  'a11y.dark':'כהה',
+  'a11y.fontSize':'גודל טקסט',
+  'a11y.contrast':'ניגודיות גבוהה',
+  'a11y.links':'הדגשת קישורים',
+  'a11y.motion':'עצירת אנימציות',
+  'a11y.on':'הפעלה',
+  'a11y.reset':'איפוס',
+  'cart.title':'הפריטים שלכם',
+  'cart.sub':'סכום ביניים',
+  'cart.ship':'משלוח',
+  'cart.free':'חינם',
+  'cart.total':'סה״כ',
+  'cart.checkout':'שליחת ההזמנה בוואטסאפ',
+  'cart.note':'ההודעה נפתחת מוכנה. התשלום מסוכם בשיחה.',
+  'cart.empty':'הרשימה ריקה',
+  'cart.emptyLead':'הוסיפו פריטים מהמלאי, ואנחנו נבנה מהם הודעת וואטסאפ מסודרת.',
+  'modal.order':'הזמנה בוואטסאפ',
+  'modal.add':'הוספה לרשימה',
+  'modal.share':'שיתוף',
+  'card.add':'הוספה',
+  'card.fav':'שמירה',
+  'tag.new':'חדש',
+  'tag.deal':'מבצע',
+  'grid.emptyT':'אין מוצרים שמתאימים לסינון',
+  'grid.emptyP':'נסו לאפס את הסינון, או שאלו אותנו ישירות. רוב הפריטים מגיעים תוך יום.',
+  'grid.emptyCta':'שאלו בוואטסאפ',
+  'cat.items':'{n} פריטים',
+  'modal.instal':'או {n} תשלומים של {v} ללא ריבית',
+  't.added':'נוסף לרשימה',
+  't.cartEmpty':'הרשימה ריקה',
+  't.linkCopied':'הקישור הועתק',
+  't.copyPrompt':'העתיקו את הקישור:',
+  'wa.hello':'שלום! הגעתי מהאתר ואשמח לברר פרטים על מוצר 🙏',
+  'wa.product':'שלום! אני מעוניין לרכוש:\n*{name}*\nמחיר באתר: {price}\n\nאשמח לפרטים נוספים 🙏',
+  'wa.orderHead':'שלום! אשמח להזמין:',
+  'wa.orderTotal':'סה״כ: {v}',
+  'wa.orderTail':'מה השלב הבא? 🙏',
+  'lang.label':'שפה','a.carousel':'קרוסלה','a.slide':'שקופית','a.slideN':'שקופית {i} מתוך {n}','a.slideGo':'מעבר לשקופית {i}','hero.sigCount':'{n} דגמים','hero.sigSub':'זמינים עכשיו · משלוח מהיר מנתניה'},
+en:{'util.ship':'Free shipping over {v}',
+  'util.pay':'Up to {v} instalments',
+  'nav.catalog':'Shop',
+  'nav.categories':'Categories',
+  'nav.how':'How it works',
+  'nav.reviews':'Customers',
+  'nav.contact':'Contact',
+  'a.menu':'Menu',
+  'a.search':'Search',
+  'a.cart':'Shopping cart',
+  'a.slides':'Main messages',
+  'a.slidePrev':'Previous slide',
+  'a.slideNext':'Next slide',
+  'a.slidePick':'Choose slide',
+  'a.slideStop':'Stop autoplay',
+  'a.wa':'WhatsApp',
+  'a.a11y':'Accessibility settings',
+  'a.share':'Copy product link',
+  'hero.scroll':'Scroll',
+  'hero.f1':'Delivery to your door',
+  'hero.f1v':'24 h',
+  'hero.f2':'Interest-free instalments',
+  'hero.f3':'Free returns',
+  'hero.f3v':'30 days',
+  'hero.f4':'Above this, shipping is free',
+  'cats.eyebrow':'What\'s in store',
+  'cats.title':'Categories',
+  'cats.lead':'Everything around the device: chargers, cables, protection and power banks. If something isn\'t listed, ask on WhatsApp — most items arrive within a day.',
+  'cats.all':'See the whole shop →',
+  'cat.eyebrow':'Full stock',
+  'cat.title':'Our shop',
+  'cat.filters':'Filters',
+  'cat.search':'Search',
+  'cat.searchPh':'Model or brand',
+  'cat.category':'Category',
+  'cat.brand':'Brand',
+  'cat.price':'Price',
+  'cat.reset':'Clear all filters',
+  'cat.count':'products',
+  'sort.pop':'Sort: popularity',
+  'sort.new':'Newest',
+  'sort.asc':'Price: low to high',
+  'sort.desc':'Price: high to low',
+  'how.eyebrow':'The process',
+  'how.title':'Four steps, no forms',
+  'how.lead':'No automated checkout and no waiting for an agent. Pick what interests you, send a message, and Eli answers himself.',
+  'how.cta':'Start a conversation',
+  'how.s1':'Pick a device',
+  'how.s1s':'or just describe what you need',
+  'how.s2':'Send on WhatsApp',
+  'how.s2s':'the message writes itself',
+  'how.s3':'Get a final price',
+  'how.s3s':'warranty and instalments included',
+  'how.s4':'Delivered to your door',
+  'how.s4s':'within 24 hours',
+  'brands.eyebrow':'Brands',
+  'brands.title':'What we carry',
+  'rev.eyebrow':'Customers',
+  'rev.title':'What people say',
+  'con.eyebrow':'Talk to us',
+  'con.title':'Eli answers himself',
+  'con.lead':'A question about a model, a price or availability. A WhatsApp message is the fastest way to an answer.',
+  'con.cta':'Send a WhatsApp message',
+  'con.parking':'Street parking, entrance from the boulevard',
+  'con.hours':'Sunday to Thursday 09:00–19:00 · Friday 09:00–14:00',
+  'con.mailNote':'For invoices and non-urgent enquiries',
+  'terms.eyebrow':'Warranty and terms',
+  'terms.title':'What you are promised',
+  'terms.lead':'These terms apply to every device bought through the shop.',
+  'terms.warranty':'Official importer warranty',
+  'terms.warrantyV':'12 months',
+  'terms.returns':'Return or exchange',
+  'terms.returnsV':'Up to 30 days',
+  'terms.delivery':'Delivery to your door',
+  'terms.deliveryV':'24 hours',
+  'terms.freeFrom':'Free shipping from',
+  'terms.instal':'Interest-free instalments',
+  'terms.instalV':'Up to 36',
+  'terms.payment':'Payment methods',
+  'terms.paymentV':'Card · Bit · Cash',
+  'foot.note':'An independent mobile shop in Netanya. Sales, advice and accessories, with Eli Hazut\'s personal service.',
+  'foot.service':'Service',
+  'foot.phone':'Phone',
+  'foot.hours':'Opening hours',
+  'foot.shipping':'Shipping policy',
+  'foot.returns':'Returns',
+  'foot.shop':'The shop',
+  'foot.home':'Home',
+  'foot.admin':'Content admin',
+  'pay.bit':'Bit',
+  'pay.cash':'Cash',
+  'a11y.title':'Accessibility',
+  'a11y.theme':'Display mode',
+  'a11y.light':'Light',
+  'a11y.dark':'Dark',
+  'a11y.fontSize':'Text size',
+  'a11y.contrast':'High contrast',
+  'a11y.links':'Highlight links',
+  'a11y.motion':'Stop animations',
+  'a11y.on':'On',
+  'a11y.reset':'Reset',
+  'cart.title':'Your items',
+  'cart.sub':'Subtotal',
+  'cart.ship':'Shipping',
+  'cart.free':'Free',
+  'cart.total':'Total',
+  'cart.checkout':'Send the order on WhatsApp',
+  'cart.note':'The message opens ready to send. Payment is agreed in the conversation.',
+  'cart.empty':'Your list is empty',
+  'cart.emptyLead':'Add items from the shop and we\'ll turn them into a tidy WhatsApp message.',
+  'modal.order':'Order on WhatsApp',
+  'modal.add':'Add to list',
+  'modal.share':'Share',
+  'card.add':'Add',
+  'card.fav':'Save',
+  'tag.new':'New',
+  'tag.deal':'Deal',
+  'grid.emptyT':'No products match the filters',
+  'grid.emptyP':'Try clearing the filters, or just ask us. Most items arrive within a day.',
+  'grid.emptyCta':'Ask on WhatsApp',
+  'cat.items':'{n} items',
+  'modal.instal':'or {n} interest-free payments of {v}',
+  't.added':'Added to your list',
+  't.cartEmpty':'Your list is empty',
+  't.linkCopied':'Link copied',
+  't.copyPrompt':'Copy the link:',
+  'wa.hello':'Hello! I came from the website and would like details about a product 🙏',
+  'wa.product':'Hello! I\'d like to buy:\n*{name}*\nPrice on the site: {price}\n\nCould you send me more details? 🙏',
+  'wa.orderHead':'Hello! I\'d like to order:',
+  'wa.orderTotal':'Total: {v}',
+  'wa.orderTail':'What\'s the next step? 🙏',
+  'lang.label':'Language','a.carousel':'Carousel','a.slide':'Slide','a.slideN':'Slide {i} of {n}','a.slideGo':'Go to slide {i}','hero.sigCount':'{n} models','hero.sigSub':'In stock now · Fast delivery from Netanya'},
+fr:{'util.ship':'Livraison offerte dès {v}',
+  'util.pay':'Jusqu\'à {v} mensualités',
+  'nav.catalog':'Boutique',
+  'nav.categories':'Catégories',
+  'nav.how':'Comment ça marche',
+  'nav.reviews':'Clients',
+  'nav.contact':'Contact',
+  'a.menu':'Menu',
+  'a.search':'Recherche',
+  'a.cart':'Panier',
+  'a.slides':'Messages principaux',
+  'a.slidePrev':'Diapositive précédente',
+  'a.slideNext':'Diapositive suivante',
+  'a.slidePick':'Choisir la diapositive',
+  'a.slideStop':'Arrêter le défilement',
+  'a.wa':'WhatsApp',
+  'a.a11y':'Paramètres d\'accessibilité',
+  'a.share':'Copier le lien du produit',
+  'hero.scroll':'Défiler',
+  'hero.f1':'Livraison à domicile',
+  'hero.f1v':'24 h',
+  'hero.f2':'Mensualités sans intérêts',
+  'hero.f3':'Retours gratuits',
+  'hero.f3v':'30 jours',
+  'hero.f4':'Au-delà, livraison offerte',
+  'cats.eyebrow':'Ce que nous avons',
+  'cats.title':'Catégories',
+  'cats.lead':'Tout autour de l\'appareil : chargeurs, câbles, protections et batteries. Si un article ne figure pas ici, demandez sur WhatsApp : la plupart arrivent en un jour.',
+  'cats.all':'Voir toute la boutique →',
+  'cat.eyebrow':'Stock complet',
+  'cat.title':'Notre boutique',
+  'cat.filters':'Filtres',
+  'cat.search':'Recherche',
+  'cat.searchPh':'Modèle ou marque',
+  'cat.category':'Catégorie',
+  'cat.brand':'Marque',
+  'cat.price':'Prix',
+  'cat.reset':'Réinitialiser les filtres',
+  'cat.count':'produits',
+  'sort.pop':'Tri : popularité',
+  'sort.new':'Les plus récents',
+  'sort.asc':'Prix : croissant',
+  'sort.desc':'Prix : décroissant',
+  'how.eyebrow':'Le processus',
+  'how.title':'Quatre étapes, sans formulaire',
+  'how.lead':'Pas de caisse automatique ni d\'attente. Choisissez ce qui vous intéresse, envoyez un message, et Eli répond lui-même.',
+  'how.cta':'Démarrer la conversation',
+  'how.s1':'Choisissez un appareil',
+  'how.s1s':'ou décrivez simplement votre besoin',
+  'how.s2':'Envoyez sur WhatsApp',
+  'how.s2s':'le message s\'écrit tout seul',
+  'how.s3':'Recevez un prix final',
+  'how.s3s':'garantie et paiements inclus',
+  'how.s4':'Livré chez vous',
+  'how.s4s':'sous 24 heures',
+  'brands.eyebrow':'Marques',
+  'brands.title':'Ce que nous proposons',
+  'rev.eyebrow':'Clients',
+  'rev.title':'Ce qu\'on dit de nous',
+  'con.eyebrow':'Parlez-nous',
+  'con.title':'Eli répond lui-même',
+  'con.lead':'Une question sur un modèle, un prix ou la disponibilité ? Un message WhatsApp est le plus rapide.',
+  'con.cta':'Envoyer un message WhatsApp',
+  'con.parking':'Stationnement dans la rue, entrée sur le boulevard',
+  'con.hours':'Dimanche au jeudi 09h00–19h00 · Vendredi 09h00–14h00',
+  'con.mailNote':'Pour les factures et demandes non urgentes',
+  'terms.eyebrow':'Garantie et conditions',
+  'terms.title':'Ce qui vous est garanti',
+  'terms.lead':'Ces conditions s\'appliquent à tout appareil acheté en boutique.',
+  'terms.warranty':'Garantie importateur officiel',
+  'terms.warrantyV':'12 mois',
+  'terms.returns':'Retour ou échange',
+  'terms.returnsV':'Jusqu\'à 30 jours',
+  'terms.delivery':'Livraison à domicile',
+  'terms.deliveryV':'24 heures',
+  'terms.freeFrom':'Livraison offerte à partir de',
+  'terms.instal':'Mensualités sans intérêts',
+  'terms.instalV':'Jusqu\'à 36',
+  'terms.payment':'Moyens de paiement',
+  'terms.paymentV':'Carte · Bit · Espèces',
+  'foot.note':'Boutique mobile indépendante à Netanya. Vente, conseil et accessoires, avec le service personnel d\'Eli Hazut.',
+  'foot.service':'Service',
+  'foot.phone':'Téléphone',
+  'foot.hours':'Horaires',
+  'foot.shipping':'Politique de livraison',
+  'foot.returns':'Retours',
+  'foot.shop':'La boutique',
+  'foot.home':'Accueil',
+  'foot.admin':'Administration',
+  'pay.bit':'Bit',
+  'pay.cash':'Espèces',
+  'a11y.title':'Accessibilité',
+  'a11y.theme':'Mode d\'affichage',
+  'a11y.light':'Clair',
+  'a11y.dark':'Sombre',
+  'a11y.fontSize':'Taille du texte',
+  'a11y.contrast':'Contraste élevé',
+  'a11y.links':'Souligner les liens',
+  'a11y.motion':'Arrêter les animations',
+  'a11y.on':'Activer',
+  'a11y.reset':'Réinitialiser',
+  'cart.title':'Vos articles',
+  'cart.sub':'Sous-total',
+  'cart.ship':'Livraison',
+  'cart.free':'Offerte',
+  'cart.total':'Total',
+  'cart.checkout':'Envoyer la commande sur WhatsApp',
+  'cart.note':'Le message s\'ouvre prêt à l\'envoi. Le paiement se règle dans la conversation.',
+  'cart.empty':'Votre liste est vide',
+  'cart.emptyLead':'Ajoutez des articles et nous en ferons un message WhatsApp clair.',
+  'modal.order':'Commander sur WhatsApp',
+  'modal.add':'Ajouter à la liste',
+  'modal.share':'Partager',
+  'card.add':'Ajouter',
+  'card.fav':'Enregistrer',
+  'tag.new':'Nouveau',
+  'tag.deal':'Promo',
+  'grid.emptyT':'Aucun produit ne correspond',
+  'grid.emptyP':'Essayez de réinitialiser les filtres, ou demandez-nous. La plupart des articles arrivent en un jour.',
+  'grid.emptyCta':'Demander sur WhatsApp',
+  'cat.items':'{n} articles',
+  'modal.instal':'ou {n} mensualités de {v} sans intérêts',
+  't.added':'Ajouté à la liste',
+  't.cartEmpty':'Votre liste est vide',
+  't.linkCopied':'Lien copié',
+  't.copyPrompt':'Copiez le lien :',
+  'wa.hello':'Bonjour ! Je viens du site et j\'aimerais des informations sur un produit 🙏',
+  'wa.product':'Bonjour ! Je souhaite acheter :\n*{name}*\nPrix sur le site : {price}\n\nPourriez-vous m\'en dire plus ? 🙏',
+  'wa.orderHead':'Bonjour ! Je souhaite commander :',
+  'wa.orderTotal':'Total : {v}',
+  'wa.orderTail':'Quelle est la prochaine étape ? 🙏',
+  'lang.label':'Langue','a.carousel':'Carrousel','a.slide':'Diapositive','a.slideN':'Diapositive {i} sur {n}','a.slideGo':'Aller à la diapositive {i}','hero.sigCount':'{n} modèles','hero.sigSub':'Disponibles · Livraison rapide depuis Netanya'},
+ru:{'util.ship':'Бесплатная доставка от {v}',
+  'util.pay':'До {v} платежей',
+  'nav.catalog':'Каталог',
+  'nav.categories':'Категории',
+  'nav.how':'Как это работает',
+  'nav.reviews':'Отзывы',
+  'nav.contact':'Контакты',
+  'a.menu':'Меню',
+  'a.search':'Поиск',
+  'a.cart':'Корзина',
+  'a.slides':'Основные сообщения',
+  'a.slidePrev':'Предыдущий слайд',
+  'a.slideNext':'Следующий слайд',
+  'a.slidePick':'Выбор слайда',
+  'a.slideStop':'Остановить автопрокрутку',
+  'a.wa':'WhatsApp',
+  'a.a11y':'Настройки доступности',
+  'a.share':'Скопировать ссылку',
+  'hero.scroll':'Прокрутите',
+  'hero.f1':'Доставка на дом',
+  'hero.f1v':'24 ч',
+  'hero.f2':'Платежей без процентов',
+  'hero.f3':'Бесплатный возврат',
+  'hero.f3v':'30 дней',
+  'hero.f4':'Свыше — доставка бесплатно',
+  'cats.eyebrow':'Что есть в магазине',
+  'cats.title':'Категории',
+  'cats.lead':'Всё вокруг устройства: зарядки, кабели, защита и павербанки. Если чего-то нет в списке — спросите в WhatsApp, большинство товаров приходит за день.',
+  'cats.all':'Весь каталог →',
+  'cat.eyebrow':'Полный каталог',
+  'cat.title':'Наш каталог',
+  'cat.filters':'Фильтры',
+  'cat.search':'Поиск',
+  'cat.searchPh':'Модель или бренд',
+  'cat.category':'Категория',
+  'cat.brand':'Бренд',
+  'cat.price':'Цена',
+  'cat.reset':'Сбросить фильтры',
+  'cat.count':'товаров',
+  'sort.pop':'Сортировка: популярные',
+  'sort.new':'Новинки',
+  'sort.asc':'Цена: по возрастанию',
+  'sort.desc':'Цена: по убыванию',
+  'how.eyebrow':'Процесс',
+  'how.title':'Четыре шага, без анкет',
+  'how.lead':'Никакой автоматической кассы и ожидания оператора. Выберите товар, напишите — и Эли ответит лично.',
+  'how.cta':'Начать разговор',
+  'how.s1':'Выберите устройство',
+  'how.s1s':'или просто опишите, что нужно',
+  'how.s2':'Отправьте в WhatsApp',
+  'how.s2s':'сообщение составится само',
+  'how.s3':'Получите итоговую цену',
+  'how.s3s':'с гарантией и рассрочкой',
+  'how.s4':'Доставка до двери',
+  'how.s4s':'в течение 24 часов',
+  'brands.eyebrow':'Бренды',
+  'brands.title':'Что у нас есть',
+  'rev.eyebrow':'Клиенты',
+  'rev.title':'Что о нас говорят',
+  'con.eyebrow':'Свяжитесь с нами',
+  'con.title':'Эли отвечает лично',
+  'con.lead':'Вопрос о модели, цене или наличии? Сообщение в WhatsApp — самый быстрый способ получить ответ.',
+  'con.cta':'Написать в WhatsApp',
+  'con.parking':'Парковка на улице, вход с бульвара',
+  'con.hours':'Вс–чт 09:00–19:00 · Пт 09:00–14:00',
+  'con.mailNote':'Для счетов и несрочных вопросов',
+  'terms.eyebrow':'Гарантия и условия',
+  'terms.title':'Что вам гарантировано',
+  'terms.lead':'Условия действуют для каждого устройства, купленного в магазине.',
+  'terms.warranty':'Официальная гарантия импортёра',
+  'terms.warrantyV':'12 месяцев',
+  'terms.returns':'Возврат или обмен',
+  'terms.returnsV':'До 30 дней',
+  'terms.delivery':'Доставка на дом',
+  'terms.deliveryV':'24 часа',
+  'terms.freeFrom':'Бесплатная доставка от',
+  'terms.instal':'Платежи без процентов',
+  'terms.instalV':'До 36',
+  'terms.payment':'Способы оплаты',
+  'terms.paymentV':'Карта · Bit · Наличные',
+  'foot.note':'Независимый магазин мобильной техники в Нетании. Продажа, консультация и аксессуары — лично от Эли Хазута.',
+  'foot.service':'Сервис',
+  'foot.phone':'Телефон',
+  'foot.hours':'Часы работы',
+  'foot.shipping':'Условия доставки',
+  'foot.returns':'Возврат',
+  'foot.shop':'Магазин',
+  'foot.home':'Главная',
+  'foot.admin':'Управление',
+  'pay.bit':'Bit',
+  'pay.cash':'Наличные',
+  'a11y.title':'Доступность',
+  'a11y.theme':'Режим отображения',
+  'a11y.light':'Светлая',
+  'a11y.dark':'Тёмная',
+  'a11y.fontSize':'Размер текста',
+  'a11y.contrast':'Высокий контраст',
+  'a11y.links':'Подсветка ссылок',
+  'a11y.motion':'Остановить анимацию',
+  'a11y.on':'Включить',
+  'a11y.reset':'Сброс',
+  'cart.title':'Ваши товары',
+  'cart.sub':'Промежуточный итог',
+  'cart.ship':'Доставка',
+  'cart.free':'Бесплатно',
+  'cart.total':'Итого',
+  'cart.checkout':'Отправить заказ в WhatsApp',
+  'cart.note':'Сообщение откроется готовым. Оплата обсуждается в переписке.',
+  'cart.empty':'Список пуст',
+  'cart.emptyLead':'Добавьте товары — мы соберём из них аккуратное сообщение в WhatsApp.',
+  'modal.order':'Заказать в WhatsApp',
+  'modal.add':'Добавить в список',
+  'modal.share':'Поделиться',
+  'card.add':'Добавить',
+  'card.fav':'Сохранить',
+  'tag.new':'Новинка',
+  'tag.deal':'Акция',
+  'grid.emptyT':'Нет товаров по фильтру',
+  'grid.emptyP':'Попробуйте сбросить фильтры или просто спросите нас. Большинство товаров приходит за день.',
+  'grid.emptyCta':'Спросить в WhatsApp',
+  'cat.items':'{n} товаров',
+  'modal.instal':'или {n} платежей по {v} без процентов',
+  't.added':'Добавлено в список',
+  't.cartEmpty':'Список пуст',
+  't.linkCopied':'Ссылка скопирована',
+  't.copyPrompt':'Скопируйте ссылку:',
+  'wa.hello':'Здравствуйте! Я с сайта и хотел бы узнать подробности о товаре 🙏',
+  'wa.product':'Здравствуйте! Хочу приобрести:\n*{name}*\nЦена на сайте: {price}\n\nПришлите, пожалуйста, подробности 🙏',
+  'wa.orderHead':'Здравствуйте! Хочу заказать:',
+  'wa.orderTotal':'Итого: {v}',
+  'wa.orderTail':'Какой следующий шаг? 🙏',
+  'lang.label':'Язык','a.carousel':'Карусель','a.slide':'Слайд','a.slideN':'Слайд {i} из {n}','a.slideGo':'Перейти к слайду {i}','hero.sigCount':'{n} моделей','hero.sigSub':'В наличии · Быстрая доставка из Нетании'}
+};
+
+let LANG='he';
+/* t('key',{n:3}) — a missing key falls back to Hebrew, then to the key
+   itself, so a typo surfaces as a visible token, never "undefined". */
+function t(key,vars){
+  let s=(I18N[LANG]&&I18N[LANG][key])||I18N.he[key]||key;
+  if(vars)for(const k in vars)s=s.split('{'+k+'}').join(vars[k]);
+  return s;
+}
+
+/* =========================================================
+   3. storage
+   ========================================================= */
+const KEY='phonestore.data.v1';
+let MEM=null;
+const store={
+  async load(){
+    try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r);}catch(e){}
+    try{if(window.storage){const r=await window.storage.get(KEY);if(r&&r.value)return JSON.parse(r.value);}}catch(e){}
+    return MEM?JSON.parse(MEM):null;
+  },
+  async save(d){
+    const s=JSON.stringify(d);MEM=s;
+    try{localStorage.setItem(KEY,s);return true;}catch(e){}
+    try{if(window.storage){await window.storage.set(KEY,s);return true;}}catch(e){}
+    return false;
+  },
+  async clear(){
+    MEM=null;
+    try{localStorage.removeItem(KEY);}catch(e){}
+    try{if(window.storage)await window.storage.delete(KEY);}catch(e){}
+  }
+};
+
+/* ---------------------------------------------------------
+   normalizeData  ·  every path into DATA goes through here.
+   Saved data predates `slides`, backup files may be hand
+   edited, and a spread merge cannot repair either: an empty
+   or malformed slides array wins the spread and blanks the
+   hero. Repair once, here, instead of guarding every reader.
+   --------------------------------------------------------- */
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function normSlide(raw,i){
+  const d=DEFAULTS.slides[Math.min(i,DEFAULTS.slides.length-1)];
+  const s=raw&&typeof raw==='object'?raw:{};
+  let title=s.title;
+  if(typeof title==='string')title=title.split('\n');
+  if(!Array.isArray(title))title=[];
+  title=title.map(l=>String(l==null?'':l).trim()).filter(Boolean).slice(0,3);
+  if(!title.length)title=clone(d.title);
+  return {
+    id:s.id||uid(),
+    mark:typeof s.mark==='string'?s.mark:'',
+    accent:typeof s.accent==='string'?s.accent:'',
+    title:title,
+    lead:typeof s.lead==='string'?s.lead:'',
+    ctaWa:s.ctaWa||d.ctaWa,
+    ctaLabel:s.ctaLabel||d.ctaLabel,
+    ctaHref:s.ctaHref||d.ctaHref
+  };
+}
+function normalizeData(saved){
+  const d=(saved&&saved.products&&saved.cats)
+    ? {...clone(DEFAULTS),...saved,settings:{...DEFAULTS.settings,...(saved.settings||{})}}
+    : clone(DEFAULTS);
+  /* saved data and old backups may still carry the legacy plaintext password;
+     drop it so it never re-enters DATA, the UI, or a fresh backup file */
+  delete d.settings.pw;
+  if(!Array.isArray(d.slides)||!d.slides.length)d.slides=clone(DEFAULTS.slides);
+  d.slides=d.slides.slice(0,6).map(normSlide);
+  const h=Number(d.settings.slideHold);
+  d.settings.slideHold=(isFinite(h)&&h>=2&&h<=30)?h:DEFAULTS.settings.slideHold;
+  return d;
+}
+
+let DATA=JSON.parse(JSON.stringify(DEFAULTS));
+let CART=[],FAVS=[],EDIT=null;
+
+/* The list and the hearts survive a reload. Loaded in boot AFTER the live
+   content resolves, so entries pointing at products that have since been
+   deleted are pruned instead of crashing the renderers. */
+const CART_KEY='phonestore.cart.v1',FAVS_KEY='phonestore.favs.v1';
+function readLocal(k){try{return JSON.parse(localStorage.getItem(k)||'null');}catch(e){return null;}}
+function writeLocal(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+const saveCart=()=>writeLocal(CART_KEY,CART);
+const saveFavs=()=>writeLocal(FAVS_KEY,FAVS);
+function restoreCartFavs(){
+  const has=id=>DATA.products.some(p=>p.id===id);
+  const c=readLocal(CART_KEY),f=readLocal(FAVS_KEY);
+  if(Array.isArray(c))CART=c.filter(i=>i&&has(i.id)).map(i=>({id:i.id,q:Math.max(1,Math.min(99,+i.q||1))}));
+  if(Array.isArray(f))FAVS=f.filter(has);
+}
+
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const money=n=>'₪'+Number(n||0).toLocaleString(LOCALES[LANG]||'he-IL');
+const uid=()=>'x'+Math.random().toString(36).slice(2,9);
+const catOf=id=>DATA.cats.find(c=>c.id===id);
+const iconOf=id=>(catOf(id)||{}).icon||'phone';
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2600);}
+function waOpen(msg){
+  const num=DATA.settings.wa.replace(/\D/g,'');
+  window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`,'_blank','noopener,noreferrer');
+}
+const waHello=()=>waOpen(t('wa.hello'));
+function waProduct(p){waOpen(t('wa.product',{name:p.name,price:money(p.price)}));}
+
+/* =========================================================
+   4. rendering
+   ========================================================= */
+function applySettings(){
+  const s=DATA.settings;
+  $('#brandName').textContent=s.name;$('#fBrand').textContent=s.name;$('#brandSub').textContent=s.sub;
+  $('#uAddr').textContent=s.addr;$('#cAddr').textContent=s.addr;
+  $('#uShip').textContent=t('util.ship',{v:money(s.ship)});
+  $('#uPay').textContent=t('util.pay',{v:s.pay});
+  $('#uTel').textContent=s.telShow;$('#uTel').href='tel:'+s.telShow.replace(/\D/g,'');
+  $('#cTel').textContent=s.telShow;$('#fTel').href='tel:'+s.telShow.replace(/\D/g,'');
+  $('#cMail').textContent=s.mail;
+  $('#yr').textContent=new Date().getFullYear();
+  renderSlides();          /* the hero mark and lead now live on the slides */
+  renderHeroSignal();
+  applyHeroMedia();
+}
+function renderHeroSignal(){
+  const el=$('#heroSignal');if(!el)return;
+  el.innerHTML=`<strong>${esc(t('hero.sigCount',{n:DATA.products.length}))}</strong><span>${esc(t('hero.sigSub'))}</span>`;
+}
+function applyHeroMedia(){
+  const s=DATA.settings,v=$('#heroVideo'),m=$('#heroMedia');
+  /* Use the local cinematic loop until an administrator supplies custom media. */
+  const src=s.video||'/assets/hero-phone-store.mp4';
+  if(v.getAttribute('src')!==src){v.setAttribute('src',src);v.load();}
+  v.setAttribute('poster',s.poster||'/assets/hero-phone-store-poster.jpg');
+  v.play().catch(()=>{});
+  m.classList.add('has-video');
+}
+
+/* =========================================================
+   4b. hero slides
+   ========================================================= */
+const WA_SVG='<svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15L2 22l5.2-1.4A10 10 0 1012 2zm5.8 14.2c-.2.7-1.2 1.3-1.9 1.4-.5.1-1.2.1-1.9-.1-.4-.1-1-.3-1.7-.6-3-1.3-5-4.3-5.1-4.5-.2-.2-1.2-1.6-1.2-3s.7-2.1 1-2.4c.3-.3.6-.4.8-.4h.6c.2 0 .4 0 .6.5l.9 2c.1.2.1.4 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.7 1.2 1.6 2 1.1 1 2 1.3 2.3 1.4.3.1.4.1.6-.1l.8-1c.2-.2.4-.2.6-.1l2 .9c.2.1.4.2.4.3.1.2.1.6-.1 1.2z"/></svg>';
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* escape first, then promote *word* to the bronze <em> — never the reverse */
+const accentize=line=>esc(line).replace(/\*([^*]+)\*/g,'<em>$1</em>');
+const slideMark=sl=>sl.mark||(DATA.settings.name+' · '+DATA.settings.addr.split(',').pop().trim());
+const safeHref=h=>/^(#|https?:\/\/|tel:|mailto:)/.test(h||'')?h:'#catalog';
+
+function slideHTML(sl,i,n){
+  const H=i===0?'h1':'h2';   /* exactly one h1 on the page, whatever the admin reorders */
+  return `<article class="hero-slide${i===0?' is-active':''}" data-i="${i}" role="group"
+   aria-roledescription="${esc(t('a.slide'))}" aria-label="${esc(t('a.slideN',{i:i+1,n:n}))}"${i?' aria-hidden="true"':''}>
+  <div class="hero-mark hs-mark">${esc(slideMark(sl))}</div>
+  <${H} class="hs-title">${sl.title.map(l=>`<span class="line-mask"><span>${accentize(l)}</span></span>`).join('')}</${H}>
+  <p class="lead hs-lead">${esc(sl.lead||DATA.settings.lead)}</p>
+  <div class="hero-cta hs-cta">
+    <button class="btn btn-wa hs-wa" type="button">${WA_SVG}${esc(sl.ctaWa)}</button>
+    <a href="${esc(safeHref(sl.ctaHref))}" class="btn btn-light hs-alt">${esc(sl.ctaLabel)}</a>
+  </div>
+</article>`;
+}
+
+/* persist() calls applySettings() after EVERY admin action, including adding a
+   product. Without this signature check, saving a product would tear the slider
+   down and bounce the visitor back to slide 1. */
+let _slidesSig='';
+function renderSlides(force){
+  const s=DATA.settings;
+  const sig=JSON.stringify([DATA.slides,s.lead,s.name,s.addr,s.slideHold]);
+  if(!force&&sig===_slidesSig)return;
+  _slidesSig=sig;
+  const n=DATA.slides.length;
+  if(SLIDER.mounted)SLIDER.destroy();
+  $('#heroSlides').innerHTML=DATA.slides.map((sl,i)=>slideHTML(sl,i,n)).join('');
+  $('#hsDots').innerHTML=DATA.slides.map((sl,i)=>
+    `<button class="hs-dot" type="button" role="tab" data-go="${i}" aria-label="${esc(t('a.slideGo',{i:i+1}))}" aria-current="${i===0}"><i></i></button>`).join('');
+  $('#heroUi').style.display=n>1?'':'none';
+  SLIDER.mount();
+  if(window.ScrollTrigger)ScrollTrigger.refresh();
+}
+function renderCats(){
+  $('#catsGrid').innerHTML=DATA.cats.map(c=>{
+    const n=DATA.products.filter(p=>p.cat===c.id).length;
+    /* the category photo sits behind the icon and label as a dim wash, so the
+       tile still reads as a control rather than turning into a picture */
+    const bg=c.img?`<img class="art-img" src="${esc(c.img)}" alt="" loading="lazy" decoding="async">`:'';
+    return `<button class="cat" data-cat="${esc(c.id)}">${bg}${svg(c.icon)}<div><b>${esc(c.name)}</b><br><span>${esc(t('cat.items',{n:n}))}</span></div></button>`;
+  }).join('');
+  $('#railCats').innerHTML=DATA.cats.map(c=>`<label class="check"><input type="checkbox" class="fc" value="${esc(c.id)}">${esc(c.name)}</label>`).join('');
+  $('#footCats').innerHTML=DATA.cats.slice(0,6).map(c=>`<li><a href="#catalog" data-cat="${esc(c.id)}">${esc(c.name)}</a></li>`).join('');
+  const brands=[...new Set(DATA.products.map(p=>p.brand))].sort();
+  $('#railBrands').innerHTML=brands.map(b=>`<label class="check"><input type="checkbox" class="fb" value="${esc(b)}">${esc(b)}</label>`).join('');
+  $('#brandChips').innerHTML=brands.map(b=>`<button class="brand-chip" data-brand="${esc(b)}">${esc(b)}</button>`).join('');
+}
+function renderReviews(){
+  $('#reviewsGrid').innerHTML=DATA.reviews.map(r=>`
+    <article class="review">
+      <div class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div>
+      <q>${esc(r.text)}</q>
+      <div class="rev-who"><div class="avatar">${esc(r.name.trim()[0])}</div><div><b>${esc(r.name)}</b><span>${esc(r.when)}</span></div></div>
+    </article>`).join('');
+}
+function filtered(){
+  const q=$('#q').value.trim().toLowerCase();
+  const cats=$$('.fc:checked').map(i=>i.value);
+  const brands=$$('.fb:checked').map(i=>i.value);
+  const max=+$('#rng').value;
+  let list=DATA.products.filter(p=>
+    (!q||(p.name+' '+p.brand).toLowerCase().includes(q))&&
+    (!cats.length||cats.includes(p.cat))&&
+    (!brands.length||brands.includes(p.brand))&&
+    p.price<=max);
+  const s=$('#sort').value;
+  if(s==='asc')list.sort((a,b)=>a.price-b.price);
+  else if(s==='desc')list.sort((a,b)=>b.price-a.price);
+  else if(s==='new')list.sort((a,b)=>(b.tag==='new')-(a.tag==='new'));
+  else list.sort((a,b)=>(b.pop||0)-(a.pop||0));
+  return list;
+}
+function renderGrid(){
+  const list=filtered();
+  $('#cnt').textContent=list.length;
+  if(!list.length){
+    $('#grid').innerHTML=`<div class="empty"><b>${esc(t('grid.emptyT'))}</b><p>${esc(t('grid.emptyP'))}</p><button class="btn btn-wa" id="emptyWa">${esc(t('grid.emptyCta'))}</button></div>`;
+    return;
+  }
+  $('#grid').innerHTML=list.map(p=>{
+    /* admin-entered content is published to every visitor now — escape it */
+    const specs=Object.entries(p.specs||{}).slice(0,3).map(([k,v])=>`<div class="spec-row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
+    const tag=p.tag==='new'?`<span class="tag tag-new">${esc(t('tag.new'))}</span>`:p.tag==='deal'?`<span class="tag tag-deal">${esc(t('tag.deal'))}</span>`:'';
+    return `<article class="card" data-id="${esc(p.id)}">
+      <div class="card-art" data-open="${esc(p.id)}">${tag}${art(p)}
+        <button class="fav ${FAVS.includes(p.id)?'on':''}" data-fav="${esc(p.id)}" aria-label="${esc(t('card.fav'))}"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-9.5A4 4 0 0112 8a4 4 0 017 2.5c0 5-7 9.5-7 9.5z"/></svg></button>
+      </div>
+      <div class="card-body">
+        <div class="brandline">${esc(p.brand)}</div>
+        <h3>${esc(p.name)}</h3>
+        <div class="specs">${specs}</div>
+      </div>
+      <div class="card-foot">
+        <div class="card-price"><span class="now price">${money(p.price)}</span>${p.was?`<span class="was">${money(p.was)}</span>`:''}</div>
+        <button class="btn btn-primary btn-sm" data-add="${esc(p.id)}">${esc(t('card.add'))}</button>
+      </div>
+    </article>`;
+  }).join('');
+  if(window.ScrollTrigger)ScrollTrigger.refresh();
+}
+
+/* =========================================================
+   5. cart + modal
+   ========================================================= */
+function cartAdd(id){
+  const l=CART.find(i=>i.id===id);
+  if(l)l.q++;else CART.push({id,q:1});
+  saveCart();renderCart();toast(t('t.added'));
+}
+function renderCart(){
+  const n=CART.reduce((s,i)=>s+i.q,0);
+  const b=$('#cartCount');b.textContent=n;b.style.display=n?'grid':'none';
+  if(!CART.length){
+    $('#cartBody').innerHTML=`<div style="text-align:center;padding:50px 10px;color:var(--slate)"><p style="font-family:var(--f-display);font-size:19px;color:var(--fg)">${esc(t('cart.empty'))}</p><p style="font-size:15px">${esc(t('cart.emptyLead'))}</p></div>`;
+  }else{
+    $('#cartBody').innerHTML=CART.map(i=>{
+      const p=DATA.products.find(x=>x.id===i.id);if(!p)return '';
+      return `<div class="cart-item"><div class="thumb">${art(p)}</div>
+        <div><b>${esc(p.name)}</b><div class="p">${money(p.price)}</div></div>
+        <div class="qty"><button data-q="-" data-id="${esc(p.id)}">−</button><span>${i.q}</span><button data-q="+" data-id="${esc(p.id)}">+</button></div></div>`;
+    }).join('');
+  }
+  const sub=CART.reduce((s,i)=>{const p=DATA.products.find(x=>x.id===i.id);return s+(p?p.price*i.q:0);},0);
+  const ship=(sub>=DATA.settings.ship||sub===0)?0:39;
+  $('#tSub').textContent=money(sub);
+  $('#tShip').textContent=ship?money(ship):t('cart.free');
+  $('#tGrand').textContent=money(sub+ship);
+}
+function checkout(){
+  if(!CART.length){toast(t('t.cartEmpty'));return;}
+  let sub=0;
+  const lines=CART.map(i=>{
+    const p=DATA.products.find(x=>x.id===i.id);if(!p)return '';
+    sub+=p.price*i.q;return `• ${p.name} × ${i.q} — ${money(p.price*i.q)}`;
+  }).filter(Boolean).join('\n');
+  waOpen(`${t('wa.orderHead')}\n\n${lines}\n\n${t('wa.orderTotal',{v:money(sub)})}\n\n${t('wa.orderTail')}`);
+}
+/* Every product has a real address: /product/:id. Opening the modal pushes
+   it, Back closes it, and the Worker serves the same page with per-product
+   meta so the link unfurls and indexes properly. */
+let _pushedProduct=false;
+const urlRoutable=()=>/^https?:$/.test(location.protocol);
+function openProduct(id,opts){
+  const p=DATA.products.find(x=>x.id===id);if(!p)return;
+  $('#mArt').innerHTML=art(p);
+  $('#mBrand').textContent=p.brand;$('#mName').textContent=p.name;$('#mDesc').textContent=p.desc||'';
+  $('#mSpecs').innerHTML=Object.entries(p.specs||{}).map(([k,v])=>`<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
+  $('#mPrice').textContent=money(p.price);
+  $('#mPay').textContent=t('modal.instal',{n:DATA.settings.pay,v:money(Math.round(p.price/DATA.settings.pay))});
+  $('#mWa').onclick=()=>waProduct(p);
+  $('#mAdd').onclick=()=>{cartAdd(p.id);closeAll();};
+  $('#mShare').onclick=()=>shareProduct(p);
+  $('#modal').classList.add('on');$('#scrim').classList.add('on');
+  if(!(opts&&opts.noHistory)&&urlRoutable()&&location.pathname!=='/product/'+id){
+    history.pushState({product:id},'','/product/'+id);_pushedProduct=true;
+  }
+}
+async function shareProduct(p){
+  const link=location.origin+'/product/'+p.id;
+  if(navigator.share){
+    try{await navigator.share({title:p.name,url:link});return;}
+    catch(e){ if(e&&e.name==='AbortError')return; /* else: fall through to copy */ }
+  }
+  try{await navigator.clipboard.writeText(link);toast(t('t.linkCopied'));}
+  catch(e){prompt(t('t.copyPrompt'),link);}
+}
+function closeAll(fromPop){
+  $('#modal').classList.remove('on');$('#cartDrawer').classList.remove('on');$('#scrim').classList.remove('on');
+  if(!fromPop&&urlRoutable()&&/^\/product\//.test(location.pathname)){
+    /* pushed here this session → Back both closes and restores the URL.
+       Landed here directly → rewrite to the homepage so Back still leaves
+       the site, as the visitor expects. */
+    if(_pushedProduct){_pushedProduct=false;history.back();}
+    else history.replaceState(null,'','/');
+  }
+}
+window.addEventListener('popstate',e=>{
+  if(e.state&&e.state.product)openProduct(e.state.product,{noHistory:true});
+  else closeAll(true);
+});
+
+/* =========================================================
+   6. admin
+   ========================================================= */
+function fillCatSelects(){
+  $('#pCat').innerHTML=DATA.cats.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+  $('#cIcon').innerHTML=ICONS.map(i=>`<option value="${i}">${ICON_HE[i]}</option>`).join('');
+}
+function adminTables(){
+  $('#pCount').textContent=DATA.products.length;
+  $('#pTable').innerHTML=`<tr><th>שם</th><th>מותג</th><th>קטגוריה</th><th>מחיר</th><th></th></tr>`+
+    DATA.products.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.brand)}</td><td>${esc((catOf(p.cat)||{}).name||'-')}</td>
+    <td class="price">${money(p.price)}</td>
+    <td class="act"><button class="mini" data-ep="${esc(p.id)}">עריכה</button><button class="mini del" data-dp="${esc(p.id)}">מחיקה</button></td></tr>`).join('');
+  $('#cTable').innerHTML=`<tr><th>קטגוריה</th><th>איור</th><th>מוצרים</th><th></th></tr>`+
+    DATA.cats.map(c=>`<tr><td>${esc(c.name)}</td><td>${esc(ICON_HE[c.icon]||c.icon)}</td>
+    <td>${DATA.products.filter(p=>p.cat===c.id).length}</td>
+    <td class="act"><button class="mini del" data-dc="${esc(c.id)}">מחיקה</button></td></tr>`).join('');
+  $('#rTable').innerHTML=`<tr><th>לקוח</th><th>ביקורת</th><th></th></tr>`+
+    DATA.reviews.map(r=>`<tr><td>${esc(r.name)}</td><td style="max-width:420px">${esc(r.text.slice(0,90))}…</td>
+    <td class="act"><button class="mini del" data-dr="${esc(r.id)}">מחיקה</button></td></tr>`).join('');
+}
+function fillSettings(){
+  const s=DATA.settings;
+  $('#sName').value=s.name;$('#sSub').value=s.sub;$('#sTelShow').value=s.telShow;
+  $('#sWa').value=s.wa;$('#sMail').value=s.mail;$('#sAddr').value=s.addr;
+  $('#sLead').value=s.lead;$('#sShip').value=s.ship;$('#sPay').value=s.pay;
+  $('#sVideo').value=s.video||'';$('#sPoster').value=s.poster||'';
+  $('#slHold').value=s.slideHold||6;
+  slidesEditor();
+}
+/* Rebuilding the editor blows away whatever is half-typed, so read the live
+   fields back into DATA.slides first. Everything the admin edits survives a
+   re-render triggered by an unrelated save. */
+function readSlideForms(){
+  const rows=$$('#slidesEditor [data-slide]');
+  if(!rows.length)return;
+  DATA.slides=rows.map((row,i)=>normSlide({
+    id:row.dataset.slide,
+    mark:$('[data-f="mark"]',row).value.trim(),
+    accent:$('[data-f="accent"]',row).value.trim(),
+    title:$('[data-f="title"]',row).value.split('\n'),
+    lead:$('[data-f="lead"]',row).value.trim(),
+    ctaWa:$('[data-f="ctaWa"]',row).value.trim(),
+    ctaLabel:$('[data-f="ctaLabel"]',row).value.trim(),
+    ctaHref:$('[data-f="ctaHref"]',row).value.trim()
+  },i));
+}
+function slidesEditor(){
+  const host=$('#slidesEditor'); if(!host)return;
+  const n=DATA.slides.length;
+  host.innerHTML=DATA.slides.map((sl,i)=>`
+  <div class="box" data-slide="${esc(sl.id)}">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <h3>שקופית ${i+1}</h3>
+      <div style="white-space:nowrap">
+        <button class="mini" data-sl-up="${i}"${i===0?' disabled':''}>↑</button>
+        <button class="mini" data-sl-down="${i}"${i===n-1?' disabled':''}>↓</button>
+        <button class="mini del" data-sl-del="${i}">מחיקה</button>
+      </div>
+    </div>
+    <div class="field"><label>כותרת · שורה בכל שורה. מילה בין כוכביות תופיע בברונזה: *בשיחה*</label>
+      <textarea data-f="title" rows="2">${esc(sl.title.join('\n'))}</textarea></div>
+    <div class="field"><label>פסקה · ריק = פסקת הפתיחה מלשונית הטקסטים</label>
+      <textarea data-f="lead">${esc(sl.lead)}</textarea></div>
+    <div class="form-grid">
+      <div class="field"><label>שורת תווית · ריק = שם העסק והעיר</label><input data-f="mark" value="${esc(sl.mark)}"></div>
+      <div class="field"><label>צבע הדגשה (לא חובה)</label><input data-f="accent" value="${esc(sl.accent)}" placeholder="#A67C4E"></div>
+    </div>
+    <div class="form-grid">
+      <div class="field"><label>כפתור וואטסאפ</label><input data-f="ctaWa" value="${esc(sl.ctaWa)}"></div>
+      <div class="field"><label>כפתור משני</label><input data-f="ctaLabel" value="${esc(sl.ctaLabel)}"></div>
+      <div class="field"><label>קישור הכפתור המשני</label><input data-f="ctaHref" value="${esc(sl.ctaHref)}" placeholder="#catalog"></div>
+    </div>
+  </div>`).join('');
+}
+function clearProductForm(){
+  EDIT=null;$('#pfTitle').textContent='מוצר חדש';
+  ['pName','pBrand','pPrice','pWas','pDesc','pSpecs','pImg'].forEach(i=>$('#'+i).value='');
+  showImgPreview('');
+  $('#pTag').value='';
+}
+function parseSpecs(t){
+  const o={};t.split('\n').forEach(l=>{const [k,...v]=l.split('=');if(k&&v.length)o[k.trim()]=v.join('=').trim();});
+  return o;
+}
+async function persist(){
+  const ok=await store.save(DATA);
+  if(!ok)toast('השמירה בזיכרון בלבד. הורידו קובץ גיבוי');
+  applySettings();renderCats();renderGrid();renderReviews();adminTables();fillCatSelects();slidesEditor();
+  schedulePublish();
+}
+
+/* =========================================================
+   6b. publish
+   The local save above is only a draft. What visitors see is
+   the JSON the Worker holds in KV, so every admin action also
+   schedules a PUT /api/data — debounced, because rapid edits
+   would otherwise hit KV's one-write-per-second-per-key limit.
+   ========================================================= */
+let LIVE=null;   /* JSON of the published content, when known. Set at boot
+                    from the server copy and after every successful publish;
+                    null means "nothing published yet" (or worker unreachable). */
+function adminToken(){
+  try{
+    const s=JSON.parse(sessionStorage.getItem(ADMIN_TOKEN_KEY)||'null');
+    return s&&s.exp&&s.exp*1000>Date.now()?s.token:null;
+  }catch(e){ return null; }
+}
+function setPubState(msg){const el=$('#pubState');if(el)el.textContent=msg;}
+let _pubT=0;
+function schedulePublish(){
+  if(!adminToken())return;
+  setPubState('· ממתין לפרסום…');
+  clearTimeout(_pubT);_pubT=setTimeout(publish,3000);
+}
+async function publish(){
+  clearTimeout(_pubT);
+  const tok=adminToken();
+  if(!tok){setPubState('· נדרשת כניסה מחדש');return;}
+  setPubState('· מפרסם…');
+  try{
+    const r=await fetch('/api/data',{method:'PUT',
+      headers:{'content-type':'application/json','authorization':'Bearer '+tok},
+      body:JSON.stringify(DATA)});
+    if(r.ok){
+      LIVE=JSON.stringify(DATA);
+      setPubState('· פורסם ✓');
+    }else if(r.status===401){
+      /* the token expired mid-session: back to the gate, the draft is safe */
+      sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+      setPubState('');
+      $('#adminPanels').style.display='none';$('#gate').style.display='block';
+      toast('פג תוקף החיבור. היכנסו שוב ולחצו "פרסום עכשיו"');
+    }else if(r.status===404){
+      /* the KV namespace is not provisioned yet — see README */
+      setPubState('· נשמר בדפדפן בלבד, מחסן התוכן טרם הוגדר');
+    }else{
+      setPubState('· הפרסום נכשל');
+      toast('הפרסום נכשל. נסו שוב בלחיצה על "פרסום עכשיו"');
+    }
+  }catch(e){
+    setPubState('· אין חיבור, נשמר מקומית');
+  }
+}
+/* A draft that was edited but never published used to be what the admin saw
+   on reload. Now the site boots from the published copy, so an unpublished
+   draft would be invisible — surface it instead of losing it. */
+async function offerLocalDraft(){
+  const bar=$('#draftBar');if(!bar)return;
+  bar.style.display='none';
+  if(!LIVE)return;
+  let draft=null;
+  try{draft=await store.load();}catch(e){}
+  if(!draft)return;
+  try{ if(JSON.stringify(normalizeData(draft))!==LIVE)bar.style.display='flex'; }catch(e){}
+}
+
+/* =========================================================
+   7. events
+   ========================================================= */
+document.addEventListener('click',e=>{
+  const t=e.target;
+  if(t.closest('.hs-wa')||t.closest('#howWa')||t.closest('#cWa')||t.closest('#fab')||t.closest('#fWa')||t.closest('#emptyWa')){e.preventDefault();waHello();return;}
+  const cat=t.closest('[data-cat]');
+  if(cat){e.preventDefault();$$('.fc').forEach(i=>i.checked=i.value===cat.dataset.cat);renderGrid();$('#catalog').scrollIntoView({behavior:'smooth'});return;}
+  const br=t.closest('[data-brand]');
+  if(br){const v=br.dataset.brand;
+    $$('.fb').forEach(i=>{if(i.value===v)i.checked=!i.checked;});
+    $$('.brand-chip').forEach(c=>c.classList.toggle('on',$$('.fb:checked').map(i=>i.value).includes(c.dataset.brand)));
+    renderGrid();$('#catalog').scrollIntoView({behavior:'smooth'});return;}
+  if(t.closest('[data-open]')&&!t.closest('.fav')){openProduct(t.closest('[data-open]').dataset.open);return;}
+  if(t.closest('[data-add]')){cartAdd(t.closest('[data-add]').dataset.add);return;}
+  const fav=t.closest('[data-fav]');
+  if(fav){const id=fav.dataset.fav;FAVS.includes(id)?FAVS.splice(FAVS.indexOf(id),1):FAVS.push(id);fav.classList.toggle('on');saveFavs();return;}
+  const q=t.closest('[data-q]');
+  if(q){const l=CART.find(i=>i.id===q.dataset.id);if(!l)return;
+    l.q+=q.dataset.q==='+'?1:-1;if(l.q<1)CART.splice(CART.indexOf(l),1);saveCart();renderCart();return;}
+  if(t.closest('#cartBtn')){$('#cartDrawer').classList.add('on');$('#scrim').classList.add('on');return;}
+  if(t.closest('[data-close]')||t.id==='scrim'){closeAll();return;}
+  if(t.closest('#checkout')){checkout();return;}
+  if(t.closest('#filtersToggle')){$('#rail').classList.toggle('open');if(window.ScrollTrigger)ScrollTrigger.refresh();return;}
+  if(t.closest('#burger')){$('#catalog').scrollIntoView({behavior:'smooth'});return;}
+  if(t.closest('#searchBtn')){$('#catalog').scrollIntoView({behavior:'smooth'});setTimeout(()=>$('#q').focus(),600);return;}
+  if(t.closest('#a11yBtn')){$('#a11yPanel').classList.toggle('on');return;}
+  const a=t.closest('[data-a11y]');
+  if(a){
+    const k=a.dataset.a11y,root=document.documentElement;
+    const cur=parseFloat(getComputedStyle(root).fontSize)||16;
+    if(k==='inc')root.style.fontSize=Math.min(cur+2,24)+'px';
+    if(k==='dec')root.style.fontSize=Math.max(cur-2,13)+'px';
+    if(k==='reset-font')root.style.fontSize='';
+    if(k==='hc')document.body.classList.toggle('hc');
+    if(k==='links')document.body.classList.toggle('links');
+    if(k==='anim')document.body.classList.toggle('no-anim');
+    if(k==='reset'){root.style.fontSize='';document.body.className='';}
+    /* body.no-anim silences CSS only — the slider's rAF clock needs telling */
+    if(SLIDER.mounted)SLIDER.syncPrefs();
+    if(window.ScrollTrigger)ScrollTrigger.refresh();
+    return;
+  }
+  if(t.closest('#adminLink')){e.preventDefault();$('#admin').classList.add('on');return;}
+  if(t.closest('#adminClose')){$('#admin').classList.remove('on');return;}
+  const tab=t.closest('[data-tab]');
+  if(tab){
+    $$('#adminTabs button').forEach(b=>b.classList.toggle('on',b===tab));
+    $$('.panel').forEach(p=>p.classList.toggle('on',p.dataset.panel===tab.dataset.tab));
+    return;
+  }
+  const ep=t.closest('[data-ep]');
+  if(ep){
+    const p=DATA.products.find(x=>x.id===ep.dataset.ep);if(!p)return;
+    EDIT=p.id;$('#pfTitle').textContent='עריכת '+p.name;
+    $('#pName').value=p.name;$('#pBrand').value=p.brand;$('#pCat').value=p.cat;
+    $('#pPrice').value=p.price;$('#pWas').value=p.was||'';$('#pTag').value=p.tag||'';
+    $('#pDesc').value=p.desc||'';$('#pImg').value=p.img||'';showImgPreview(p.img||'');
+    $('#pSpecs').value=Object.entries(p.specs||{}).map(([k,v])=>k+' = '+v).join('\n');
+    $('.admin-body').scrollTop=0;return;
+  }
+  const dp=t.closest('[data-dp]');
+  if(dp){if(confirm('למחוק את המוצר?')){DATA.products=DATA.products.filter(x=>x.id!==dp.dataset.dp);persist();}return;}
+  const dc=t.closest('[data-dc]');
+  if(dc){
+    if(DATA.products.some(p=>p.cat===dc.dataset.dc)){alert('יש מוצרים בקטגוריה הזו. העבירו אותם לקטגוריה אחרת קודם.');return;}
+    if(confirm('למחוק את הקטגוריה?')){DATA.cats=DATA.cats.filter(c=>c.id!==dc.dataset.dc);persist();}return;
+  }
+  const dr=t.closest('[data-dr]');
+  if(dr){if(confirm('למחוק את הביקורת?')){DATA.reviews=DATA.reviews.filter(r=>r.id!==dr.dataset.dr);persist();}return;}
+});
+
+/* The password is checked by the Worker against a Cloudflare secret. Nothing
+   here knows it, so reading the page source tells an attacker nothing. */
+const ADMIN_TOKEN_KEY='phonestore.admin.v1';
+function openAdminPanels(){
+  $('#gate').style.display='none';$('#adminPanels').style.display='block';
+  fillCatSelects();fillSettings();adminTables();
+  setPubState(LIVE&&LIVE===JSON.stringify(DATA)?'· פורסם ✓':'');
+  offerLocalDraft();
+}
+$('#pwGo').onclick=async()=>{
+  const btn=$('#pwGo'),val=$('#pw').value;
+  if(!val){toast('הזינו סיסמה');return;}
+  btn.disabled=true;btn.textContent='בודק…';
+  try{
+    const r=await fetch('/api/admin/login',{
+      method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({password:val})
+    });
+    if(r.ok){
+      const d=await r.json();
+      try{sessionStorage.setItem(ADMIN_TOKEN_KEY,JSON.stringify({token:d.token,exp:d.exp}));}catch(e){}
+      $('#pw').value='';openAdminPanels();
+    }
+    else if(r.status===503)toast('הניהול לא הוגדר בשרת. הריצו: wrangler secret put ADMIN_PASSWORD');
+    else toast('סיסמה שגויה');
+  }catch(e){
+    /* opening the file straight from disk, or the Worker is unreachable */
+    toast('הניהול זמין רק באתר החי');
+  }finally{ btn.disabled=false;btn.textContent='כניסה'; }
+};
+/* A still-valid session token skips the prompt. Called from boot, not on
+   DOMContentLoaded, so DATA is already loaded when fillSettings() runs. */
+function restoreAdminSession(){
+  try{
+    const s=JSON.parse(sessionStorage.getItem(ADMIN_TOKEN_KEY)||'null');
+    if(s&&s.exp&&s.exp*1000>Date.now())openAdminPanels();
+    else sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+  }catch(e){}
+}
+$('#pw').addEventListener('keydown',e=>{if(e.key==='Enter')$('#pwGo').click();});
+$('#pSave').onclick=()=>{
+  const name=$('#pName').value.trim();
+  if(!name){toast('חסר שם מוצר');return;}
+  const rec={name,brand:$('#pBrand').value.trim()||'כללי',cat:$('#pCat').value,
+    price:+$('#pPrice').value||0,was:+$('#pWas').value||null,tag:$('#pTag').value,
+    img:$('#pImg').value.trim(),
+    desc:$('#pDesc').value.trim(),specs:parseSpecs($('#pSpecs').value)};
+  if(EDIT){Object.assign(DATA.products.find(p=>p.id===EDIT),rec);toast('המוצר עודכן');}
+  else{DATA.products.unshift({id:uid(),pop:0,...rec});toast('המוצר נוסף');}
+  clearProductForm();persist();
+};
+/* ---------------------------------------------------------
+   product photo upload
+   The file goes through a canvas first: a phone camera JPEG is
+   several MB and 4000px wide, which is wasted bytes for a card
+   that renders at ~400px. Downscaling to WebP here keeps KV
+   small, the site fast, and the upload under the Worker's cap
+   without the shop owner having to think about any of it.
+   --------------------------------------------------------- */
+const IMG_MAX_EDGE=1200;
+async function shrinkImage(file){
+  /* createImageBitmap decodes the File directly. The obvious alternative,
+     an <img> pointed at URL.createObjectURL(file), needs blob: in the CSP's
+     img-src — decoding without a URL keeps the policy as tight as it is. */
+  const bmp=await createImageBitmap(file);
+  const scale=Math.min(1,IMG_MAX_EDGE/Math.max(bmp.width,bmp.height));
+  const c=document.createElement('canvas');
+  c.width=Math.round(bmp.width*scale);c.height=Math.round(bmp.height*scale);
+  c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);
+  bmp.close();
+  /* WebP everywhere we care about; the JPEG fallback keeps an old browser
+     from silently producing a PNG the Worker would reject. */
+  return new Promise((resolve,reject)=>
+    c.toBlob(b=>b?resolve(b):c.toBlob(b2=>b2?resolve(b2):reject(new Error('encode')),'image/jpeg',.85),'image/webp',.85));
+}
+function showImgPreview(src){
+  const box=$('#pImgPreview');
+  if(!src){box.hidden=true;box.querySelector('img').removeAttribute('src');return;}
+  box.querySelector('img').src=src;box.hidden=false;
+}
+$('#pImg').addEventListener('input',e=>showImgPreview(e.target.value.trim()));
+$('#pImgClear').onclick=()=>{$('#pImg').value='';showImgPreview('');};
+$('#pImgFile').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  e.target.value='';                       /* so picking the same file twice fires again */
+  const tok=adminToken();
+  if(!tok){toast('פג תוקף החיבור. היכנסו שוב');return;}
+  toast('מעלה תמונה…');
+  try{
+    const blob=await shrinkImage(f);
+    const r=await fetch('/api/upload',{method:'POST',
+      headers:{'content-type':blob.type,'authorization':'Bearer '+tok},body:blob});
+    if(r.ok){
+      const d=await r.json();
+      $('#pImg').value=d.url;showImgPreview(d.url);
+      toast('התמונה הועלתה. שמרו את המוצר');
+    }
+    else if(r.status===401)toast('פג תוקף החיבור. היכנסו שוב');
+    else if(r.status===413)toast('התמונה גדולה מדי');
+    else if(r.status===404)toast('מחסן התוכן טרם הוגדר');
+    else toast('ההעלאה נכשלה');
+  }catch(err){ toast('לא הצלחנו לקרוא את הקובץ'); }
+};
+$('#pClear').onclick=clearProductForm;
+$('#cAdd').onclick=()=>{
+  const n=$('#cName').value.trim();if(!n){toast('חסר שם קטגוריה');return;}
+  DATA.cats.push({id:uid(),name:n,icon:$('#cIcon').value});$('#cName').value='';persist();toast('הקטגוריה נוספה');
+};
+$('#sSave').onclick=()=>{
+  Object.assign(DATA.settings,{
+    name:$('#sName').value.trim(),sub:$('#sSub').value.trim(),telShow:$('#sTelShow').value.trim(),
+    wa:$('#sWa').value.trim(),mail:$('#sMail').value.trim(),addr:$('#sAddr').value.trim(),
+    lead:$('#sLead').value.trim(),ship:+$('#sShip').value||0,pay:+$('#sPay').value||1});
+  persist();toast('הפרטים נשמרו');
+};
+$('#mSave').onclick=()=>{
+  Object.assign(DATA.settings,{video:$('#sVideo').value.trim(),poster:$('#sPoster').value.trim()});
+  persist();toast('וידאו הפתיחה עודכן');
+};
+$('#slSave').onclick=()=>{
+  readSlideForms();
+  const h=parseInt($('#slHold').value,10);
+  DATA.settings.slideHold=(isFinite(h)&&h>=2&&h<=30)?h:6;
+  DATA=normalizeData(DATA);
+  persist();toast('השקופיות נשמרו');
+};
+$('#slAdd').onclick=()=>{
+  readSlideForms();
+  if(DATA.slides.length>=6){toast('עד שש שקופיות');return;}
+  DATA.slides.push(normSlide({id:uid(),title:['כותרת חדשה','שורה *שנייה*.'],lead:''},DATA.slides.length));
+  persist();toast('שקופית נוספה');
+};
+$('#slidesEditor').addEventListener('click',e=>{
+  const del=e.target.closest('[data-sl-del]');
+  if(del){
+    readSlideForms();
+    /* an empty slides array would win the boot merge and blank the hero */
+    if(DATA.slides.length<2){toast('צריכה להישאר לפחות שקופית אחת');return;}
+    if(!confirm('למחוק את השקופית?'))return;
+    DATA.slides.splice(+del.dataset.slDel,1);persist();toast('השקופית נמחקה');return;
+  }
+  const mv=e.target.closest('[data-sl-up],[data-sl-down]');
+  if(mv){
+    readSlideForms();
+    const up='slUp' in mv.dataset, i=+(up?mv.dataset.slUp:mv.dataset.slDown), j=up?i-1:i+1;
+    if(j<0||j>=DATA.slides.length)return;
+    const a=DATA.slides;[a[i],a[j]]=[a[j],a[i]];persist();return;
+  }
+});
+$('#rAdd').onclick=()=>{
+  const n=$('#rName').value.trim(),tx=$('#rText').value.trim();
+  if(!n||!tx){toast('חסרים שם או טקסט');return;}
+  DATA.reviews.unshift({id:uid(),name:n,when:$('#rWhen').value.trim()||'לאחרונה',stars:+$('#rStars').value,text:tx});
+  $('#rName').value='';$('#rText').value='';$('#rWhen').value='';persist();toast('הביקורת נוספה');
+};
+$('#bPublish').onclick=()=>publish();
+$('#draftLoad').onclick=async()=>{
+  const d=await store.load();if(!d){toast('הטיוטה לא נמצאה');return;}
+  DATA=normalizeData(d);persist();fillSettings();
+  $('#draftBar').style.display='none';
+  toast('הטיוטה נטענה ותפורסם בעוד רגע');
+};
+$('#draftDrop').onclick=async()=>{
+  await store.clear();$('#draftBar').style.display='none';toast('הטיוטה נמחקה');
+};
+$('#bExport').onclick=()=>{
+  const blob=new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`phonestore-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();URL.revokeObjectURL(a.href);toast('הגיבוי הורד');
+};
+$('#bImport').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{
+    const d=JSON.parse(r.result);if(!d.products||!d.cats)throw 0;
+    /* a backup written before slides existed has no `slides` key at all */
+    DATA=normalizeData(d);persist();fillSettings();toast('הגיבוי נטען');
+  }catch(err){toast('הקובץ לא תקין');}};
+  r.readAsText(f);
+};
+$('#bReset').onclick=async()=>{
+  if(!confirm('לחזור לתוכן המקורי? כל השינויים יימחקו.'))return;
+  await store.clear();DATA=normalizeData(null);persist();fillSettings();toast('התוכן אופס');
+};
+['q','sort'].forEach(id=>$('#'+id).addEventListener('input',renderGrid));
+$('#rng').addEventListener('input',e=>{$('#rngMax').textContent=money(e.target.value);renderGrid();});
+document.addEventListener('change',e=>{if(e.target.matches('.fc,.fb'))renderGrid();});
+$('#reset').onclick=()=>{
+  $('#q').value='';$('#rng').value=$('#rng').max;$('#rngMax').textContent=money($('#rng').max);
+  $$('.fc,.fb').forEach(i=>i.checked=false);$$('.brand-chip').forEach(c=>c.classList.remove('on'));
+  renderGrid();
+};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAll();$('#a11yPanel').classList.remove('on');}});
+
+/* cursor spotlight on product artwork, transform free, no rAF loop */
+document.addEventListener('pointermove',e=>{
+  const art=e.target.closest('.card-art');if(!art)return;
+  const r=art.getBoundingClientRect();
+  art.style.setProperty('--mx',((e.clientX-r.left)/r.width*100)+'%');
+  art.style.setProperty('--my',((e.clientY-r.top)/r.height*100)+'%');
+},{passive:true});
+
+/* ---------------------------------------------------------
+   language
+   applyLang() walks the two data-i18n attributes once and then
+   re-runs the render functions, because half the interface text
+   is produced in JS rather than sitting in the markup.
+   --------------------------------------------------------- */
+/* Cyrillic is missing from Frank Ruhl Libre and Assistant — both are
+   Hebrew/Latin faces — so Russian would fall back to whatever the OS
+   has. PT Serif/PT Sans cover it; loaded only when Russian is picked,
+   so nobody else pays for the request. */
+const CYRILLIC_HREF='https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&family=PT+Serif:wght@400;700&display=swap';
+function ensureCyrillicFont(){
+  if(document.getElementById('cyrFont'))return;
+  const l=document.createElement('link');
+  l.id='cyrFont';l.rel='stylesheet';l.href=CYRILLIC_HREF;
+  document.head.appendChild(l);
+}
+function applyLang(){
+  const rtl=RTL_LANGS.includes(LANG);
+  const root=document.documentElement;
+  root.lang=LANG;root.dir=rtl?'rtl':'ltr';
+  root.dataset.lang=LANG;
+  if(LANG==='ru')ensureCyrillicFont();
+  $$('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
+  $$('[data-i18n-attr]').forEach(el=>{
+    el.dataset.i18nAttr.split(',').forEach(pair=>{
+      const [attr,key]=pair.split(':');
+      if(attr&&key)el.setAttribute(attr.trim(),t(key.trim()));
+    });
+  });
+  /* everything below is drawn by JS, so a language change has to redraw it */
+  applySettings();renderCats();renderReviews();renderGrid();renderCart();
+  const sel=$('#langPick');
+  if(sel&&sel.value!==LANG)sel.value=LANG;
+  if(window.ScrollTrigger)ScrollTrigger.refresh();
+}
+function setLang(code){
+  LANG=I18N[code]?code:'he';
+  try{localStorage.setItem(LANG_KEY,LANG);}catch(e){}
+  applyLang();
+}
+/* Hebrew is the shop's language and the default; the other three are an
+   explicit choice, picked from the header. Browser sniffing was tempting
+   but wrong here: plenty of Israeli phones run an English locale, and it
+   would have served them English on their own local shop. */
+function initialLang(){
+  /* ?lang=fr makes a language shareable — the shop can send a French
+     customer a link that opens in French. It also sticks, so the next
+     visit stays in that language. */
+  try{
+    const q=new URLSearchParams(location.search).get('lang');
+    if(q&&I18N[q]){try{localStorage.setItem(LANG_KEY,q);}catch(e){}return q;}
+  }catch(e){}
+  try{const v=localStorage.getItem(LANG_KEY);if(v&&I18N[v])return v;}catch(e){}
+  return 'he';
+}
+function buildLangPicker(){
+  const sel=$('#langPick');if(!sel)return;
+  sel.innerHTML=Object.keys(I18N).map(c=>`<option value="${c}">${esc(LANG_NAMES[c]||c)}</option>`).join('');
+  sel.value=LANG;
+  sel.onchange=e=>setLang(e.target.value);
+}
+
+/* =========================================================
+   7.5 HERO SLIDER
+   Lives OUTSIDE initMotion on purpose. initMotion returns
+   early when the CDN is missing and again under reduced
+   motion; the slider must survive both, so it owns its own
+   lifecycle and degrades to a CSS crossfade without GSAP.
+   ========================================================= */
+const SLIDER = {
+  mounted:false, i:0, n:0, tl:null, raf:0, last:0, elapsed:0,
+  pause:new Set(), off:[], drag:null, dragged:false, io:null, mo:null,
+  el:{},
+
+  activeEl(){ return $('#heroSlides .hero-slide.is-active')||$('#heroSlides .hero-slide'); },
+
+  /* With the WebGL stage running, scroll is the driver: a control press moves
+     the page to that product's stretch of the pin and the scroll handler swaps
+     the copy. Without it, controls change the copy directly as before. */
+  scrollDriven(){ return !!(window.HERO3D&&HERO_ST); },
+  seekTo(i){
+    if(!this.scrollDriven())return false;
+    const st=HERO_ST;
+    const frac=window.HERO3D.offsetOf(i)*HERO_HANDOFF;
+    const y=st.start+(st.end-st.start)*frac;
+    /* The scroll sweeps THROUGH the beats between here and there, and each one
+       announces itself. Without this guard those intermediate announcements
+       drag the copy backwards mid-flight and the slide lands on the wrong one.
+       Cleared when the destination beat arrives, or by the timer if the
+       visitor grabs the scrollbar and the seek never completes. */
+    this._seeking=i;
+    clearTimeout(this._seekT);
+    this._seekT=setTimeout(()=>{this._seeking=null;},1600);
+    if(window.__lenis)window.__lenis.scrollTo(y,{duration:.85});
+    else window.scrollTo({top:y,behavior:'smooth'});
+    return true;
+  },
+
+  /* one helper so destroy() can be exhaustive without bookkeeping mistakes */
+  on(node,type,fn,opt){ node.addEventListener(type,fn,opt); this.off.push([node,type,fn,opt]); },
+
+  /* pause reasons are a Set, not a boolean: 'hover' must never cancel a pause
+     that came from visibilitychange, and vice versa. */
+  hold(r){ const was=this.pause.size; this.pause.add(r); if(!was)this.stopClock(); this.setLive(); },
+  release(r){ if(!this.pause.delete(r))return; if(!this.pause.size)this.startClock(); this.setLive(); },
+
+  setLive(){
+    if(!this.el.track)return;
+    const intent=['hover','focus','user','drag'].some(r=>this.pause.has(r));
+    this.el.track.setAttribute('aria-live',intent?'polite':'off');
+    if(this.el.play){
+      const off=this.pause.has('user');
+      this.el.play.setAttribute('aria-pressed',String(off));
+      this.el.play.setAttribute('aria-label',off?'הפעלת ההחלפה האוטומטית':'עצירת ההחלפה האוטומטית');
+    }
+  },
+
+  startClock(){
+    if(this.raf||this.n<2)return;
+    this.last=0;
+    this.raf=requestAnimationFrame(t=>this.tick(t));
+  },
+  stopClock(){ if(this.raf){cancelAnimationFrame(this.raf);this.raf=0;} },
+
+  tick(now){
+    if(this.pause.size===0){
+      /* Clamp the delta: a backgrounded tab must not bank 30s and then burn
+         through three slides the moment it comes back. A hidden tab is already
+         held via visibilitychange, so this is only the backstop — and at the
+         old 100ms it doubled as an accidental speed limit, running the clock
+         slow on anything below 10fps. Since the WebGL stage shares the frame
+         budget that is now reachable on weak hardware, so allow down to 4fps
+         before timing starts to drift. */
+      this.elapsed+=Math.min(now-(this.last||now),250);
+      const hold=(DATA.settings.slideHold||6)*1000;
+      const p=Math.min(this.elapsed/hold,1);
+      const bar=this.el.dots[this.i]&&this.el.dots[this.i].firstElementChild;
+      if(bar)bar.style.transform='scaleX('+p+')';
+      if(p>=1){this.elapsed=0;this.go(this.i+1,1,'auto');}
+    }
+    this.last=now;
+    this.raf=requestAnimationFrame(t=>this.tick(t));
+  },
+
+  resetBars(){ this.el.dots.forEach(d=>{const b=d.firstElementChild;if(b)b.style.transform='scaleX(0)';}); },
+
+  go(target,dir,cause){
+    const n=this.n; if(n<2)return;
+    target=((target%n)+n)%n;
+    if(target===this.i)return;
+    const from=this.el.slides[this.i], to=this.el.slides[target];
+    if(!from||!to)return;
+
+    /* never queue transitions — snap the in-flight one to its end state so
+       rapid arrow presses stay correct instead of stacking tweens */
+    if(this.tl&&this.tl.isActive())this.tl.progress(1).kill();
+    this.tl=null;
+    this.elapsed=0; this.resetBars();
+
+    /* flip state immediately so hit-testing and a11y never lag the animation */
+    to.classList.add('is-active');
+    to.removeAttribute('aria-hidden');
+    from.setAttribute('aria-hidden','true');
+    this.el.dots.forEach((d,k)=>d.setAttribute('aria-current',String(k===target)));
+    const acc=(DATA.slides[target]||{}).accent;
+    const prevI=this.i;
+    this.i=target;
+
+    if(!window.gsap){
+      from.classList.remove('is-active');
+      document.documentElement.style.setProperty('--hero-accent',acc||'');
+      this.focusIfUserDriven(to,cause);
+      window.dispatchEvent(new Event('slider:change'));
+      return;
+    }
+
+    const reduced=this.pause.has('reduced')||document.body.classList.contains('no-anim');
+    if(reduced){
+      gsap.set(from,{clearProps:'all'});gsap.set(to,{clearProps:'all'});
+      from.classList.remove('is-active');
+      document.documentElement.style.setProperty('--hero-accent',acc||'');
+      this.focusIfUserDriven(to,cause);
+      window.dispatchEvent(new Event('slider:change'));
+      return;
+    }
+
+    const SGN=getComputedStyle(document.documentElement).direction==='rtl'?-1:1;
+    const dx=TUNE.slideShift*dir*SGN;
+    const q=s=>to.querySelector(s), qf=s=>from.querySelector(s);
+    this.tl=gsap.timeline({
+      defaults:{ease:'power3.out',overwrite:'auto'},
+      onComplete:()=>{from.classList.remove('is-active');gsap.set(from,{clearProps:'all'});}
+    })
+      .to(from.querySelectorAll('.hs-title .line-mask > span'),
+          {yPercent:-108*dir,duration:TUNE.slideOut,stagger:TUNE.slideStagger*.5,ease:'power2.in'},0)
+      .to([qf('.hs-mark'),qf('.hs-lead'),qf('.hs-cta')].filter(Boolean),
+          {opacity:0,y:-12*dir,duration:TUNE.slideOut,stagger:.04,ease:'power2.in'},0)
+      .to(from,{x:-dx,duration:TUNE.slideOut,ease:'power2.in'},0)
+      .fromTo(to,{x:dx,opacity:1},{x:0,duration:TUNE.slideIn,ease:'power3.out'},TUNE.slideOut-TUNE.slideOverlap)
+      .fromTo(to.querySelectorAll('.hs-title .line-mask > span'),
+          {yPercent:108*dir},{yPercent:0,duration:TUNE.slideIn,stagger:TUNE.slideStagger},'<')
+      .fromTo(q('.hs-mark'),{y:14,opacity:0},{y:0,opacity:1,duration:.55},'<+0.05')
+      .fromTo(q('.hs-lead'),{y:16,opacity:0},{y:0,opacity:1,duration:.6},'<+0.06')
+      .fromTo(q('.hs-cta'), {y:16,opacity:0},{y:0,opacity:1,duration:.6},'<+0.06');
+
+    /* accent tint: same technique the file already uses for --band-bg, and it
+       touches a custom property nobody else animates */
+    gsap.to(document.documentElement,{'--hero-accent':acc||'#A67C4E',duration:TUNE.slideIn,ease:'none'},0);
+    /* a restrained ambient beat, on a node with no other owner */
+    if($('.rules'))gsap.fromTo('.rules',{opacity:.5},{opacity:.26,duration:TUNE.slideOut,yoyo:true,repeat:1,ease:'power2.inOut'});
+
+    void prevI;
+    this.focusIfUserDriven(to,cause);
+    window.dispatchEvent(new Event('slider:change'));
+  },
+
+  /* moving focus is right for a deliberate click or key press and hostile for
+     an autoplay tick that a reader did not ask for */
+  focusIfUserDriven(to,cause){
+    if(cause!=='key'&&cause!=='click')return;
+    const f=to.querySelector('button,a,[tabindex]');
+    if(f&&this.el.root.contains(document.activeElement))f.focus({preventScroll:true});
+  },
+
+  syncPrefs(){
+    const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    reduced?this.hold('reduced'):this.release('reduced');
+    document.body.classList.contains('no-anim')?this.hold('noanim'):this.release('noanim');
+  },
+
+  mount(){
+    if(this.mounted)this.destroy();
+    const root=$('#heroSlider'), track=$('#heroSlides');
+    if(!root||!track)return;
+    this.el={
+      root, track,
+      slides:$$('.hero-slide',track),
+      dots:$$('.hs-dot',$('#hsDots')),
+      prev:$('.hs-prev'), next:$('.hs-next'), play:$('#hsPlay')
+    };
+    this.n=this.el.slides.length;
+    this.i=Math.max(0,this.el.slides.findIndex(s=>s.classList.contains('is-active')));
+    this.pause.clear(); this.elapsed=0; this.dragged=false;
+    this.mounted=true;
+    document.documentElement.style.setProperty('--hero-accent',(DATA.slides[this.i]||{}).accent||'');
+    if(this.n<2){this.setLive();return;}
+
+    /* RTL: "next" is to the LEFT. Derived, never hard-coded. */
+    const SGN=()=>getComputedStyle(document.documentElement).direction==='rtl'?-1:1;
+
+    /* Change the copy now, then send the stage after it. Waiting for the
+       smooth scroll to arrive before swapping the text made a press take about
+       three seconds to show any response, which reads as a broken button.
+       The beat event that lands at the end of the scroll is a no-op, because
+       go() returns early when the index already matches. */
+    const jump=(k,dir)=>{
+      k=((k%this.n)+this.n)%this.n;
+      this.go(k,dir,'click');
+      this.seekTo(k);
+    };
+    this.on(this.el.prev,'click',()=>jump(this.i-1,-1));
+    this.on(this.el.next,'click',()=>jump(this.i+1, 1));
+    this.on($('#hsDots'),'click',e=>{
+      const d=e.target.closest('[data-go]'); if(!d)return;
+      const k=+d.dataset.go; jump(k,k>this.i?1:-1);
+    });
+    this.on(this.el.play,'click',()=>{
+      this.pause.has('user')?this.release('user'):this.hold('user');
+    });
+
+    /* keyboard scoped to the whole hero, not #heroSlider: the arrows and dots
+       live in #heroUi, a sibling, so a listener on the slider alone would never
+       fire for the very controls a keyboard user tabs to. Scoped rather than
+       document-level so the catalog search field keeps its arrow keys. */
+    this.on($('#hero'),'keydown',e=>{
+      const s=SGN();
+      if(e.key==='ArrowLeft'){e.preventDefault();this.go(this.i+(s<0?1:-1),s<0?1:-1,'key');}
+      else if(e.key==='ArrowRight'){e.preventDefault();this.go(this.i+(s<0?-1:1),s<0?-1:1,'key');}
+      else if(e.key==='Home'){e.preventDefault();this.go(0,-1,'key');}
+      else if(e.key==='End'){e.preventDefault();this.go(this.n-1,1,'key');}
+    });
+
+    if(window.matchMedia('(hover: hover)').matches){
+      this.on(root,'pointerenter',()=>this.hold('hover'));
+      this.on(root,'pointerleave',()=>this.release('hover'));
+    }
+    this.on(root,'focusin',()=>this.hold('focus'));
+    this.on(root,'focusout',e=>{ if(!root.contains(e.relatedTarget))this.release('focus'); });
+
+    const vis=()=>document.visibilityState==='visible'?this.release('hidden'):this.hold('hidden');
+    this.on(document,'visibilitychange',vis); vis();
+
+    /* drag / swipe */
+    this.on(track,'pointerdown',e=>{
+      if(e.button!==undefined&&e.button!==0)return;
+      /* buttons and links are NOT excluded: a swipe that starts on the CTA has
+         to swipe, and the capture-phase click guard below is what keeps that
+         same gesture from also firing the button. Only text fields opt out. */
+      if(e.target.closest('input,select,textarea'))return;
+      this.drag={x0:e.clientX,y0:e.clientY,id:e.pointerId,committed:false,dx:0,cap:false};
+      this.dragged=false;
+      this.hold('drag');
+      /* capture is deliberately NOT taken here: a captured pointer retargets the
+         subsequent click to the capturing element, which would break every CTA
+         in the hero. It is taken below, only once a drag actually commits. */
+    });
+    this.on(track,'pointermove',e=>{
+      const d=this.drag; if(!d||e.pointerId!==d.id)return;
+      const dx=e.clientX-d.x0, dy=e.clientY-d.y0;
+      if(!d.committed){
+        /* vertical intent wins: the hero is pinned, so scrolling through it is
+           the primary gesture and must never be swallowed */
+        if(Math.abs(dy)>Math.abs(dx)&&Math.abs(dy)>TUNE.dragSlop){this.endDrag(e,true);return;}
+        if(Math.abs(dx)>TUNE.dragSlop){
+          d.committed=true;
+          try{track.setPointerCapture(e.pointerId);d.cap=true;}catch(err){}
+        } else return;
+      }
+      d.dx=dx;
+      if(Math.abs(dx)>6)this.dragged=true;
+      const a=this.el.slides[this.i];
+      if(a)a.style.transform='translate3d('+(dx*TUNE.dragResist)+'px,0,0)';
+    });
+    const up=e=>{const d=this.drag;if(!d||e.pointerId!==d.id)return;this.endDrag(e,false);};
+    this.on(track,'pointerup',up);
+    /* safety net: before the drag commits there is no pointer capture, so the
+       pointer can be released outside the track. Without this the 'drag' hold
+       would stick and autoplay would never resume. */
+    this.on(document,'pointerup',up);
+    this.on(track,'pointercancel',e=>this.endDrag(e,true));
+    this.on(document,'pointercancel',e=>{const d=this.drag;if(d&&e.pointerId===d.id)this.endDrag(e,true);});
+
+    /* a swipe that ends over the WhatsApp CTA must not open WhatsApp */
+    this.on(track,'click',e=>{
+      if(this.dragged){e.preventDefault();e.stopPropagation();this.dragged=false;}
+    },true);
+
+    /* stop the clock while the hero is off screen. threshold 0 + isIntersecting
+       on purpose: the hero is a full viewport tall, so intersectionRatio hovers
+       near the edge of any fractional threshold and flaps. */
+    if(window.IntersectionObserver){
+      this.io=new IntersectionObserver(en=>{
+        const last=en[en.length-1];
+        last.isIntersecting?this.release('offscreen'):this.hold('offscreen');
+      },{threshold:0});
+      this.io.observe($('#hero'));
+    }
+
+    /* the a11y "stop animations" toggle rewrites body.className; watch it so a
+       reset outside our click handler is still honoured */
+    this.mo=new MutationObserver(()=>this.syncPrefs());
+    this.mo.observe(document.body,{attributes:true,attributeFilter:['class']});
+
+    const mq=window.matchMedia('(prefers-reduced-motion: reduce)');
+    this._mq=mq; this._mqFn=()=>this.syncPrefs();
+    mq.addEventListener?mq.addEventListener('change',this._mqFn):mq.addListener(this._mqFn);
+
+    /* the 3D stage announces which product is on screen; the copy follows it */
+    this._beatFn=e=>{
+      const k=e.detail.index;
+      if(this._seeking!=null){                 // a control press is in flight
+        if(k===this._seeking){this._seeking=null;clearTimeout(this._seekT);}
+        return;
+      }
+      if(k!==this.i&&k<this.n)this.go(k,k>this.i?1:-1,'scroll');
+    };
+    this.on(window,'hero3d:beat',this._beatFn);
+    /* and the reverse direction: while autoplay is the driver, the stage
+       follows the copy instead of the scrollbar */
+    this._focusFn=()=>{ if(window.HERO3D)window.HERO3D.focus(this.i); };
+    this.on(window,'slider:change',this._focusFn);
+
+    this.syncPrefs();
+    this.setLive();
+    /* Autoplay stays on. Before the visitor scrolls, it is the only thing
+       moving the hero, and the stage follows the slide (see HERO3D.focus).
+       Once they scroll into the pin the existing 'scroll' hold stops the
+       clock and scroll position takes over as the single driver. */
+    this.startClock();
+  },
+
+  endDrag(e,cancel){
+    const d=this.drag; if(!d)return;
+    this.drag=null;
+    const a=this.el.slides[this.i];
+    if(d.cap){try{this.el.track.releasePointerCapture(d.id);}catch(err){}}
+    const dx=d.committed?d.dx:0;
+    const SGN=getComputedStyle(document.documentElement).direction==='rtl'?-1:1;
+    const settle=()=>{ if(!a)return;
+      if(window.gsap)gsap.to(a,{x:0,duration:.5,ease:'power3.out',clearProps:'transform'});
+      else a.style.transform='';
+    };
+    if(!cancel&&dx*SGN>=TUNE.dragThreshold){ if(a)a.style.transform=''; this.go(this.i+1,1,'drag'); }
+    else if(!cancel&&dx*SGN<=-TUNE.dragThreshold){ if(a)a.style.transform=''; this.go(this.i-1,-1,'drag'); }
+    else settle();
+    this.release('drag');
+  },
+
+  destroy(){
+    this.stopClock();
+    if(this.tl){this.tl.kill();this.tl=null;}
+    this.off.forEach(([n,t,f,o])=>n.removeEventListener(t,f,o));
+    this.off=[];
+    if(this.io){this.io.disconnect();this.io=null;}
+    if(this.mo){this.mo.disconnect();this.mo=null;}
+    if(this._mq&&this._mqFn){
+      this._mq.removeEventListener?this._mq.removeEventListener('change',this._mqFn):this._mq.removeListener(this._mqFn);
+    }
+    this._mq=this._mqFn=null; this._beatFn=this._focusFn=null;
+    clearTimeout(this._seekT); this._seeking=null;
+    this.pause.clear(); this.drag=null; this.el={}; this.n=0; this.mounted=false;
+  }
+};
+
+/* =========================================================
+   8. MOTION SYSTEM
+   GSAP 3 + ScrollTrigger, optional Lenis.
+   Everything below is progressive enhancement: if the CDN
+   fails, no class is added and the page renders fully.
+   Tunable values live in TUNE.
+   ========================================================= */
+const TUNE = {
+  introDuration: 0.9,    // hero intro, seconds
+  introStagger: 0.1,     // 100ms between hero text elements
+  heroScaleTo: 1.12,     // media scale at the end of the pin
+  heroDriftVW: 2,        // max horizontal media drift, vw
+  headlineRiseVH: 10,    // max headline rise, vh
+  scrub: 0.8,            // scroll-linked smoothing
+  revealY: 32,           // section reveal distance, px
+  revealStagger: 0.09,
+  parallaxDesktop: 46,   // px
+  parallaxTablet: 26,    // px
+  lenisLerp: 0.09,
+  /* --- hero slider --- */
+  slideOut: 0.42,        // outgoing copy, seconds
+  slideIn: 0.75,         // incoming lines, matches the intro's line reveal
+  slideOverlap: 0.24,    // incoming starts this early, seconds
+  slideStagger: 0.10,    // per line
+  slideShift: 26,        // horizontal copy drift on a swap, px
+  /* --- hero ambience --- */
+  ambientY: 70,          // extra scroll parallax per layer across the pin, px
+  pointerDepth: 1,       // global multiplier on data-ptr
+  pointerEase: 0.6,      // pointer drift follow, seconds
+  pointerTilt: 3,        // max degrees on the device drawing
+  /* --- drag --- */
+  dragThreshold: 60,     // px to commit a swipe
+  dragResist: 0.35,      // live follow factor
+  dragSlop: 10,          // px of vertical travel that hands the gesture back to the page
+  /* --- hero 3d --- */
+  pinViewports: 2.6      // how long the hero pins once the WebGL stage is up
+};
+/* fraction of the pin the 3D product story owns before the copy hands off */
+const HERO_HANDOFF=0.70;
+let HERO_ST=null;        // the hero's ScrollTrigger, so the slider can scroll to a beat
+
+function initMotion(){
+  if(!window.gsap||!window.ScrollTrigger)return;      // CDN missing, stay static
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.documentElement.classList.add('motion');
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* reduced motion: fade the reveals in, no scroll-linked transforms at all */
+  if(reduced){
+    gsap.set('.r-item',{opacity:1});
+    return;
+  }
+
+  /* Lenis, pointer devices only. Disabled on touch so native
+     momentum and accessibility gestures stay intact. */
+  const touch=window.matchMedia('(hover: none)').matches;
+  if(window.Lenis&&!touch){
+    const lenis=new Lenis({lerp:TUNE.lenisLerp,wheelMultiplier:1,smoothWheel:true});
+    window.__lenis=lenis;   /* so SLIDER.seekTo can scroll through it, not past it */
+    lenis.on('scroll',ScrollTrigger.update);
+    gsap.ticker.add(t=>lenis.raf(t*1000));
+    gsap.ticker.lagSmoothing(0);
+  }
+
+  /* one context for the whole page, so a single revert() cleans
+     every trigger. Guards against duplicate triggers on re-init. */
+  gsap.context(()=>{
+
+    /* ---- 1. HERO INTRO  ·  finishes inside 900ms ---- */
+    const s0=SLIDER.activeEl();
+    /* autoplay waits for the intro to land, so the first slide is never cut short */
+    SLIDER.hold('intro');
+    const intro=gsap.timeline({defaults:{ease:'power3.out'},
+      onComplete:()=>SLIDER.release('intro')});
+    intro
+      .fromTo('#heroMedia',{scale:1.08},{scale:1,duration:1.1,ease:'power2.out'},0)
+      .fromTo('#heroVeil',{opacity:1},{opacity:.82,duration:1.1,ease:'power2.out'},0)
+      .from(s0.querySelector('.hs-mark'),{y:14,opacity:0,duration:.55},0.15)
+      .from(s0.querySelectorAll('.hs-title .line-mask > span'),{yPercent:108,duration:.75,stagger:TUNE.introStagger},'-=0.42')
+      .from(s0.querySelector('.hs-lead'),{y:16,opacity:0,duration:.6},'-=0.45')
+      .from(s0.querySelector('.hs-cta'),{y:16,opacity:0,duration:.6},'-=0.48')
+      .from('#hFoot div',{y:14,opacity:0,duration:.5,stagger:.06},'-=0.5')
+      /* children, not #heroUi itself — that node belongs to heroTl below */
+      .from('#heroUi > *',{y:12,opacity:0,duration:.5,stagger:.05},'-=0.4');
+
+    /* ---- 2. HERO SCROLL TRANSITION ----
+       Pins the hero for one viewport. The media keeps scaling
+       while the copy leaves early, so the next section is
+       already entering before the hero is gone. */
+    /* With the 3D stage up, the pin gets long enough to give each product its
+       own stretch of scroll. Without it there is nothing to look at for that
+       long, so the hero keeps its original single-viewport pin. */
+    const gl=!!window.HERO3D;
+    const heroEnd=gl?('+='+TUNE.pinViewports*100+'%'):'+=100%';
+    const heroTl=gsap.timeline({
+      scrollTrigger:{
+        trigger:'#hero',
+        start:'top top',
+        end:heroEnd,
+        pin:true,
+        pinSpacing:true,
+        scrub:TUNE.scrub,
+        anticipatePin:1,
+        onUpdate:st=>{
+          /* the copy timeline runs over the LAST stretch only, so the products
+             get the middle of the pin to themselves */
+          if(window.HERO3D)window.HERO3D.setProgress(st.progress/HERO_HANDOFF);
+          /* once the copy starts leaving, stop advancing behind the visitor */
+          st.progress>(gl?0.04:0.15)?SLIDER.hold('scroll'):SLIDER.release('scroll');
+        }
+      }
+    });
+    HERO_ST=heroTl.scrollTrigger;
+    /* Timeline positions are fractions of the pin. The 3D story owns the first
+       HERO_HANDOFF of it; the copy only starts leaving in the stretch after,
+       otherwise a 2.5-viewport pin would blank the headline almost immediately. */
+    const H=gl?HERO_HANDOFF:0, seg=1-H;
+    heroTl
+      .to('#heroMedia',{scale:TUNE.heroScaleTo,xPercent:0,x:()=>(window.innerWidth*TUNE.heroDriftVW/100)*-1,ease:'none',duration:1},0)
+      .to('#heroMedia',{opacity:.55,ease:'none',duration:seg*0.5},H+seg*0.5)
+      .to('#heroCopy',{y:()=>-(window.innerHeight*TUNE.headlineRiseVH/100),ease:'none',duration:1},0)
+      .to('#heroSlides',{opacity:0,y:-24,ease:'none',duration:seg*0.7},H+seg*0.15)
+      .to('#hFoot',{opacity:0,y:-18,ease:'none',duration:seg*0.7},H+seg*0.05)
+      .to('#heroUi',{opacity:0,y:-14,ease:'none',duration:seg*0.7},H+seg*0.20)
+      .to('.cue',{opacity:0,ease:'none',duration:0.08},0);
+
+    /* ---- 2b. HERO AMBIENCE ----
+       Layer wrappers only. .glow and .float keep their CSS @keyframes on
+       `transform`; a GSAP tween on those same nodes would lose the fight
+       every frame, which is exactly why the wrappers exist. */
+    gsap.utils.toArray('#heroMedia .par').forEach(el=>{
+      heroTl.to(el,{y:()=>TUNE.ambientY*parseFloat(el.dataset.par||1),ease:'none'},0);
+    });
+    ScrollTrigger.matchMedia({
+      '(min-width: 768px) and (hover: hover)':()=>{
+        const layers=gsap.utils.toArray('#heroMedia .ptr').map(el=>({
+          el, d:parseFloat(el.dataset.ptr||0)*TUNE.pointerDepth, tilt:!!el.dataset.tilt,
+          qx:gsap.quickTo(el,'x',{duration:TUNE.pointerEase,ease:'power3'}),
+          qy:gsap.quickTo(el,'y',{duration:TUNE.pointerEase,ease:'power3'}),
+          qr:gsap.quickTo(el,'rotationY',{duration:TUNE.pointerEase,ease:'power3'})
+        }));
+        if(!layers.length)return;
+        gsap.set('#heroMedia',{perspective:900});
+        const zero=()=>layers.forEach(l=>{l.qx(0);l.qy(0);if(l.tilt)l.qr(0);});
+        const onMove=e=>{
+          if(document.body.classList.contains('no-anim'))return;
+          const nx=(e.clientX/window.innerWidth-.5)*2, ny=(e.clientY/window.innerHeight-.5)*2;
+          layers.forEach(l=>{l.qx(-nx*l.d);l.qy(-ny*l.d*.6);if(l.tilt)l.qr(nx*TUNE.pointerTilt);});
+        };
+        const hero=$('#hero');
+        hero.addEventListener('pointermove',onMove,{passive:true});
+        hero.addEventListener('pointerleave',zero);
+        return ()=>{hero.removeEventListener('pointermove',onMove);hero.removeEventListener('pointerleave',zero);zero();};
+      }
+    });
+
+    /* ---- 3. SECTION REVEALS  ·  starts at 75%, done by 35% ---- */
+    gsap.utils.toArray('[data-reveal]').forEach(sec=>{
+      const items=sec.querySelectorAll('.r-item');
+      if(!items.length)return;
+      gsap.fromTo(items,
+        {y:TUNE.revealY,opacity:0},
+        {y:0,opacity:1,duration:.85,ease:'power3.out',stagger:TUNE.revealStagger,
+         scrollTrigger:{trigger:sec,start:'top 75%',end:'top 35%',once:true}});
+    });
+
+    /* ---- 4. PARALLAX  ·  desktop and tablet only ---- */
+    ScrollTrigger.matchMedia({
+      '(min-width: 1024px)':()=>parallax(TUNE.parallaxDesktop),
+      '(min-width: 768px) and (max-width: 1023px)':()=>parallax(TUNE.parallaxTablet)
+      /* below 768px: no parallax, no pinning beyond the hero */
+    });
+    function parallax(px){
+      gsap.utils.toArray('.card-art svg, .modal-art svg').forEach(el=>{
+        gsap.fromTo(el,{y:px*-0.5},{y:px*0.5,ease:'none',
+          scrollTrigger:{trigger:el.closest('.card')||el,start:'top bottom',end:'bottom top',scrub:TUNE.scrub}});
+      });
+    }
+
+    /* ---- 5. DARK BAND TINT  ·  one CSS variable, scroll linked ---- */
+    gsap.fromTo(document.documentElement,
+      {'--band-bg':'#101216'},
+      {'--band-bg':'#1D2027',ease:'none',
+       scrollTrigger:{trigger:'#how',start:'top bottom',end:'bottom top',scrub:TUNE.scrub}});
+
+    /* ---- 6. HORIZONTAL MOMENT ----
+       Deliberately not built. The catalog is a filterable grid,
+       not a curated gallery, and pinning it would fight the
+       filters and the mobile flow. Reusable pattern if a real
+       gallery is ever added:
+
+       const track = document.querySelector('.gallery-track');
+       gsap.to(track, {
+         x: () => -(track.scrollWidth - window.innerWidth),
+         ease: 'none',
+         scrollTrigger: {
+           trigger: '.gallery', pin: true, scrub: TUNE.scrub,
+           end: () => '+=' + (track.scrollWidth - window.innerWidth)
+         }
+       });
+    */
+
+    /* ---- header state over the hero ---- */
+    ScrollTrigger.create({
+      trigger:'#hero',start:'bottom 90px',
+      onEnter:()=>$('#head').classList.replace('over','solid'),
+      onLeaveBack:()=>$('#head').classList.replace('solid','over')
+    });
+
+  });
+}
+
+/* =========================================================
+   9. boot
+   ========================================================= */
+/* store.load() can fall through to window.storage.get(), which is genuinely
+   async and may resolve after 'load'. Gate on both so initMotion never
+   measures a hero that renderSlides() is about to rebuild. */
+let _booted=false,_loaded=false,_started=false;
+function start(){
+  if(_started||!_booted||!_loaded)return;
+  _started=true;
+  initMotion();      // may return early: no CDN, or reduced motion
+}
+/* Content precedence: the JSON the Worker injected into #server-data (zero
+   extra round trips), then one guarded fetch of /api/data for a page that
+   was served without the Worker, then the local draft — which from here on
+   only ever means an admin's own machine — and finally DEFAULTS. */
+function serverData(){
+  try{
+    const el=document.getElementById('server-data');
+    const v=el?JSON.parse(el.textContent):null;
+    return v&&v.data?v.data:null;
+  }catch(e){ return null; }
+}
+async function fetchLiveData(){
+  if(!/^https?:$/.test(location.protocol))return null;
+  try{
+    const ctl=new AbortController();
+    /* shorter than the 2.5s boot watchdog below, so a hung worker still
+       boots the page on time instead of racing the watchdog's re-render */
+    const t=setTimeout(()=>ctl.abort(),2000);
+    const r=await fetch('/api/data',{signal:ctl.signal});
+    clearTimeout(t);
+    if(!r.ok)return null;
+    const v=await r.json();
+    return v&&v.data?v.data:null;
+  }catch(e){ return null; }
+}
+(async function(){
+  try{
+    const live=serverData()||await fetchLiveData();
+    if(live){ DATA=normalizeData(live); LIVE=JSON.stringify(DATA); }
+    else DATA=normalizeData(await store.load());
+  }catch(e){ DATA=normalizeData(null); }
+  restoreCartFavs();
+  LANG=initialLang();
+  applySettings();renderCats();renderReviews();renderGrid();renderCart();
+  const max=Math.max(6000,...DATA.products.map(p=>p.price));
+  $('#rng').max=Math.ceil(max/100)*100;$('#rng').value=$('#rng').max;
+  $('#rngMax').textContent=money($('#rng').value);
+  restoreAdminSession();buildLangPicker();applyLang();
+  /* served from /product/:id → open the matching modal over the page */
+  const dm=urlRoutable()&&location.pathname.match(/^\/product\/([\w-]+)$/);
+  if(dm)openProduct(dm[1],{noHistory:true});
+  _booted=true;start();
+})();
+
+window.addEventListener('load',()=>{_loaded=true;start();});
+/* storage hung: boot the page on defaults rather than never boot at all */
+setTimeout(()=>{if(!_booted){DATA=normalizeData(null);applySettings();}_booted=true;_loaded=true;start();},2500);
+</script>
+
+<!-- =========================================================
+     10. HERO 3D
+     A module, so it is deferred by definition and cannot block
+     the page. Everything above this point runs to completion
+     first; if this file never loads, never parses, or bails on
+     a capability check, the coded hero scene simply stays.
+     ========================================================= -->
+<script type="module">
+const canvas = document.getElementById('heroGl');
+const media  = document.getElementById('heroMedia');
+
+/* ---- capability gate -------------------------------------------------- */
+function allowed(){
+  if(!canvas || !media) return false;
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+  if(document.body.classList.contains('no-anim')) return false;
+  if(navigator.deviceMemory && navigator.deviceMemory < 2) return false;
+  try{
+    const t=document.createElement('canvas');
+    if(!(t.getContext('webgl2')||t.getContext('webgl'))) return false;
+  }catch(e){ return false; }
+  return true;
+}
+if(!allowed()) { /* the coded .hero-scene stays exactly as it is */ }
+else {
+  try{
+    /* Only the core is needed. The panels use MeshBasicMaterial, which ignores
+       lighting entirely, so the environment map, the PMREM generator and the
+       three lights an earlier pass had here were all doing nothing but costing
+       a download and a startup pause. Depth here comes from perspective,
+       parallax, the contact shadow and the bronze sweep — not from shading. */
+    const THREE = await import('three');
+
+    const BRONZE = 0xE9B84C;
+    const mobile = window.matchMedia('(max-width: 900px)').matches;
+
+    /* ---- renderer ----------------------------------------------------- */
+    const renderer = new THREE.WebGLRenderer({canvas, antialias:!mobile, alpha:true, powerPreference:'high-performance'});
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, mobile?1.5:2));
+
+    const scene  = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
+    camera.position.set(0, 0, 8.4);
+
+    /* Give up and hand the stage back to the coded scene. Called when the
+       photographs cannot be fetched at all — an empty canvas over a hidden
+       fallback would be worse than no canvas. */
+    let bailed = false;
+    function bail(why){
+      if(bailed) return; bailed = true;
+      console.warn('hero 3d:', why);
+      canvas.classList.remove('on');
+      media.classList.remove('gl-live');
+    }
+
+    /* ---- shared bits ---------------------------------------------------- */
+    const disposables = [];
+    const track = o => (disposables.push(o), o);
+
+    /* ---- the products, as real photographs ------------------------------
+       Procedural boxes and spheres read as generic plastic no matter how good
+       the lighting is — you cannot model an iPhone out of primitives and have
+       anyone believe it. So each product is a photograph on a panel: a real
+       object, floating in real perspective, lit and shadowed by the scene.
+
+       A flat plane gives itself away the moment it swings, so the rotation
+       here is deliberately small and the sense of depth is carried by
+       parallax, scale and the contact shadow instead. */
+    const loader = new THREE.TextureLoader();
+    const texCache = [];
+    function photo(url){
+      const t = loader.load(url,
+        tx => { tx.colorSpace = THREE.SRGBColorSpace; },
+        undefined,
+        () => { failed++; if(failed >= PRODUCTS.length) bail('all hero images failed'); });
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.anisotropy = 4;
+      texCache.push(t); disposables.push(t);
+      return t;
+    }
+    let failed = 0;
+
+    /* Feathered alpha mask, drawn once per panel size.
+       A hard-edged plane announces itself as a pasted rectangle — you can see
+       exactly where the photograph stops. Fading the edges out instead lets
+       each photo's own backdrop dissolve into the hero, so what is left on
+       screen is the product rather than a card with a product on it.
+       If canvas filters are unsupported the fill degrades to a plain rounded
+       rectangle, which is the old behaviour and still perfectly usable. */
+    function maskTexture(w, h, r){
+      const c = document.createElement('canvas');
+      const W = 256, H = Math.round(256 * h / w);
+      c.width = W; c.height = H;
+      const g = c.getContext('2d');
+      const pad = Math.round(W * 0.12);          // how far the fade reaches in
+      g.filter = `blur(${Math.round(W * 0.065)}px)`;
+      g.fillStyle = '#fff';
+      g.beginPath();
+      const R = r * W / w + pad;
+      if(g.roundRect) g.roundRect(pad, pad, W - pad * 2, H - pad * 2, R);
+      else g.rect(pad, pad, W - pad * 2, H - pad * 2);
+      g.fill();
+      const t = new THREE.CanvasTexture(c);
+      disposables.push(t);
+      return t;
+    }
+
+    /* soft elliptical blob, used as the contact shadow under each panel */
+    const shadowTex = (() => {
+      const c = document.createElement('canvas');
+      c.width = c.height = 128;
+      const g = c.getContext('2d');
+      const grad = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+      grad.addColorStop(0, 'rgba(0,0,0,.85)');
+      grad.addColorStop(.55, 'rgba(0,0,0,.35)');
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = grad; g.fillRect(0, 0, 128, 128);
+      const t = new THREE.CanvasTexture(c);
+      disposables.push(t);
+      return t;
+    })();
+
+    const PRODUCTS = [
+      {url:'assets/products/hero-phone.webp', w:2.05, h:2.70},
+      {url:'assets/products/hero-buds.webp',  w:2.55, h:2.55},
+      {url:'assets/products/hero-watch.webp', w:2.40, h:2.62}
+    ];
+
+    function panel(spec){
+      const g = new THREE.Group();
+
+      // the photograph itself
+      const geo = track(new THREE.PlaneGeometry(spec.w, spec.h, 1, 1));
+      const mat = track(new THREE.MeshBasicMaterial({
+        map: photo(spec.url),
+        alphaMap: maskTexture(spec.w, spec.h, 0.16),
+        /* same dimming the catalogue cards apply, so photos shot on light
+           backdrops sit at home on a dark stage */
+        color: 0xc9ced6,
+        transparent: true,
+        depthWrite: false
+      }));
+      const face = new THREE.Mesh(geo, mat);
+      g.add(face);
+
+      /* Bronze sweep: an additive copy of the panel that the key light "moves"
+         across as the pointer moves. This is what a specular highlight does on
+         a real object, and it is the detail that keeps a flat photo from
+         looking like a sticker. */
+      const sweepMat = track(new THREE.MeshBasicMaterial({
+        map: mat.map, alphaMap: mat.alphaMap, transparent: true,
+        blending: THREE.AdditiveBlending, opacity: 0, color: BRONZE, depthWrite: false
+      }));
+      const sweep = new THREE.Mesh(geo, sweepMat);
+      sweep.position.z = 0.002;
+      g.add(sweep);
+
+      // contact shadow, laid flat below and behind
+      const sh = new THREE.Mesh(
+        track(new THREE.PlaneGeometry(spec.w * 1.15, spec.w * 0.5)),
+        track(new THREE.MeshBasicMaterial({
+          map: shadowTex, transparent: true, opacity: .55,
+          depthWrite: false, blending: THREE.NormalBlending
+        }))
+      );
+      sh.position.set(0, -spec.h / 2 - 0.06, -0.35);
+      sh.rotation.x = -Math.PI / 2.35;
+      g.add(sh);
+
+      g.userData = {sweepMat, mat, shadow: sh.material};
+      return g;
+    }
+
+    const phone = panel(PRODUCTS[0]);
+    const buds  = panel(PRODUCTS[1]);
+    const watch = panel(PRODUCTS[2]);
+
+    /* Everything lives on a stage group. The copy occupies the inline-start
+       half (the right, in RTL), so the stage is pushed to screen-left rather
+       than moving the camera — moving the camera left would swing the subject
+       the wrong way and skew its perspective. */
+    const stage = new THREE.Group();
+    scene.add(stage);
+    const DEVICES = [phone, buds, watch];
+    DEVICES.forEach(d => { d.visible = false; stage.add(d); });
+
+    /* ---- layout -------------------------------------------------------- */
+    /* The copy sits on the inline-start half in RTL (the right), so the stage
+       is offset to the opposite side and centred on narrow screens. */
+    let narrow = false;
+    function layout(){
+      const r = media.getBoundingClientRect();
+      const w = Math.max(1, r.width), h = Math.max(1, r.height);
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      narrow = w < 900;
+      /* how far left the product sits, in world units, scaled off the visible
+         width so it lands in the empty half at any aspect ratio */
+      const visibleH = 2 * camera.position.z * Math.tan((camera.fov * Math.PI/180) / 2);
+      const visibleW = visibleH * camera.aspect;
+      stage.position.x = narrow ? 0 : -visibleW * 0.235;
+      stage.position.z = narrow ? -2.4 : 0;   // pushed back behind the copy on phones
+      stage.scale.setScalar(narrow ? 0.62 : 0.78);
+    }
+    layout();
+    window.addEventListener('resize', layout, {passive:true});
+
+    /* ---- choreography --------------------------------------------------- */
+    /* One product per beat. Each owns a slice of the pin, with a short
+       handover between slices where one leaves and the next arrives. */
+    const BEATS = [
+      {obj:phone, in:0.00, out:0.34},
+      {obj:buds,  in:0.31, out:0.68},
+      {obj:watch, in:0.65, out:1.01}
+    ];
+    const HANDOVER = 0.07;
+    const clamp01 = v => v<0?0:v>1?1:v;
+    const smooth  = t => t*t*(3-2*t);
+
+    /* Two things can drive the stage and only one is in charge at a time.
+       Scroll wins whenever the visitor is inside the pin; before that, the
+       slider's autoplay does, so a hero nobody scrolls is still alive. The
+       displayed progress eases toward whichever target is active, which also
+       smooths the jump when autoplay hands over to scroll. */
+    let progress = 0, target = 0, scrollP = 0, focusP = 0, scrollDriving = false;
+    let pointerX = 0, pointerY = 0, px = 0, py = 0;
+    let beat = 0;
+
+    function poseFor(b, p){
+      // local 0..1 within this beat, plus the fade weights at either end
+      const span = b.out - b.in;
+      const local = clamp01((p - b.in) / span);
+      const enter = clamp01((p - b.in) / HANDOVER);
+      const leave = clamp01((b.out - p) / HANDOVER);
+      const on = Math.min(smooth(enter), smooth(leave));
+      return {local, on};
+    }
+
+    function frame(t){
+      const time = t * 0.001;
+
+      target = scrollDriving ? scrollP : focusP;
+      // scroll is already smoothed by Lenis, so follow it tightly; autoplay
+      // hands over a bare step, which needs the easing to look intentional
+      progress += (target - progress) * (scrollDriving ? 0.35 : 0.055);
+      announceBeat();
+
+      // pointer drift, eased toward the target every frame
+      px += (pointerX - px) * 0.05;
+      py += (pointerY - py) * 0.05;
+
+      BEATS.forEach((b, i) => {
+        const {local, on} = poseFor(b, progress);
+        const o = b.obj;
+        if(on <= 0.001){ o.visible = false; return; }
+        o.visible = true;
+
+        // arrive from the far side, recede on the way out
+        o.position.x = (1 - on) * (i % 2 ? -3.2 : 3.2) + px * 0.42;
+        o.position.y = Math.sin(time * 0.6 + i * 1.7) * 0.09 - py * 0.30;
+        o.position.z = -5.5 * (1 - on);
+
+        /* Small angles on purpose: a photograph on a plane stops reading as an
+           object the moment you can see it has no thickness. ~12 degrees of
+           yaw is enough to feel dimensional and not enough to give it away. */
+        o.rotation.y = (local - 0.5) * 0.22 + px * 0.20 + (1 - on) * 0.5;
+        o.rotation.x = Math.sin(time * 0.45 + i) * 0.03 + py * 0.11;
+        o.rotation.z = (1 - on) * 0.16 + Math.sin(time * 0.3 + i) * 0.012;
+
+        o.scale.setScalar(0.86 + on * 0.14);
+
+        /* the bronze sweep tracks the pointer across the panel, and fades out
+           as the product leaves so the handover stays clean */
+        const u = o.userData;
+        if(u && u.sweepMat){
+          const facing = Math.max(0, 1 - Math.abs(px - o.rotation.y * 1.6));
+          u.sweepMat.opacity = 0.16 * facing * on;
+          u.mat.opacity = on;
+          u.shadow.opacity = 0.5 * on;
+        }
+      });
+
+      renderer.render(scene, camera);
+    }
+
+    /* ---- run loop: only while the hero is actually on screen ------------ */
+    let raf = 0, live = false;
+    const tick = t => { frame(t); raf = requestAnimationFrame(tick); };
+    function play(){ if(!raf) raf = requestAnimationFrame(tick); }
+    function pause(){ if(raf){ cancelAnimationFrame(raf); raf = 0; } }
+
+    if(window.IntersectionObserver){
+      new IntersectionObserver(en => {
+        en[en.length-1].isIntersecting ? play() : pause();
+      }, {threshold:0}).observe(document.getElementById('hero'));
+    } else play();
+
+    window.addEventListener('pointermove', e => {
+      if(document.body.classList.contains('no-anim')) return;
+      pointerX = (e.clientX / window.innerWidth  - 0.5) * 2;
+      pointerY = (e.clientY / window.innerHeight - 0.5) * 2;
+    }, {passive:true});
+
+    /* ---- the public handle the motion system talks to -------------------- */
+    /* Which product is on stage right now, announced only on change so the
+       copy slider can follow along. Derived from the eased progress, not the
+       raw target, so the copy never swaps before the product does. */
+    function announceBeat(){
+      let b = 0;
+      for(let i = 0; i < BEATS.length; i++){
+        if(progress >= BEATS[i].in && progress < BEATS[i].out - HANDOVER * 0.5){ b = i; break; }
+        if(progress >= BEATS[i].in) b = i;
+      }
+      if(b !== beat){
+        beat = b;
+        window.dispatchEvent(new CustomEvent('hero3d:beat', {detail:{index:b}}));
+      }
+    }
+
+    window.HERO3D = {
+      beats: BEATS.length,
+      /* from the hero's ScrollTrigger */
+      setProgress(p){
+        scrollP = clamp01(p);
+        scrollDriving = scrollP > 0.004;
+        if(!scrollDriving) focusP = Math.max(focusP, 0);
+      },
+      /* from the slider, while autoplay is the one moving things */
+      focus(i){
+        focusP = this.offsetOf(i);
+        if(!scrollDriving) target = focusP;
+      },
+      /* where in the pin does beat i sit, as a 0..1 fraction */
+      offsetOf(i){
+        const b = BEATS[Math.max(0,Math.min(BEATS.length-1,i))];
+        return b.in + (b.out - b.in) * 0.4;
+      },
+      dispose(){
+        pause();
+        disposables.forEach(d => d.dispose && d.dispose());
+        scene.traverse(o => { if(o.geometry) o.geometry.dispose(); });
+        renderer.dispose();
+      }
+    };
+
+    // one frame before revealing, so the canvas never flashes empty
+    frame(performance.now());
+    canvas.classList.add('on');
+    media.classList.add('gl-live');
+    window.dispatchEvent(new Event('hero3d:ready'));
+
+  }catch(err){
+    /* import failed, WebGL context died, anything at all — the coded scene is
+       already on screen and stays there. */
+    console.warn('hero 3d unavailable:', err);
+    canvas && canvas.remove();
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{
+  // The Worker checks the admin password against a secret, publishes admin
+  // edits into KV, and injects the published content + per-product SEO meta
+  // into the page it serves. Everything that isn't matched below falls
+  // through to the assets in ./public.
+  //
+  // Required secret:  npx wrangler secret put ADMIN_PASSWORD
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "phone-store",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-08-01",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    // Without this list the asset router answers "/" by itself and the Worker
+    // never runs, so the published content and product meta are never
+    // injected. Anything not listed is still served directly by the CDN.
+    "run_worker_first": ["/", "/product/*", "/api/*", "/sitemap.xml", "/robots.txt"]
+  },
+  // Shared content store — the admin panel publishes here and the Worker
+  // injects it into every page. Created 2026-08-18 on the production account
+  // with: npx wrangler kv namespace create STORE
+  "kv_namespaces": [
+    { "binding": "STORE", "id": "f22b4b9676244f19bc4d7e02a173d96a" }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

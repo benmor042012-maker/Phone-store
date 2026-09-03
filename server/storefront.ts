@@ -26,7 +26,11 @@ export type StorefrontReview = { id: string; name: string; when: string; stars: 
 export type SourceStorefront = { updatedAt: string | null; settings: StorefrontSettings; categories: StorefrontCategory[]; products: StorefrontProduct[]; slides: StorefrontSlide[]; reviews: StorefrontReview[] };
 
 function asRecord(value: unknown): UnknownRecord { return value && typeof value === "object" && !Array.isArray(value) ? value as UnknownRecord : {}; }
-function stringValue(value: unknown, fallback = ""): string { return typeof value === "string" ? value : fallback; }
+/** The storefront is branded "Phone Store"; live source text may still carry the former store name. */
+const STORE_NAME = "Phone Store";
+const LEGACY_STORE_NAME = /\u05e1\u05d9\u05d8\u05d9\s*\u05e1\u05dc/g;
+export function withStoreName(value: string): string { return value.replace(LEGACY_STORE_NAME, STORE_NAME); }
+function stringValue(value: unknown, fallback = ""): string { return typeof value === "string" ? withStoreName(value) : fallback; }
 function numberValue(value: unknown, fallback = 0): number { return typeof value === "number" && Number.isFinite(value) ? value : fallback; }
 function imageValue(value: unknown): string | null { return typeof value === "string" && value.trim() ? value : null; }
 
@@ -54,7 +58,9 @@ export function normalizeStorefrontPayload(payload: unknown): SourceStorefront {
       const item = asRecord(entry);
       const rawSpecs = asRecord(item.specs);
       const specs: Record<string, string | number> = Object.fromEntries(
-        Object.entries(rawSpecs).filter(([, value]) => typeof value === "string" || typeof value === "number"),
+        Object.entries(rawSpecs)
+          .filter(([, value]) => typeof value === "string" || typeof value === "number")
+          .map(([key, value]) => [withStoreName(key), typeof value === "string" ? withStoreName(value) : value]),
       ) as Record<string, string | number>;
       return { id: stringValue(item.id), img: imageValue(item.img), name: stringValue(item.name), brand: stringValue(item.brand), cat: stringValue(item.cat), price: numberValue(item.price), was: typeof item.was === "number" ? item.was : null, tag: stringValue(item.tag), pop: numberValue(item.pop), specs, desc: stringValue(item.desc) };
     }).filter((item) => item.id && item.name && item.price >= 0),

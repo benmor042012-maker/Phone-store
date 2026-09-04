@@ -48,10 +48,7 @@ export const STORE = {
  */
 export const socialLinks = [
   { id: "whatsapp", label: "WhatsApp", href: `https://wa.me/${STORE.whatsapp}` },
-  { id: "facebook", label: "Facebook", href: "https://www.facebook.com/phonestore.netanya" },
-  { id: "instagram", label: "Instagram", href: "https://www.instagram.com/phonestore.netanya" },
-  { id: "tiktok", label: "TikTok", href: "https://www.tiktok.com/@phonestore.netanya" },
-  { id: "youtube", label: "YouTube", href: "https://www.youtube.com/@phonestore.netanya" },
+  { id: "instagram", label: "Instagram", href: "https://www.instagram.com/phone_store_2010" },
   { id: "waze", label: "Waze", href: "https://waze.com/ul?q=%D7%A9%D7%93%D7%A8%D7%95%D7%AA%20%D7%91%D7%9F%20%D7%92%D7%95%D7%A8%D7%99%D7%95%D7%9F%202%20%D7%A0%D7%AA%D7%A0%D7%99%D7%94" },
 ] as const;
 

@@ -51,7 +51,7 @@ describe("WhatsApp order with Bit and PayBox", () => {
 
 describe("social channels", () => {
   it("exposes every channel over https so they can be reused as schema.org sameAs entries", () => {
-    expect(socialLinks.length).toBeGreaterThanOrEqual(4);
+    expect(socialLinks.length).toBeGreaterThanOrEqual(2);
     expect(socialLinks.every((link) => link.href.startsWith("https://"))).toBe(true);
     expect(socialLinks.map((link) => link.id)).toContain("instagram");
   });

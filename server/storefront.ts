@@ -52,7 +52,8 @@ export function normalizeStorefrontPayload(payload: unknown): SourceStorefront {
     },
     categories: rawCategories.map((entry) => {
       const item = asRecord(entry);
-      return { id: stringValue(item.id), name: stringValue(item.name), icon: stringValue(item.icon), img: imageValue(item.img) };
+      const img = imageValue(item.img);
+      return { id: stringValue(item.id), name: stringValue(item.name), icon: stringValue(item.icon), img: img ? sourceAssetUrl(img, img) : null };
     }).filter((item) => item.id && item.name),
     products: rawProducts.map((entry) => {
       const item = asRecord(entry);
@@ -62,7 +63,8 @@ export function normalizeStorefrontPayload(payload: unknown): SourceStorefront {
           .filter(([, value]) => typeof value === "string" || typeof value === "number")
           .map(([key, value]) => [withStoreName(key), typeof value === "string" ? withStoreName(value) : value]),
       ) as Record<string, string | number>;
-      return { id: stringValue(item.id), img: imageValue(item.img), name: stringValue(item.name), brand: stringValue(item.brand), cat: stringValue(item.cat), price: numberValue(item.price), was: typeof item.was === "number" ? item.was : null, tag: stringValue(item.tag), pop: numberValue(item.pop), specs, desc: stringValue(item.desc) };
+      const img = imageValue(item.img);
+      return { id: stringValue(item.id), img: img ? sourceAssetUrl(img, img) : null, name: stringValue(item.name), brand: stringValue(item.brand), cat: stringValue(item.cat), price: numberValue(item.price), was: typeof item.was === "number" ? item.was : null, tag: stringValue(item.tag), pop: numberValue(item.pop), specs, desc: stringValue(item.desc) };
     }).filter((item) => item.id && item.name && item.price >= 0),
     slides: rawSlides.map((entry) => {
       const item = asRecord(entry);

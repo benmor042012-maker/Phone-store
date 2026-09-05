@@ -52,6 +52,38 @@ export const socialLinks = [
   { id: "waze", label: "Waze", href: "https://waze.com/ul?q=%D7%A9%D7%93%D7%A8%D7%95%D7%AA%20%D7%91%D7%9F%20%D7%92%D7%95%D7%A8%D7%99%D7%95%D7%9F%202%20%D7%A0%D7%AA%D7%A0%D7%99%D7%94" },
 ] as const;
 
+/**
+ * Questions the store already answers elsewhere on the page, gathered in one place so the
+ * visible section and the FAQPage structured data never drift apart — Google only credits
+ * an answer a visitor can actually read on the page.
+ */
+export const storeFaq: { question: string; answer: string }[] = [
+  {
+    question: "מה שעות הפתיחה של Phone Store בנתניה?",
+    answer: "החנות פתוחה ראשון עד חמישי בין 09:00 ל־19:00, ובימי שישי בין 09:00 ל־14:00. הכתובת היא שדרות בן גוריון 2 בנתניה, עם חניה ברחוב וכניסה מהשדרה.",
+  },
+  {
+    question: "אפשר לשלם בביט או בפייבוקס?",
+    answer: "כן. אחרי שליחת ההזמנה בוואטסאפ תקבלו בקשת תשלום בביט או בפייבוקס למספר החנות, בלי למסור פרטי אשראי. אפשר גם לשלם בכרטיס אשראי עד 36 תשלומים ללא ריבית, או במזומן באיסוף מהחנות.",
+  },
+  {
+    question: "איך מזמינים מהאתר?",
+    answer: "בוחרים פריטים מהמלאי ומוסיפים אותם לסל, בוחרים אמצעי תשלום ושולחים. נפתחת הודעת וואטסאפ מוכנה עם הפריטים, הסכום ואמצעי התשלום שבחרתם, ואלי חזות עונה אישית עם מחיר סופי וזמינות.",
+  },
+  {
+    question: "כמה עולה המשלוח וכמה זמן הוא לוקח?",
+    answer: "המשלוח מגיע עד הבית תוך 24 שעות, והוא חינם בהזמנות מעל ₪299.",
+  },
+  {
+    question: "יש אחריות על המכשירים?",
+    answer: "כל מכשיר שנרכש דרך החנות מגיע עם 12 חודשי אחריות יבואן רשמי, וניתן להחזיר או להחליף אותו עד 30 יום.",
+  },
+  {
+    question: "אפשר להזמין מוצר שלא מופיע במלאי באתר?",
+    answer: "כן. שלחו הודעה בוואטסאפ עם הדגם שאתם מחפשים; רוב הפריטים שאינם מוצגים באתר מגיעים לחנות תוך יום עסקים אחד.",
+  },
+];
+
 export type PaymentMethodId = "bit" | "paybox" | "credit" | "cash";
 
 /** Payment options offered when the order is closed over WhatsApp. */

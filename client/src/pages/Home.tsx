@@ -3,10 +3,10 @@ import { useEffect, useMemo, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import {
   buildOrderMessage, buildProductShareText, CART_STORAGE_KEY, instantPaymentTargets, navigationCopy, paymentMethods,
-  readStoredList, SAVED_STORAGE_KEY, socialLinks, STORE, whatsappOrderUrl, writeStoredList,
+  readStoredList, SAVED_STORAGE_KEY, socialLinks, STORE, storeFaq, whatsappOrderUrl, writeStoredList,
   type PaymentMethodId,
 } from "@/lib/storefrontState";
-import { applyJsonLd, applyPageSeo, buildCatalogJsonLd, buildProductJsonLd, buildStoreJsonLd, type SeoProduct } from "@/lib/seo";
+import { applyJsonLd, applyPageSeo, buildCatalogJsonLd, buildFaqJsonLd, buildProductJsonLd, buildStoreJsonLd, type SeoProduct } from "@/lib/seo";
 import { useLocation } from "wouter";
 import {
   Accessibility, ArrowLeft, ChevronLeft, ChevronRight, Eye, Facebook, Heart, Instagram, MapPin, Menu, MessageCircle,
@@ -181,6 +181,7 @@ export default function Home() {
   useEffect(() => {
     const origin = typeof window !== "undefined" ? window.location.origin : STORE.site;
     applyJsonLd("ld-store", buildStoreJsonLd(origin));
+    applyJsonLd("ld-faq", buildFaqJsonLd());
   }, []);
   const shareProduct = async (product: Product) => {
     const text = `${product.name} — ${money(product.price)} | PHONE STORE`;
@@ -219,6 +220,8 @@ export default function Home() {
       <section className="customers-section" id="customers"><div className="section-shell"><div className="section-kicker">05 <span>לקוחות</span></div><h2>מה אומרים עלינו</h2>{reviews.length > 0 ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14, marginTop: 26 }}>{reviews.map((review) => <article key={review.id} style={{ padding: 18, border: "1px solid rgba(213,169,69,.28)", background: "#0d0d0c" }}><div style={{ color: "#d5a945", display: "flex", gap: 3 }}>{Array.from({ length: review.stars }, (_, index) => <Star key={index} size={14} fill="currentColor" />)}</div><p style={{ minHeight: 62, margin: "14px 0", color: "#d8d1c4" }}>{review.text}</p><b style={{ color: "#f2eee5", fontSize: 14 }}>{review.name}</b><small style={{ display: "block", color: "#948c80", marginTop: 3 }}>{review.when}</small></article>)}</div> : <><p>יש שאלה על דגם, מחיר או זמינות? הודעת WhatsApp היא הדרך המהירה ביותר לקבל תשובה אישית מאלי.</p><a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noreferrer" className="text-gold">שליחת הודעה ב־WhatsApp <ArrowLeft size={16} /></a></>}</div></section>
 
       <section className="contact-section-original" id="contact"><div className="section-shell contact-layout"><div><div className="section-kicker">06 <span>דברו איתנו</span></div><h2>אלי עונה בעצמו</h2><p>שאלה על דגם, מחיר או זמינות. הודעה בוואטסאפ היא הדרך המהירה ביותר לקבל תשובה, וההזמנה נסגרת באותה שיחה עם תשלום בביט או בפייבוקס.</p><a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noreferrer" className="btn-gold">שליחת הודעה ב־WhatsApp <ArrowLeft size={17} /></a><div className="contact-social"><b>עוקבים אחרינו</b><div className="social-row">{socialLinks.map((link) => { const Icon = socialIcons[link.id] ?? MessageCircle; return <a key={link.id} href={link.href} target="_blank" rel="noreferrer noopener" aria-label={link.label} title={link.label}><Icon size={19} /></a>; })}</div></div></div><div className="contact-details"><a href={STORE.phoneHref}><Phone size={17} /><span><b>{storePhone}</b><small>ראשון עד חמישי 09:00 עד 19:00 · שישי 09:00 עד 14:00</small></span></a><div><Truck size={17} /><span><b>{storeSettings?.addr || "שד׳ בן גוריון 2, נתניה"}</b><small>חניה ברחוב, כניסה מהשדרה</small></span></div><div><Zap size={17} /><span><b>משלוח עד הבית</b><small>חינם החל מ־₪{storeSettings?.ship || 299}</small></span></div></div></div></section>
+
+      <section className="faq-section" id="faq"><div className="section-shell"><div className="section-kicker">07 <span>שאלות נפוצות</span></div><h2>מה שואלים אותנו</h2><div className="faq-list">{storeFaq.map((entry) => <details key={entry.question}><summary>{entry.question}</summary><p>{entry.answer}</p></details>)}</div></div></section>
 
       <section className="assurance-section"><div className="section-shell"><div><div className="section-kicker">אחריות ותנאים</div><h2>מה מובטח לכם</h2><p>התנאים תקפים לכל מכשיר שנרכש דרך החנות.</p></div><div className="assurance-grid"><span><b>12 חודשים</b>אחריות יבואן רשמי</span><span><b>עד 30 יום</b>החזרה או החלפה</span><span><b>24 שעות</b>משלוח עד הבית</span><span><b>ביט ופייבוקס</b>או עד 36 תשלומים</span></div></div></section>
       <footer className="main-footer"><div><img src={STORE.logo} alt="PHONE STORE — חנות סלולר בנתניה" width={290} height={210} loading="lazy" decoding="async" /><p>חנות סלולר עצמאית בנתניה. מכירה, ייעוץ ואביזרים, עם שירות אישי של אלי חזות.</p><div className="social-row">{socialLinks.map((link) => { const Icon = socialIcons[link.id] ?? MessageCircle; return <a key={link.id} href={link.href} target="_blank" rel="noreferrer noopener" aria-label={link.label} title={link.label}><Icon size={18} /></a>; })}</div></div><div><b>קטגוריות</b><a href="#catalog">טלפונים סלולריים</a><a href="#catalog">טאבלטים</a><a href="#catalog">שעונים חכמים</a></div><div><b>שירות</b><a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noreferrer">וואטסאפ</a><a href={STORE.phoneHref}>טלפון</a><a href="#contact">שעות פתיחה</a><a href="#catalog">תשלום בביט ובפייבוקס</a></div><div><b>החנות</b><a href="#top">עמוד הבית</a><a href="#catalog">המלאי</a><a href="#contact">צור קשר</a><a href="/admin" title="פתיחת מסך ניהול התוכן">ניהול תוכן</a></div><small>© 2026 Phone Store · אלי חזות · שד׳ בן גוריון 2, נתניה</small></footer>

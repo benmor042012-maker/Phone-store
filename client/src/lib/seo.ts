@@ -1,5 +1,5 @@
 /** Search-engine metadata for the storefront: document meta tags plus schema.org structured data. */
-import { socialLinks, STORE } from "./storefrontState";
+import { socialLinks, STORE, storeFaq } from "./storefrontState";
 
 function upsertMeta(selector: string, attribute: "name" | "property", key: string, content: string) {
   if (typeof document === "undefined") return;
@@ -81,6 +81,19 @@ export function buildStoreJsonLd(origin: string) {
       { "@type": "OpeningHoursSpecification", dayOfWeek: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"], opens: "09:00", closes: "19:00" },
       { "@type": "OpeningHoursSpecification", dayOfWeek: "Friday", opens: "09:00", closes: "14:00" },
     ],
+  };
+}
+
+/** Mirrors the FAQ section rendered on the page, which is what makes it eligible for rich results. */
+export function buildFaqJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: storeFaq.map((entry) => ({
+      "@type": "Question",
+      name: entry.question,
+      acceptedAnswer: { "@type": "Answer", text: entry.answer },
+    })),
   };
 }
 

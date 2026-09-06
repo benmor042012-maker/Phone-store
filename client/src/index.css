@@ -32,3 +32,6 @@
 .faq-list summary::after{content:"+";position:absolute;left:0;top:50%;transform:translateY(-50%);color:var(--gold);font:400 22px "DM Sans";line-height:1}.faq-list details[open] summary::after{content:"−"}
 .faq-list summary:hover{color:var(--gold)}.faq-list p{margin:0 0 22px;max-width:760px;color:var(--muted);font-size:15px;line-height:1.75}
 @media(max-width:820px){.faq-section{padding:62px 0}.faq-list summary{padding:17px 28px 17px 0;font-size:15px}.faq-list p{font-size:14px}}
+
+/* Paging control for the full inventory grid. */
+.load-more{margin-top:26px;display:flex;justify-content:center}.load-more button{min-height:48px;padding:0 30px;display:inline-flex;align-items:center;gap:10px;border:1px solid var(--gold);background:transparent;color:var(--gold);font:700 14px Assistant;transition:background .18s,color .18s}.load-more button:hover{background:var(--gold);color:#0a0907}.load-more small{color:inherit;opacity:.7;font:500 12px "DM Sans"}

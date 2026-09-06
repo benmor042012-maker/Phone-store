@@ -44,25 +44,7 @@ export const productImages: Record<string, string> = {
   15: "/images/products/oneplus-13.webp",
 };
 
-/** Category artwork by category name, in `client/public/images/categories/`. */
-export const categoryImages: Record<string, string> = {
-  "טלפונים סלולריים": "/images/categories/phones.webp",
-  "טאבלטים": "/images/categories/tablets.webp",
-  "שעונים חכמים": "/images/categories/watches.webp",
-  "אוזניות": "/images/categories/headphones.webp",
-  "מטענים": "/images/categories/chargers.webp",
-  "כבלים": "/images/categories/cables.webp",
-  "מגני מסך": "/images/categories/screen-protectors.webp",
-  "כיסויים": "/images/categories/cases.webp",
-  "סוללות גיבוי": "/images/categories/power-banks.webp",
-  "מבצעים": "/images/categories/deals.webp",
-};
-
 /** Falls back to the placeholder rather than to an unrelated product picture. */
 export function productImage(id: string): string {
   return productImages[id] ?? IMAGE_FALLBACK;
-}
-
-export function categoryImage(name: string): string {
-  return categoryImages[name] ?? IMAGE_FALLBACK;
 }

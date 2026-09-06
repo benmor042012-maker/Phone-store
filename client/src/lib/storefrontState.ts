@@ -39,7 +39,7 @@ export const STORE = {
   longitude: 34.8532,
   email: "info@phonestore.co.il",
   site: "https://phone-store.ben-mor-04-2012.workers.dev",
-  logo: "/manus-storage/phone-store-logo_3bb02528.png",
+  logo: "/images/logo.png",
 } as const;
 
 /**

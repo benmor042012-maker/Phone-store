@@ -6,6 +6,8 @@ import {
   readStoredList, SAVED_STORAGE_KEY, socialLinks, STORE, storeFaq, whatsappOrderUrl, writeStoredList,
   type PaymentMethodId,
 } from "@/lib/storefrontState";
+import { onImageError } from "@/lib/images";
+import { categoryThumbnails, useInventory, type Product } from "@/lib/catalog";
 import { applyJsonLd, applyPageSeo, buildCatalogJsonLd, buildFaqJsonLd, buildProductJsonLd, buildStoreJsonLd, type SeoProduct } from "@/lib/seo";
 import { useLocation } from "wouter";
 import {
@@ -13,73 +15,20 @@ import {
   Minus, Music2, Phone, Search, Share2, ShoppingBag, SlidersHorizontal, Star, Truck, X, Youtube, Zap,
 } from "lucide-react";
 
-type Product = {
-  id: string; brand: string; name: string; category: string; price: number; oldPrice?: number;
-  image: string; facts: [string, string][]; badge?: "מבצע" | "חדש"; description?: string;
-};
-
 const socialIcons: Record<string, typeof Facebook> = {
   whatsapp: MessageCircle, facebook: Facebook, instagram: Instagram, tiktok: Music2, youtube: Youtube, waze: MapPin,
 };
 
-const productImages: Record<number, string> = {
-  1: "/manus-storage/p1_c7943150.webp", 2: "/manus-storage/p2_634d391a.webp", 3: "/manus-storage/p3_80bf791b.webp",
-  4: "/manus-storage/p4_3694da85.webp", 5: "/manus-storage/p5_eaf483e6.webp", 6: "/manus-storage/p6_402f84e7.webp",
-  7: "/manus-storage/p7_01e84498.webp", 8: "/manus-storage/p8_c62e212c.webp", 9: "/manus-storage/p9_90cd91ae.webp",
-  10: "/manus-storage/p10_343b3f5f.webp", 11: "/manus-storage/p11_9d466950.webp", 12: "/manus-storage/p12_e79be757.webp",
-  13: "/manus-storage/p13_a53fc87b.webp", 14: "/manus-storage/p14_9cc63ff8.webp", 15: "/manus-storage/p15_c0916c21.webp",
-};
-
-const categoryImages: Record<string, string> = {
-  "טלפונים סלולריים": "/manus-storage/cat-c1_40998f67.webp", "טאבלטים": "/manus-storage/cat-c2_62bbcc83.webp", "שעונים חכמים": "/manus-storage/cat-c3_e1caac28.webp", "אוזניות": "/manus-storage/cat-c4_a2205aba.webp", "מטענים": "/manus-storage/cat-c5_13c8fe2b.webp", "כבלים": "/manus-storage/cat-c6_e5ed9bf0.webp", "מגני מסך": "/manus-storage/cat-c7_bb528951.webp", "כיסויים": "/manus-storage/cat-c8_c398d799.webp", "סוללות גיבוי": "/manus-storage/cat-c9_23b273e5.webp", "מבצעים": "/manus-storage/cat-c10_d0a7ceff.webp",
-};
-
-const fallbackProducts: Product[] = [
-  { id: "3", brand: "Apple", name: "AirPods Pro 2", category: "אוזניות", price: 799, oldPrice: 899, image: productImages[3], badge: "מבצע", facts: [["סוללה", "עד 6 שעות"], ["טעינה", "MagSafe"], ["עמידות", "IPX4"]] },
-  { id: "11", brand: "Anker", name: "כבל USB-C קלוע 2 מטר", category: "כבלים", price: 69, oldPrice: 89, image: productImages[11], badge: "מבצע", facts: [["אורך", "2 מטר"], ["תמיכה", "100W"]] },
-  { id: "12", brand: "Apple", name: "מגן מסך זכוכית מחוסמת", category: "מגני מסך", price: 79, image: productImages[12], facts: [["עובי", "0.33 מ״מ"], ["קשיות", "9H"]] },
-  { id: "9", brand: "Anker", name: "Anker PowerCore 20000", category: "סוללות גיבוי", price: 229, oldPrice: 279, image: productImages[9], badge: "מבצע", facts: [["קיבולת", "20,000mAh"], ["הספק", "30W"], ["יציאות", "2"]] },
-  { id: "1", brand: "Apple", name: "iPhone 17 Pro Max 256GB", category: "טלפונים סלולריים", price: 4900, oldPrice: 5400, image: productImages[1], badge: "מבצע", facts: [["מעבד", "A18 Pro"], ["מסך", "6.9 אינץ׳"], ["אחסון", "256GB"]] },
-  { id: "13", brand: "Apple", name: "כיסוי סיליקון MagSafe", category: "כיסויים", price: 139, image: productImages[13], facts: [["חומר", "סיליקון"], ["תאימות", "MagSafe"]] },
-  { id: "8", brand: "Samsung", name: "Samsung Galaxy Watch 7", category: "שעונים חכמים", price: 1299, image: productImages[8], badge: "חדש", facts: [["מסך", "44 מ״מ"], ["סוללה", "עד 40 שעות"]] },
-  { id: "5", brand: "Apple", name: "Apple Watch Ultra 2", category: "שעונים חכמים", price: 3299, oldPrice: 3599, image: productImages[5], badge: "מבצע", facts: [["מסך", "49 מ״מ"], ["סוללה", "עד 72 שעות"], ["עמידות", "100 מטר"]] },
-  { id: "2", brand: "Samsung", name: "Samsung Galaxy S25 Ultra", category: "טלפונים סלולריים", price: 4799, oldPrice: 5299, image: productImages[2], badge: "מבצע", facts: [["מעבד", "Snapdragon 8 Elite"], ["מסך", "6.9 אינץ׳"], ["אחסון", "512GB"]] },
-  { id: "10", brand: "Anker", name: "מטען קיר 65W USB-C", category: "מטענים", price: 169, image: productImages[10], facts: [["הספק", "65W"], ["יציאות", "2 × USB-C"]] },
-  { id: "14", brand: "Sony", name: "Sony WH-1000XM5", category: "אוזניות", price: 1449, oldPrice: 1699, image: productImages[14], badge: "מבצע", facts: [["סוללה", "30 שעות"], ["חיבור", "Bluetooth 5.2"]] },
-  { id: "4", brand: "Apple", name: "iPad Pro M4 11\"", category: "טאבלטים", price: 4299, image: productImages[4], badge: "חדש", facts: [["מעבד", "M4"], ["מסך", "11 אינץ׳ OLED"], ["אחסון", "256GB"]] },
-  { id: "6", brand: "Xiaomi", name: "Xiaomi 14 Ultra", category: "טלפונים סלולריים", price: 3499, image: productImages[6], badge: "חדש", facts: [["מעבד", "Snapdragon 8 Gen 3"], ["מסך", "6.73 אינץ׳"], ["מצלמה", "Leica 50MP"]] },
-  { id: "7", brand: "Google", name: "Google Pixel 9 Pro", category: "טלפונים סלולריים", price: 3999, image: productImages[7], badge: "חדש", facts: [["מעבד", "Tensor G4"], ["מסך", "6.3 אינץ׳"], ["אחסון", "256GB"]] },
-  { id: "15", brand: "OnePlus", name: "OnePlus 13", category: "טלפונים סלולריים", price: 3199, image: productImages[15], badge: "חדש", facts: [["מעבד", "Snapdragon 8 Elite"], ["טעינה", "100W"], ["אחסון", "256GB"]] },
-];
-
-const fallbackCategories = ["טלפונים סלולריים", "טאבלטים", "שעונים חכמים", "אוזניות", "מטענים", "כבלים", "מגני מסך", "כיסויים", "סוללות גיבוי", "מבצעים"];
-const fallbackBrands = ["Anker", "Apple", "Google", "OnePlus", "Samsung", "Sony", "Xiaomi"];
 const fallbackHeroSlides = [
   ["טלפון חדש", "מתחיל בשיחה.", "אלי חזות מוכר סלולר בשד׳ בן גוריון כבר שנים. שולחים הודעה בוואטסאפ, מקבלים המלצה אמיתית ומחיר סופי."],
   ["מכשירים שבוחרים", "עם מענה אישי.", "נשארים איתכם גם אחרי הקנייה — עם שירות ברור, אחריות ומשלוח מהיר מנתניה."],
   ["הבחירה הנכונה", "לא צריכה לקחת זמן.", "כתבו לנו מה חשוב לכם, ונעזור לצמצם את האפשרויות לדגם שבאמת מתאים."],
 ];
 
-function money(value: number) { return `₪${value.toLocaleString("he-IL")}`; }
+/** The inventory is far too large to put in the DOM at once, so the grid pages through it. */
+const PAGE_SIZE = 48;
 
-/** A live catalog entry is an inventory item; the two lists are no longer kept apart. */
-function toInventoryItem(entry: { id: string; img: string | null; name: string; brand: string; cat: string; price: number; was: number | null; tag: string; specs: Record<string, string | number>; desc: string }, categoryNames: Map<string, string>, index: number): Product {
-  const tag = entry.tag.toLowerCase();
-  const onSale = tag.includes("מבצע") || tag.includes("sale") || (entry.was !== null && entry.was > entry.price);
-  const isNew = tag.includes("חדש") || tag.includes("new");
-  return {
-    id: entry.id,
-    brand: entry.brand,
-    name: entry.name,
-    category: categoryNames.get(entry.cat) ?? entry.cat,
-    price: entry.price,
-    oldPrice: entry.was !== null && entry.was > entry.price ? entry.was : undefined,
-    image: entry.img ?? productImages[(index % 15) + 1],
-    facts: Object.entries(entry.specs).slice(0, 3).map(([label, value]) => [label, String(value)] as [string, string]),
-    badge: onSale ? "מבצע" : isNew ? "חדש" : undefined,
-    description: entry.desc,
-  };
-}
+function money(value: number) { return `₪${value.toLocaleString("he-IL")}`; }
 
 export default function Home() {
   const [location, setLocation] = useLocation();
@@ -100,24 +49,20 @@ export default function Home() {
   const [maxPrice, setMaxPrice] = useState<number | null>(null);
   const [sort, setSort] = useState("popular");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sourceQuery = trpc.storefront.sourceData.useQuery(undefined, { staleTime: 60_000, retry: 1, refetchOnWindowFocus: false });
   const liveStorefront = sourceQuery.data?.data ?? null;
-  // The published catalog is the inventory: live items are shown as-is, and the stored snapshot covers an outage.
-  const products = useMemo(() => {
-    const live = liveStorefront?.products ?? [];
-    if (!live.length) return fallbackProducts;
-    const categoryNames = new Map((liveStorefront?.categories ?? []).map((category) => [category.id, category.name]));
-    return live.map((entry, index) => toInventoryItem(entry, categoryNames, index));
-  }, [liveStorefront]);
-  const categories = useMemo(() => liveStorefront?.categories.length ? liveStorefront.categories.map((category) => category.name) : fallbackCategories, [liveStorefront]);
+  // The shipped catalog is the inventory; the live source only supplies settings, slides and reviews.
+  const { products, categories, ready: inventoryReady } = useInventory();
+  const thumbnails = useMemo(() => categoryThumbnails(products), [products]);
   const brands = useMemo(() => {
-    const fromInventory = Array.from(new Set(products.map((product) => product.brand).filter(Boolean))).sort();
-    return fromInventory.length ? fromInventory : fallbackBrands;
+    const fromInventory = Array.from(new Set(products.map((product) => product.brand).filter(Boolean)));
+    return fromInventory.sort((a, b) => a.localeCompare(b, "he"));
   }, [products]);
   const heroSlides = useMemo(() => liveStorefront?.slides.length ? liveStorefront.slides.map((slide) => [slide.title, slide.accent, slide.lead]) : fallbackHeroSlides, [liveStorefront]);
   const storeSettings = liveStorefront?.settings;
   const reviews = liveStorefront?.reviews ?? [];
-  const priceCeiling = useMemo(() => Math.max(6000, ...products.map((product) => product.price)), [products]);
+  const priceCeiling = useMemo(() => Math.ceil(Math.max(1000, ...products.map((product) => product.price)) / 100) * 100, [products]);
   const priceLimit = maxPrice ?? priceCeiling;
 
   const filtered = useMemo(() => {
@@ -127,8 +72,16 @@ export default function Home() {
       const q = `${product.name} ${product.brand}`.toLowerCase().includes(query.toLowerCase());
       return categoryMatch && brandMatch && product.price <= priceLimit && q;
     });
-    return [...list].sort((a, b) => sort === "low" ? a.price - b.price : sort === "high" ? b.price - a.price : sort === "new" ? b.id.localeCompare(a.id, "en", { numeric: true }) : a.id.localeCompare(b.id, "en", { numeric: true }));
+    // Photographed stock leads the default order, so items still awaiting a picture sit last.
+    const pending = (product: Product) => (product.awaitingPhoto ? 1 : 0);
+    return [...list].sort((a, b) => sort === "low" ? a.price - b.price
+      : sort === "high" ? b.price - a.price
+      : sort === "new" ? b.id.localeCompare(a.id, "en", { numeric: true })
+      : pending(a) - pending(b));
   }, [priceLimit, products, query, selectedBrands, selectedCats, sort]);
+
+  const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
+  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [priceLimit, products, query, selectedBrands, selectedCats, sort]);
 
   const hero = heroSlides[activeSlide] ?? heroSlides[0];
   const navCopy = navigationCopy[locale];
@@ -136,7 +89,7 @@ export default function Home() {
   const whatsappNumber = storeSettings?.wa?.replace(/\D/g, "") || STORE.whatsapp;
   const storePhone = storeSettings?.telShow || STORE.phone;
   const toggle = (value: string, group: string[], setGroup: (values: string[]) => void) => setGroup(group.includes(value) ? group.filter((item) => item !== value) : [...group, value]);
-  const reset = () => { setQuery(""); setSelectedCats([]); setSelectedBrands([]); setMaxPrice(null); setSort("popular"); };
+  const reset = () => { setQuery(""); setSelectedCats([]); setSelectedBrands([]); setMaxPrice(null); setSort("popular"); setVisibleCount(PAGE_SIZE); };
   const add = (product: Product) => { setCart((items) => [...items, product]); setCartOpen(true); };
   const orderMessage = buildOrderMessage(cart.map((item) => ({ name: item.name, price: money(item.price) })), money(cartTotal), payment, storePhone);
   const openProduct = (product: Product) => { setSelectedProduct(product); setLocation(`/products/${product.id}`); };
@@ -176,7 +129,8 @@ export default function Home() {
       path: "/",
     });
     applyJsonLd("ld-product", null);
-    applyJsonLd("ld-catalog", buildCatalogJsonLd(origin, products.map(toSeoProduct)));
+    // The item list names a readable slice; the full inventory would bloat the document.
+    applyJsonLd("ld-catalog", buildCatalogJsonLd(origin, products.slice(0, 40).map(toSeoProduct)));
   }, [products, selectedProduct, storeSettings]);
   useEffect(() => {
     const origin = typeof window !== "undefined" ? window.location.origin : STORE.site;
@@ -195,7 +149,7 @@ export default function Home() {
     <div className={`store-page ${highContrast ? "high-contrast" : ""}`} dir="rtl" style={largeText ? { fontSize: "112%" } : undefined}>
       <div className="top-strip"><span>{storeSettings?.addr || "שד׳ בן גוריון 2, נתניה"}</span><i /> <span>משלוח חינם מעל ₪{storeSettings?.ship || 299}</span><i /><span>תשלום בביט ובפייבוקס</span><i /><span>עד {storeSettings?.pay36 || 36} תשלומים</span></div>
       <header className="store-header">
-        <a href="#top" className="logo-link" aria-label="Phone Store"><img src={STORE.logo} alt="PHONE STORE — חנות סלולר בנתניה" width={340} height={126} /></a>
+        <a href="#top" className="logo-link" aria-label="Phone Store"><img src={STORE.logo} alt="PHONE STORE — חנות סלולר בנתניה" width={340} height={126} onError={onImageError} /></a>
         <nav className={menuOpen ? "nav-links open" : "nav-links"} aria-label="ניווט ראשי"><a href="#catalog" onClick={() => setMenuOpen(false)}>{navCopy.inventory}</a><a href="#categories" onClick={() => setMenuOpen(false)}>{navCopy.categories}</a><a href="#how" onClick={() => setMenuOpen(false)}>{navCopy.how}</a><a href="#customers" onClick={() => setMenuOpen(false)}>{navCopy.customers}</a><a href="#contact" onClick={() => setMenuOpen(false)}>{navCopy.contact}</a></nav>
         <div className="header-tools"><select aria-label="שפה" value={locale} onChange={(event) => setLocale(event.target.value === "en" ? "en" : "he")}><option value="he">עברית</option><option value="en">English</option></select><button className="round-tool" onClick={() => setAccessibilityOpen(!accessibilityOpen)} aria-label="כלי נגישות"><Accessibility size={18} /></button><button className="round-tool" onClick={() => document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" })} aria-label="חיפוש"><Search size={18} /></button><button className="round-tool cart-trigger" onClick={() => setCartOpen(true)} aria-label="עגלת קניות"><ShoppingBag size={18} /><b>{cart.length}</b></button><button className="round-tool mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label="תפריט">{menuOpen ? <X size={21} /> : <Menu size={21} />}</button></div>
       </header>
@@ -203,15 +157,15 @@ export default function Home() {
       <section className="hero-original" id="top">
         <div className="hero-product"><video autoPlay muted loop playsInline preload="metadata" aria-hidden="true" style={{ width: "100%", height: "100%", objectFit: "cover", transform: "scale(1.08)", filter: "contrast(1.1) saturate(.68)" }}><source src="/hero-phone-store-iphone17.mp4" type="video/mp4" /></video></div><div className="hero-haze" /><div aria-hidden="true" style={{ position: "absolute", zIndex: -1, left: "8%", top: "-42%", width: "29%", height: "172%", transform: "rotate(20deg)", border: "1px solid rgba(213,169,69,.25)", pointerEvents: "none" }} />
         <div className="hero-inner"><span className="hero-label">PHONE STORE · נתניה</span><h1>{hero[0]}<em>{hero[1]}</em></h1><p>{hero[2]}</p><div className="hero-buttons"><a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noreferrer" className="btn-gold">דברו עם אלי ב־WhatsApp <ArrowLeft size={17} /></a><a href="#catalog" className="btn-outline">לצפייה במלאי</a></div></div>
-        <div className="live-stock"><span /><strong>{products.length} דגמים</strong><small>{sourceQuery.data?.status === "live" ? "מלאי מסונכרן · משלוח מהיר" : "זמינים עכשיו · משלוח מהיר"}</small></div>
+        <div className="live-stock"><span /><strong>{products.length.toLocaleString("he-IL")} פריטים</strong><small>{sourceQuery.data?.status === "live" ? "מלאי מסונכרן · משלוח מהיר" : "זמינים עכשיו · משלוח מהיר"}</small></div>
         <div className="hero-controls"><button onClick={() => setActiveSlide((activeSlide + heroSlides.length - 1) % heroSlides.length)} aria-label="השקופית הקודמת"><ChevronRight size={19} /></button>{heroSlides.map((_, index) => <button key={index} className={index === activeSlide ? "dot active" : "dot"} onClick={() => setActiveSlide(index)} aria-label={`מעבר לשקופית ${index + 1}`} />)}<button onClick={() => setActiveSlide((activeSlide + 1) % heroSlides.length)} aria-label="השקופית הבאה"><ChevronLeft size={19} /></button></div>
       </section>
 
       <section className="service-numbers"><div><strong>24 שע׳</strong><span>משלוח עד הבית</span></div><div><strong>36</strong><span>תשלומים ללא ריבית</span></div><div><strong>30 יום</strong><span>החזרה ללא עלות</span></div><div><strong>₪299</strong><span>מעל זה, משלוח חינם</span></div></section>
 
-      <section className="section-shell category-block" id="categories"><div className="section-kicker">01 <span>מה יש בחנות</span></div><div className="section-title-row"><div><h2>קטגוריות</h2><p>כל מה שמסביב למכשיר: מטענים, כבלים, הגנה וסוללות. אם משהו לא מופיע כאן, שאלו בוואטסאפ; רוב הפריטים מגיעים תוך יום.</p></div><a href="#catalog" className="text-gold">לכל המלאי <ArrowLeft size={16} /></a></div><div className="category-grid">{categories.map((category, index) => <button key={category} onClick={() => { setSelectedCats(category === "מבצעים" ? ["מבצעים"] : [category]); document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" }); }}><span className="category-photo"><img src={categoryImages[category] ?? productImages[(index % 15) + 1]} alt={`קטגוריית ${category} ב־Phone Store`} loading="lazy" decoding="async" /></span><strong>{category}</strong><small>{categoryCount(category)} פריטים</small></button>)}</div></section>
+      <section className="section-shell category-block" id="categories"><div className="section-kicker">01 <span>מה יש בחנות</span></div><div className="section-title-row"><div><h2>קטגוריות</h2><p>כל מה שמסביב למכשיר: מטענים, כבלים, הגנה וסוללות. אם משהו לא מופיע כאן, שאלו בוואטסאפ; רוב הפריטים מגיעים תוך יום.</p></div><a href="#catalog" className="text-gold">לכל המלאי <ArrowLeft size={16} /></a></div><div className="category-grid">{categories.map((category) => <button key={category} onClick={() => { setSelectedCats(category === "מבצעים" ? ["מבצעים"] : [category]); document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" }); }}><span className="category-photo"><img src={thumbnails[category] ?? ""} alt={`קטגוריית ${category} ב־Phone Store`} loading="lazy" decoding="async" onError={onImageError} /></span><strong>{category}</strong><small>{categoryCount(category)} פריטים</small></button>)}</div></section>
 
-      <section className="catalog-section" id="catalog"><div className="section-shell"><div className="section-kicker">02 <span>מלאי מלא</span></div><h2>המלאי שלנו</h2><div className="catalog-layout"><aside className={filtersOpen ? "filters shown" : "filters"}><div className="filter-title"><b>סינון</b><button onClick={reset}>איפוס כל הסינונים</button></div><label className="search-field"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="שם דגם או מותג" /></label><fieldset><legend>קטגוריה</legend>{categories.map((category) => <label key={category} className="check-row"><input type="checkbox" checked={selectedCats.includes(category)} onChange={() => toggle(category, selectedCats, setSelectedCats)} /><span>{category}</span></label>)}</fieldset><fieldset><legend>מותג</legend>{brands.map((brand) => <label key={brand} className="check-row"><input type="checkbox" checked={selectedBrands.includes(brand)} onChange={() => toggle(brand, selectedBrands, setSelectedBrands)} /><span dir="ltr">{brand}</span></label>)}</fieldset><fieldset><legend>מחיר</legend><input className="price-range" type="range" min="0" max={priceCeiling} step="100" value={priceLimit} onChange={(event) => setMaxPrice(Number(event.target.value))} /><div className="range-label"><span>₪0</span><span>{money(priceLimit)}</span></div></fieldset></aside><div className="catalog-main"><div className="catalog-bar"><button className="filter-toggle" onClick={() => setFiltersOpen(!filtersOpen)}><SlidersHorizontal size={16} /> סינון</button><span><b>{filtered.length}</b> מוצרים</span><select value={sort} onChange={(event) => setSort(event.target.value)} aria-label="מיון"><option value="popular">מיון: פופולריות</option><option value="new">חדש ביותר</option><option value="low">מחיר: נמוך לגבוה</option><option value="high">מחיר: גבוה לנמוך</option></select></div><div className="product-grid-original">{filtered.map((product) => <article className="original-product" key={product.id}>{product.badge && <span className={`product-badge ${product.badge === "חדש" ? "new" : ""}`}>{product.badge}</span>}<button className={saved.includes(product.id) ? "save-product saved" : "save-product"} onClick={() => setSaved(saved.includes(product.id) ? saved.filter((id) => id !== product.id) : [...saved, product.id])} aria-label="שמירה"><Heart size={18} fill={saved.includes(product.id) ? "currentColor" : "none"} /></button><div className="product-picture"><img src={product.image} alt={`${product.name} — ${product.brand}`} loading="lazy" decoding="async" /></div><div className="product-copy"><small dir="ltr">{product.brand}</small><h3>{product.name}</h3><div className="specs">{product.facts.map(([label, value]) => <span key={label}><b>{label}</b>{value}</span>)}</div><div className="price-line">{product.oldPrice && <del>{money(product.oldPrice)}</del>}<strong>{money(product.price)}</strong></div><div className="product-actions"><button className="product-detail" onClick={() => openProduct(product)}><Eye size={15} /> פרטים</button><button className="product-share" onClick={() => shareProduct(product)} aria-label={`שיתוף ${product.name}`}><Share2 size={15} /></button><button className="add-cart" onClick={() => add(product)}>הוספה <ShoppingBag size={16} /></button></div></div></article>)}</div>{filtered.length === 0 && <div className="empty-products">לא נמצאו מוצרים שמתאימים לסינון. <button onClick={reset}>אפסו את הסינונים</button></div>}</div></div></div></section>
+      <section className="catalog-section" id="catalog"><div className="section-shell"><div className="section-kicker">02 <span>מלאי מלא</span></div><h2>המלאי שלנו</h2><div className="catalog-layout"><aside className={filtersOpen ? "filters shown" : "filters"}><div className="filter-title"><b>סינון</b><button onClick={reset}>איפוס כל הסינונים</button></div><label className="search-field"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="שם דגם או מותג" /></label><fieldset><legend>קטגוריה</legend>{categories.map((category) => <label key={category} className="check-row"><input type="checkbox" checked={selectedCats.includes(category)} onChange={() => toggle(category, selectedCats, setSelectedCats)} /><span>{category}</span></label>)}</fieldset><fieldset><legend>מותג</legend>{brands.map((brand) => <label key={brand} className="check-row"><input type="checkbox" checked={selectedBrands.includes(brand)} onChange={() => toggle(brand, selectedBrands, setSelectedBrands)} /><span dir="ltr">{brand}</span></label>)}</fieldset><fieldset><legend>מחיר</legend><input className="price-range" type="range" min="0" max={priceCeiling} step="100" value={priceLimit} onChange={(event) => setMaxPrice(Number(event.target.value))} /><div className="range-label"><span>₪0</span><span>{money(priceLimit)}</span></div></fieldset></aside><div className="catalog-main"><div className="catalog-bar"><button className="filter-toggle" onClick={() => setFiltersOpen(!filtersOpen)}><SlidersHorizontal size={16} /> סינון</button><span><b>{filtered.length}</b> מוצרים</span><select value={sort} onChange={(event) => setSort(event.target.value)} aria-label="מיון"><option value="popular">מיון: פופולריות</option><option value="new">חדש ביותר</option><option value="low">מחיר: נמוך לגבוה</option><option value="high">מחיר: גבוה לנמוך</option></select></div><div className="product-grid-original">{visible.map((product) => <article className="original-product" key={product.id}>{product.badge && <span className={`product-badge ${product.badge === "חדש" ? "new" : ""}`}>{product.badge}</span>}<button className={saved.includes(product.id) ? "save-product saved" : "save-product"} onClick={() => setSaved(saved.includes(product.id) ? saved.filter((id) => id !== product.id) : [...saved, product.id])} aria-label="שמירה"><Heart size={18} fill={saved.includes(product.id) ? "currentColor" : "none"} /></button><div className="product-picture"><img src={product.image} alt={`${product.name} — ${product.brand}`} loading="lazy" decoding="async" onError={onImageError} /></div><div className="product-copy"><small dir="ltr">{product.brand}</small><h3>{product.name}</h3><div className="specs">{product.facts.map(([label, value]) => <span key={label}><b>{label}</b>{value}</span>)}</div><div className="price-line">{product.oldPrice && <del>{money(product.oldPrice)}</del>}<strong>{money(product.price)}</strong></div><div className="product-actions"><button className="product-detail" onClick={() => openProduct(product)}><Eye size={15} /> פרטים</button><button className="product-share" onClick={() => shareProduct(product)} aria-label={`שיתוף ${product.name}`}><Share2 size={15} /></button><button className="add-cart" onClick={() => add(product)}>הוספה <ShoppingBag size={16} /></button></div></div></article>)}</div>{visible.length < filtered.length && <div className="load-more"><button onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}>הצגת פריטים נוספים <small>{visible.length} מתוך {filtered.length}</small></button></div>}{filtered.length === 0 && <div className="empty-products">{inventoryReady ? <>לא נמצאו מוצרים שמתאימים לסינון. <button onClick={reset}>אפסו את הסינונים</button></> : "טוען את המלאי…"}</div>}</div></div></div></section>
 
       <section className="section-shell how-section" id="how"><div><div className="section-kicker">03 <span>התהליך</span></div><h2>ארבעה צעדים,<br />בלי טפסים</h2><p>אין כאן קופה אוטומטית ואין המתנה לנציג. בוחרים מה שמעניין, שולחים הודעה, ואלי עונה בעצמו.</p><a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noreferrer" className="btn-gold">התחילו שיחה <ArrowLeft size={17} /></a><div className="pay-strip" aria-label="אמצעי תשלום"><span>ביט</span><span>פייבוקס</span><span>אשראי עד 36 תשלומים</span><span>מזומן</span></div></div><ol><li><span>01</span><div><strong>בוחרים מכשיר</strong><p>או פשוט מתארים מה צריך</p></div></li><li><span>02</span><div><strong>שולחים בוואטסאפ</strong><p>ההודעה נבנית לבד</p></div></li><li><span>03</span><div><strong>מקבלים מחיר סופי</strong><p>כולל אחריות ותשלומים</p></div></li><li><span>04</span><div><strong>משלמים בביט או בפייבוקס</strong><p>ומקבלים עד הבית תוך 24 שעות</p></div></li></ol></section>
 
@@ -224,11 +178,11 @@ export default function Home() {
       <section className="faq-section" id="faq"><div className="section-shell"><div className="section-kicker">07 <span>שאלות נפוצות</span></div><h2>מה שואלים אותנו</h2><div className="faq-list">{storeFaq.map((entry) => <details key={entry.question}><summary>{entry.question}</summary><p>{entry.answer}</p></details>)}</div></div></section>
 
       <section className="assurance-section"><div className="section-shell"><div><div className="section-kicker">אחריות ותנאים</div><h2>מה מובטח לכם</h2><p>התנאים תקפים לכל מכשיר שנרכש דרך החנות.</p></div><div className="assurance-grid"><span><b>12 חודשים</b>אחריות יבואן רשמי</span><span><b>עד 30 יום</b>החזרה או החלפה</span><span><b>24 שעות</b>משלוח עד הבית</span><span><b>ביט ופייבוקס</b>או עד 36 תשלומים</span></div></div></section>
-      <footer className="main-footer"><div><img src={STORE.logo} alt="PHONE STORE — חנות סלולר בנתניה" width={290} height={210} loading="lazy" decoding="async" /><p>חנות סלולר עצמאית בנתניה. מכירה, ייעוץ ואביזרים, עם שירות אישי של אלי חזות.</p><div className="social-row">{socialLinks.map((link) => { const Icon = socialIcons[link.id] ?? MessageCircle; return <a key={link.id} href={link.href} target="_blank" rel="noreferrer noopener" aria-label={link.label} title={link.label}><Icon size={18} /></a>; })}</div></div><div><b>קטגוריות</b><a href="#catalog">טלפונים סלולריים</a><a href="#catalog">טאבלטים</a><a href="#catalog">שעונים חכמים</a></div><div><b>שירות</b><a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noreferrer">וואטסאפ</a><a href={STORE.phoneHref}>טלפון</a><a href="#contact">שעות פתיחה</a><a href="#catalog">תשלום בביט ובפייבוקס</a></div><div><b>החנות</b><a href="#top">עמוד הבית</a><a href="#catalog">המלאי</a><a href="#contact">צור קשר</a><a href="/admin" title="פתיחת מסך ניהול התוכן">ניהול תוכן</a></div><small>© 2026 Phone Store · אלי חזות · שד׳ בן גוריון 2, נתניה</small></footer>
+      <footer className="main-footer"><div><img src={STORE.logo} alt="PHONE STORE — חנות סלולר בנתניה" width={290} height={210} loading="lazy" decoding="async" onError={onImageError} /><p>חנות סלולר עצמאית בנתניה. מכירה, ייעוץ ואביזרים, עם שירות אישי של אלי חזות.</p><div className="social-row">{socialLinks.map((link) => { const Icon = socialIcons[link.id] ?? MessageCircle; return <a key={link.id} href={link.href} target="_blank" rel="noreferrer noopener" aria-label={link.label} title={link.label}><Icon size={18} /></a>; })}</div></div><div><b>קטגוריות</b><a href="#catalog">טלפונים סלולריים</a><a href="#catalog">טאבלטים</a><a href="#catalog">שעונים חכמים</a></div><div><b>שירות</b><a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noreferrer">וואטסאפ</a><a href={STORE.phoneHref}>טלפון</a><a href="#contact">שעות פתיחה</a><a href="#catalog">תשלום בביט ובפייבוקס</a></div><div><b>החנות</b><a href="#top">עמוד הבית</a><a href="#catalog">המלאי</a><a href="#contact">צור קשר</a><a href="/admin" title="פתיחת מסך ניהול התוכן">ניהול תוכן</a></div><small>© 2026 Phone Store · אלי חזות · שד׳ בן גוריון 2, נתניה</small></footer>
 
       {accessibilityOpen && <aside className="accessibility-panel" aria-label="כלי נגישות"><button className="close-cart" onClick={() => setAccessibilityOpen(false)}><X size={18} /></button><b>כלי נגישות</b><button onClick={() => setLargeText(!largeText)}>{largeText ? "גודל טקסט רגיל" : "הגדלת טקסט"}</button><button onClick={() => setHighContrast(!highContrast)}>{highContrast ? "ניגודיות רגילה" : "ניגודיות גבוהה"}</button></aside>}
-      {selectedProduct && <><div className="cart-overlay" onClick={closeProduct} /><section className="product-modal" role="dialog" aria-modal="true" aria-label={`פרטי ${selectedProduct.name}`}><button className="close-cart" onClick={closeProduct}><X size={20} /></button><img src={selectedProduct.image} alt={`${selectedProduct.name} — ${selectedProduct.brand}`} /><div><small dir="ltr">{selectedProduct.brand}</small><h2>{selectedProduct.name}</h2><p>{selectedProduct.facts.map(([label, value]) => `${label}: ${value}`).join(" · ")}</p><strong>{money(selectedProduct.price)}</strong><div><button className="btn-outline" onClick={() => shareProduct(selectedProduct)}><Share2 size={16} /> שיתוף</button><button className="btn-gold" onClick={() => { add(selectedProduct); closeProduct(); }}>הוספה לסל <ShoppingBag size={16} /></button></div></div></section></>}
-      {cartOpen && <><div className="cart-overlay" onClick={() => setCartOpen(false)} /><aside className="cart-panel"><button className="close-cart" onClick={() => setCartOpen(false)}><X size={20} /></button><h2>הפריטים שלכם</h2>{cart.length === 0 ? <div className="cart-empty"><ShoppingBag size={28} /><p>הרשימה ריקה</p><span>הוסיפו פריטים מהמלאי, ואנחנו נבנה מהם הודעת וואטסאפ מסודרת.</span></div> : <div className="cart-items">{cart.map((product, index) => <div key={`${product.id}-${index}`}><img src={product.image} alt="" loading="lazy" /><span><b>{product.name}</b><small>{money(product.price)}</small></span><button onClick={() => setCart(cart.filter((_, i) => i !== index))} aria-label={`הסרת ${product.name}`}><Minus size={15} /></button></div>)}</div>}<div className="cart-total"><span>סכום ביניים <b>{money(cartTotal)}</b></span><span>משלוח <b>חינם</b></span><strong>סה״כ <b>{money(cartTotal)}</b></strong></div><fieldset className="pay-methods"><legend>אמצעי תשלום</legend>{paymentMethods.map((method) => <label key={method.id} className={payment === method.id ? "pay-option selected" : "pay-option"}><input type="radio" name="payment-method" value={method.id} checked={payment === method.id} onChange={() => setPayment(method.id)} /><span>{method.label}</span><small>{method.note}</small></label>)}</fieldset>{(payment === "bit" || payment === "paybox") && <p className="pay-note">אחרי שליחת ההזמנה תקבלו בקשת תשלום ב<b>{payment === "bit" ? instantPaymentTargets.bit.label : instantPaymentTargets.paybox.label}</b> למספר <b dir="ltr">{storePhone}</b>. אין צורך במסירת פרטי אשראי. <a href={payment === "bit" ? instantPaymentTargets.bit.href : instantPaymentTargets.paybox.href} target="_blank" rel="noreferrer noopener">להורדת האפליקציה</a></p>}<a className={cart.length ? "btn-gold checkout" : "btn-gold checkout disabled"} href={cart.length ? whatsappOrderUrl(orderMessage, whatsappNumber) : undefined} target="_blank" rel="noreferrer">שליחת ההזמנה ב־WhatsApp <ArrowLeft size={17} /></a><small className="cart-note">ההודעה נפתחת מוכנה, כולל אמצעי התשלום שבחרתם. התשלום מסוכם בשיחה.</small></aside></>}
+      {selectedProduct && <><div className="cart-overlay" onClick={closeProduct} /><section className="product-modal" role="dialog" aria-modal="true" aria-label={`פרטי ${selectedProduct.name}`}><button className="close-cart" onClick={closeProduct}><X size={20} /></button><img src={selectedProduct.image} alt={`${selectedProduct.name} — ${selectedProduct.brand}`} onError={onImageError} /><div><small dir="ltr">{selectedProduct.brand}</small><h2>{selectedProduct.name}</h2><p>{selectedProduct.facts.map(([label, value]) => `${label}: ${value}`).join(" · ")}</p><strong>{money(selectedProduct.price)}</strong><div><button className="btn-outline" onClick={() => shareProduct(selectedProduct)}><Share2 size={16} /> שיתוף</button><button className="btn-gold" onClick={() => { add(selectedProduct); closeProduct(); }}>הוספה לסל <ShoppingBag size={16} /></button></div></div></section></>}
+      {cartOpen && <><div className="cart-overlay" onClick={() => setCartOpen(false)} /><aside className="cart-panel"><button className="close-cart" onClick={() => setCartOpen(false)}><X size={20} /></button><h2>הפריטים שלכם</h2>{cart.length === 0 ? <div className="cart-empty"><ShoppingBag size={28} /><p>הרשימה ריקה</p><span>הוסיפו פריטים מהמלאי, ואנחנו נבנה מהם הודעת וואטסאפ מסודרת.</span></div> : <div className="cart-items">{cart.map((product, index) => <div key={`${product.id}-${index}`}><img src={product.image} alt="" loading="lazy" onError={onImageError} /><span><b>{product.name}</b><small>{money(product.price)}</small></span><button onClick={() => setCart(cart.filter((_, i) => i !== index))} aria-label={`הסרת ${product.name}`}><Minus size={15} /></button></div>)}</div>}<div className="cart-total"><span>סכום ביניים <b>{money(cartTotal)}</b></span><span>משלוח <b>חינם</b></span><strong>סה״כ <b>{money(cartTotal)}</b></strong></div><fieldset className="pay-methods"><legend>אמצעי תשלום</legend>{paymentMethods.map((method) => <label key={method.id} className={payment === method.id ? "pay-option selected" : "pay-option"}><input type="radio" name="payment-method" value={method.id} checked={payment === method.id} onChange={() => setPayment(method.id)} /><span>{method.label}</span><small>{method.note}</small></label>)}</fieldset>{(payment === "bit" || payment === "paybox") && <p className="pay-note">אחרי שליחת ההזמנה תקבלו בקשת תשלום ב<b>{payment === "bit" ? instantPaymentTargets.bit.label : instantPaymentTargets.paybox.label}</b> למספר <b dir="ltr">{storePhone}</b>. אין צורך במסירת פרטי אשראי. <a href={payment === "bit" ? instantPaymentTargets.bit.href : instantPaymentTargets.paybox.href} target="_blank" rel="noreferrer noopener">להורדת האפליקציה</a></p>}<a className={cart.length ? "btn-gold checkout" : "btn-gold checkout disabled"} href={cart.length ? whatsappOrderUrl(orderMessage, whatsappNumber) : undefined} target="_blank" rel="noreferrer">שליחת ההזמנה ב־WhatsApp <ArrowLeft size={17} /></a><small className="cart-note">ההודעה נפתחת מוכנה, כולל אמצעי התשלום שבחרתם. התשלום מסוכם בשיחה.</small></aside></>}
     </div>
   );
 }

@@ -23,10 +23,15 @@ function upsertLink(rel: string, href: string) {
   element.setAttribute("href", href);
 }
 
-export type PageSeo = { title: string; description: string; path: string; image?: string; type?: "website" | "product" };
+function removeMeta(selector: string) {
+  if (typeof document === "undefined") return;
+  document.head.querySelector(selector)?.remove();
+}
+
+export type PageSeo = { title: string; description: string; path: string; image?: string; imageAlt?: string; type?: "website" | "product"; price?: number };
 
 /** Applies the canonical URL, the description and the Open Graph / Twitter cards for the current view. */
-export function applyPageSeo({ title, description, path, image, type = "website" }: PageSeo) {
+export function applyPageSeo({ title, description, path, image, imageAlt, type = "website", price }: PageSeo) {
   if (typeof document === "undefined") return;
   const origin = typeof window !== "undefined" && window.location.origin.startsWith("http") ? window.location.origin : STORE.site;
   const url = `${origin}${path}`;
@@ -39,7 +44,17 @@ export function applyPageSeo({ title, description, path, image, type = "website"
   upsertMeta('meta[property="og:description"]', "property", "og:description", description);
   upsertMeta('meta[property="og:url"]', "property", "og:url", url);
   upsertMeta('meta[property="og:image"]', "property", "og:image", banner);
+  upsertMeta('meta[property="og:image:alt"]', "property", "og:image:alt", imageAlt ?? `${STORE.name} ${STORE.city}`);
   upsertMeta('meta[property="og:type"]', "property", "og:type", type === "product" ? "product" : "website");
+  if (type === "product" && typeof price === "number") {
+    upsertMeta('meta[property="product:price:amount"]', "property", "product:price:amount", String(price));
+    upsertMeta('meta[property="product:price:currency"]', "property", "product:price:currency", "ILS");
+    upsertMeta('meta[property="og:availability"]', "property", "og:availability", "instock");
+  } else {
+    removeMeta('meta[property="product:price:amount"]');
+    removeMeta('meta[property="product:price:currency"]');
+    removeMeta('meta[property="og:availability"]');
+  }
   upsertMeta('meta[name="twitter:title"]', "name", "twitter:title", title);
   upsertMeta('meta[name="twitter:description"]', "name", "twitter:description", description);
   upsertMeta('meta[name="twitter:image"]', "name", "twitter:image", banner);
@@ -77,6 +92,10 @@ export function buildStoreJsonLd(origin: string) {
     geo: { "@type": "GeoCoordinates", latitude: STORE.latitude, longitude: STORE.longitude },
     areaServed: [{ "@type": "City", name: "נתניה" }, { "@type": "Country", name: "ישראל" }],
     sameAs: socialLinks.map((link) => link.href),
+    hasMap: socialLinks.find((link) => link.id === "waze")?.href,
+    contactPoint: [
+      { "@type": "ContactPoint", contactType: "sales", telephone: STORE.phone, url: `https://wa.me/${STORE.whatsapp}`, availableLanguage: ["he", "en"] },
+    ],
     openingHoursSpecification: [
       { "@type": "OpeningHoursSpecification", dayOfWeek: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"], opens: "09:00", closes: "19:00" },
       { "@type": "OpeningHoursSpecification", dayOfWeek: "Friday", opens: "09:00", closes: "14:00" },
@@ -119,6 +138,19 @@ export function buildProductJsonLd(origin: string, product: SeoProduct) {
       itemCondition: "https://schema.org/NewCondition",
       seller: { "@id": `${origin}/#store` },
     },
+  };
+}
+
+/** Home → category → product, so search results can show the path a product sits under. */
+export function buildBreadcrumbJsonLd(origin: string, product: SeoProduct) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: `${STORE.name} ${STORE.city}`, item: `${origin}/` },
+      { "@type": "ListItem", position: 2, name: product.category, item: `${origin}/#catalog` },
+      { "@type": "ListItem", position: 3, name: product.name, item: `${origin}/products/${product.id}` },
+    ],
   };
 }
 

@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /admin
+Disallow: /api/
 
 Sitemap: https://phone-store.ben-mor-04-2012.workers.dev/sitemap.xml

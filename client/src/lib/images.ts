@@ -25,22 +25,19 @@ export function onImageError(event: { currentTarget: HTMLImageElement }) {
   image.src = IMAGE_FALLBACK;
 }
 
-/** Product artwork by catalog id. Drop a file with the matching name into `client/public/images/products/`. */
+/**
+ * Artwork for the handsets the shop stocks itself, one entry per item in `storePhones`.
+ * Each path currently holds a branded placeholder; overwrite the file with a real photo
+ * of the stock and it appears on the site, no code change needed.
+ */
 export const productImages: Record<string, string> = {
   1: "/images/products/iphone-17-pro-max.webp",
   2: "/images/products/samsung-galaxy-s25-ultra.webp",
-  3: "/images/products/airpods-pro-2.webp",
   4: "/images/products/ipad-pro-m4-11.webp",
   5: "/images/products/apple-watch-ultra-2.webp",
   6: "/images/products/xiaomi-14-ultra.webp",
   7: "/images/products/google-pixel-9-pro.webp",
   8: "/images/products/samsung-galaxy-watch-7.webp",
-  9: "/images/products/anker-powercore-20000.webp",
-  10: "/images/products/wall-charger-65w.webp",
-  11: "/images/products/usb-c-cable-2m.webp",
-  12: "/images/products/screen-protector.webp",
-  13: "/images/products/magsafe-silicone-case.webp",
-  14: "/images/products/sony-wh-1000xm5.webp",
   15: "/images/products/oneplus-13.webp",
 };
 

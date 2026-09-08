@@ -38,7 +38,7 @@ export const STORE = {
   latitude: 32.3215,
   longitude: 34.8532,
   email: "info@phonestore.co.il",
-  site: "https://phone-store.ben-mor-04-2012.workers.dev",
+  site: "https://phonestore.co.il",
   logo: "/images/logo.png",
 } as const;
 

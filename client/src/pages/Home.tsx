@@ -8,7 +8,7 @@ import {
 } from "@/lib/storefrontState";
 import { onImageError } from "@/lib/images";
 import { categoryThumbnails, useInventory, type Product } from "@/lib/catalog";
-import { applyJsonLd, applyPageSeo, buildCatalogJsonLd, buildFaqJsonLd, buildProductJsonLd, buildStoreJsonLd, type SeoProduct } from "@/lib/seo";
+import { applyJsonLd, applyPageSeo, buildBreadcrumbJsonLd, buildCatalogJsonLd, buildFaqJsonLd, buildProductJsonLd, buildStoreJsonLd, type SeoProduct } from "@/lib/seo";
 import { useLocation } from "wouter";
 import {
   Accessibility, ArrowLeft, ChevronLeft, ChevronRight, Eye, Facebook, Heart, Instagram, MapPin, Menu, MessageCircle,
@@ -117,9 +117,10 @@ export default function Home() {
       applyPageSeo({
         title: `${selectedProduct.name} | ${STORE.name} נתניה`,
         description: `${selectedProduct.name} ב־${STORE.name} נתניה — ${money(selectedProduct.price)}. הזמנה בוואטסאפ, תשלום בביט או בפייבוקס, אחריות יבואן ומשלוח עד הבית.`,
-        path: `/products/${selectedProduct.id}`, image: selectedProduct.image, type: "product",
+        path: `/products/${selectedProduct.id}`, image: selectedProduct.image, imageAlt: `${selectedProduct.name} — ${selectedProduct.brand}`, type: "product", price: selectedProduct.price,
       });
       applyJsonLd("ld-product", buildProductJsonLd(origin, seoProduct));
+      applyJsonLd("ld-breadcrumb", buildBreadcrumbJsonLd(origin, seoProduct));
       applyJsonLd("ld-catalog", null);
       return;
     }
@@ -129,6 +130,7 @@ export default function Home() {
       path: "/",
     });
     applyJsonLd("ld-product", null);
+    applyJsonLd("ld-breadcrumb", null);
     // The item list names a readable slice; the full inventory would bloat the document.
     applyJsonLd("ld-catalog", buildCatalogJsonLd(origin, products.slice(0, 40).map(toSeoProduct)));
   }, [products, selectedProduct, storeSettings]);
@@ -155,8 +157,8 @@ export default function Home() {
       </header>
 
       <section className="hero-original" id="top">
-        <div className="hero-product"><video autoPlay muted loop playsInline preload="metadata" aria-hidden="true" style={{ width: "100%", height: "100%", objectFit: "cover", transform: "scale(1.08)", filter: "contrast(1.1) saturate(.68)" }}><source src="/hero-phone-store-iphone17.mp4" type="video/mp4" /></video></div><div className="hero-haze" /><div aria-hidden="true" style={{ position: "absolute", zIndex: -1, left: "8%", top: "-42%", width: "29%", height: "172%", transform: "rotate(20deg)", border: "1px solid rgba(213,169,69,.25)", pointerEvents: "none" }} />
-        <div className="hero-inner"><span className="hero-label">PHONE STORE · נתניה</span><h1>{hero[0]}<em>{hero[1]}</em></h1><p>{hero[2]}</p><div className="hero-buttons"><a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noreferrer" className="btn-gold">דברו עם אלי ב־WhatsApp <ArrowLeft size={17} /></a><a href="#catalog" className="btn-outline">לצפייה במלאי</a></div></div>
+        <div className="hero-product"><video autoPlay muted loop playsInline preload="metadata" aria-hidden="true" style={{ width: "100%", height: "100%", objectFit: "cover", transform: "scale(1.08)", filter: "contrast(1.1) saturate(.68)" }}><source src="/hero-phone-store-iphone17.mp4" type="video/mp4" /></video></div><div className="hero-haze" /><div aria-hidden="true" style={{ position: "absolute", zIndex: -1, left: "6%", top: "-42%", width: "22%", height: "172%", transform: "rotate(20deg)", border: "1px solid rgba(213,169,69,.22)", pointerEvents: "none" }} /><div aria-hidden="true" style={{ position: "absolute", zIndex: -1, right: "6%", top: "-42%", width: "22%", height: "172%", transform: "rotate(-20deg)", border: "1px solid rgba(213,169,69,.22)", pointerEvents: "none" }} />
+        <div className="hero-inner"><p className="hero-label">חנות סלולר בנתניה · PHONE STORE</p><h1>{hero[0]}<em>{hero[1]}</em></h1><p>{hero[2]}</p><div className="hero-buttons"><a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noreferrer" className="btn-gold">דברו עם אלי ב־WhatsApp <ArrowLeft size={17} /></a><a href="#catalog" className="btn-outline">לצפייה במלאי</a></div></div>
         <div className="live-stock"><span /><strong>{products.length.toLocaleString("he-IL")} פריטים</strong><small>{sourceQuery.data?.status === "live" ? "מלאי מסונכרן · משלוח מהיר" : "זמינים עכשיו · משלוח מהיר"}</small></div>
         <div className="hero-controls"><button onClick={() => setActiveSlide((activeSlide + heroSlides.length - 1) % heroSlides.length)} aria-label="השקופית הקודמת"><ChevronRight size={19} /></button>{heroSlides.map((_, index) => <button key={index} className={index === activeSlide ? "dot active" : "dot"} onClick={() => setActiveSlide(index)} aria-label={`מעבר לשקופית ${index + 1}`} />)}<button onClick={() => setActiveSlide((activeSlide + 1) % heroSlides.length)} aria-label="השקופית הבאה"><ChevronLeft size={19} /></button></div>
       </section>

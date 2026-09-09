@@ -1,9 +1,10 @@
-/** Public tRPC contract for the storefront; source content is fetched read-only. */
+/** Public tRPC contract for the storefront and its content administration. */
 import { COOKIE_NAME } from "@shared/const";
+import * as admin from "./admin-store";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
-import { isPublishableSourceData, loginToSourceAdmin, publishToSourceAdmin, readSourceAdminData, readSourceStorefront, SourceAdminError, uploadToSourceAdmin } from "./storefront";
+import { normalizeStorefrontPayload } from "./storefront";
 import { z } from "zod";
 
 export const appRouter = router({
@@ -20,53 +21,47 @@ export const appRouter = router({
     }),
   }),
   storefront: router({
-    sourceData: publicProcedure.query(async () => {
+    sourceData: publicProcedure.query(async ({ ctx }) => {
       try {
-        return { status: "live" as const, data: await readSourceStorefront() };
+        const envelope = ctx.env ? await admin.readEnvelope(ctx.env) : null;
+        if (!envelope) return { status: "unavailable" as const, data: null };
+        return { status: "live" as const, data: normalizeStorefrontPayload(envelope) };
       } catch (error) {
-        console.warn("[storefront] Read-only source sync unavailable", error);
+        console.warn("[storefront] Published content could not be read", error);
         return { status: "unavailable" as const, data: null };
       }
     }),
   }),
   sourceAdmin: router({
-    login: publicProcedure.input(z.object({ password: z.string().min(1).max(256) })).mutation(async ({ input }) => {
-      try {
-        return { status: "ok" as const, session: await loginToSourceAdmin(input.password) };
-      } catch (error) {
-        if (error instanceof SourceAdminError && error.status === 401) return { status: "invalid" as const, session: null };
-        console.warn("[source-admin] Login unavailable", error);
-        return { status: "unavailable" as const, session: null };
-      }
+    login: publicProcedure.input(z.object({ password: z.string().min(1).max(256) })).mutation(async ({ ctx, input }) => {
+      if (!ctx.env) return { status: "unavailable" as const, session: null };
+      const result = await admin.login(ctx.env, input.password, { ip: ctx.ip });
+      if (result.status === "ok") return { status: "ok" as const, session: result.session };
+      if (result.status === "invalid") return { status: "invalid" as const, session: null };
+      // A missing ADMIN_PASSWORD secret and a throttled address are both operator-visible
+      // states, not a wrong password, so they must not read as one.
+      console.warn(`[admin] Login unavailable: ${result.status}`);
+      return { status: result.status, session: null };
     }),
-    load: publicProcedure.input(z.object({ token: z.string().min(16).max(4096) })).query(async () => {
-      try {
-        return { status: "ok" as const, data: await readSourceAdminData() };
-      } catch (error) {
-        console.warn("[source-admin] Data load unavailable", error);
-        return { status: "unavailable" as const, data: null };
-      }
+    load: publicProcedure.input(z.object({ token: z.string().min(16).max(4096) })).query(async ({ ctx, input }) => {
+      if (!ctx.env) return { status: "unavailable" as const, data: null };
+      if (!(await admin.verifyToken(ctx.env, input.token))) return { status: "expired" as const, data: null };
+      const envelope = await admin.readEnvelope(ctx.env);
+      // No envelope yet is a first-run store, not a failure: hand back an empty draft.
+      return { status: "ok" as const, data: envelope?.data ?? null };
     }),
-    publish: publicProcedure.input(z.object({ token: z.string().min(16).max(4096), data: z.unknown() })).mutation(async ({ input }) => {
-      if (!isPublishableSourceData(input.data)) return { status: "invalid_data" as const, updatedAt: null };
-      try {
-        const result = await publishToSourceAdmin(input.token, input.data);
-        return { status: "ok" as const, updatedAt: result.updatedAt };
-      } catch (error) {
-        if (error instanceof SourceAdminError && error.status === 401) return { status: "expired" as const, updatedAt: null };
-        console.warn("[source-admin] Content publish unavailable", error);
-        return { status: "unavailable" as const, updatedAt: null };
-      }
+    publish: publicProcedure.input(z.object({ token: z.string().min(16).max(4096), data: z.unknown() })).mutation(async ({ ctx, input }) => {
+      if (!ctx.env) return { status: "unavailable" as const, updatedAt: null };
+      const result = await admin.publish(ctx.env, input.token, input.data);
+      if (result.status === "ok") return { status: "ok" as const, updatedAt: result.updatedAt };
+      if (result.status === "no_store") console.warn("[admin] Publish attempted with no content store bound");
+      return { status: result.status, updatedAt: null };
     }),
-    upload: publicProcedure.input(z.object({ token: z.string().min(16).max(4096), contentType: z.enum(["image/jpeg", "image/png", "image/webp"]), imageBase64: z.string().min(8).max(7_000_000) })).mutation(async ({ input }) => {
-      try {
-        return { status: "ok" as const, url: (await uploadToSourceAdmin(input.token, input.contentType, input.imageBase64)).url };
-      } catch (error) {
-        if (error instanceof SourceAdminError && error.status === 401) return { status: "expired" as const, url: null };
-        if (error instanceof SourceAdminError && error.status === 413) return { status: "too_large" as const, url: null };
-        console.warn("[source-admin] Image upload unavailable", error);
-        return { status: "unavailable" as const, url: null };
-      }
+    upload: publicProcedure.input(z.object({ token: z.string().min(16).max(4096), contentType: z.enum(["image/jpeg", "image/png", "image/webp"]), imageBase64: z.string().min(8).max(7_000_000) })).mutation(async ({ ctx, input }) => {
+      if (!ctx.env) return { status: "unavailable" as const, url: null };
+      const result = await admin.uploadImage(ctx.env, input.token, input.contentType, input.imageBase64);
+      if (result.status === "ok") return { status: "ok" as const, url: result.url };
+      return { status: result.status, url: null };
     }),
   }),
 });

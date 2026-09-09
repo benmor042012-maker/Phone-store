@@ -1,10 +1,11 @@
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
+import { readImage, type AdminEnv } from "../server/admin-store";
 import { buildProductSocialMeta, findProduct, productIdFromPath, type SocialCatalog } from "../server/social-meta";
 import { appRouter } from "../server/routers";
 import { buildSitemapXml, type SitemapCatalog } from "../server/sitemap";
 import { rewriteSocialHead } from "./social-head";
 
-export interface Env {
+export interface Env extends AdminEnv {
   ASSETS: Fetcher;
 }
 
@@ -66,9 +67,28 @@ export default {
           req: request,
           res: { clearCookie: () => undefined },
           user: null,
+          // Content administration runs on these bindings. Handing them to the router here
+          // is what keeps it from calling the site over HTTP to reach its own store.
+          env,
+          ip: request.headers.get("cf-connecting-ip") ?? undefined,
         }) as never,
         onError({ error, path }) {
           console.error(`[tRPC] ${path ?? "unknown"}: ${error.message}`);
+        },
+      });
+    }
+
+    // Photos the admin uploaded live in KV, not in the asset bundle.
+    const image = /^\/img\/([^/]+)$/.exec(url.pathname);
+    if (image) {
+      const stored = await readImage(env, image[1]);
+      if (!stored) return new Response("not found", { status: 404 });
+      return new Response(stored.body, {
+        headers: {
+          "content-type": stored.contentType,
+          // The id changes on every upload, so the bytes behind it never do.
+          "cache-control": "public, max-age=31536000, immutable",
+          "x-content-type-options": "nosniff",
         },
       });
     }

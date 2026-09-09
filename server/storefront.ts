@@ -1,7 +1,9 @@
-/** Read-only adapter for the public source storefront API; it never writes to the source KV. */
-
-export const SOURCE_STOREFRONT_URL = "https://phone-store.ben-mor-04-2012.workers.dev/api/data";
-export const SOURCE_ORIGIN = "https://phone-store.ben-mor-04-2012.workers.dev";
+/**
+ * Shapes the published content envelope into what the storefront renders.
+ *
+ * The envelope used to be fetched from a second Worker over HTTP. It is now read straight
+ * out of KV by `admin-store.ts`, so this file only normalizes — it makes no requests.
+ */
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -39,7 +41,9 @@ export function normalizeStorefrontPayload(payload: unknown): SourceStorefront {
   const data = asRecord(envelope.data ?? payload);
   const settingsRaw = asRecord(data.settings);
   const rawProducts = Array.isArray(data.products) ? data.products : [];
-  const rawCategories = Array.isArray(data.categories) ? data.categories : [];
+  // The admin panel and the stored envelope call these `cats`; older exports say
+  // `categories`. Reading only one of the two silently dropped every category tile.
+  const rawCategories = Array.isArray(data.cats) ? data.cats : Array.isArray(data.categories) ? data.categories : [];
   const rawSlides = Array.isArray(data.slides) ? data.slides : [];
   const rawReviews = Array.isArray(data.reviews) ? data.reviews : [];
 
@@ -77,83 +81,13 @@ export function normalizeStorefrontPayload(payload: unknown): SourceStorefront {
   };
 }
 
-export async function readSourceStorefront(fetchImpl: typeof fetch = fetch): Promise<SourceStorefront> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 6000);
-  try {
-    const response = await fetchImpl(SOURCE_STOREFRONT_URL, { method: "GET", headers: { Accept: "application/json" }, signal: controller.signal });
-    if (!response.ok) throw new Error(`Source storefront returned ${response.status}`);
-    return normalizeStorefrontPayload(await response.json());
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-export type SourceAdminSession = { token: string; exp: number };
-
-export class SourceAdminError extends Error {
-  constructor(public readonly status: number, message: string) { super(message); }
-}
-
-async function sourceRequest(path: string, init: RequestInit, fetchImpl: typeof fetch = fetch): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 8000);
-  try {
-    return await fetchImpl(`${SOURCE_ORIGIN}${path}`, { ...init, signal: controller.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-export async function loginToSourceAdmin(password: string, fetchImpl: typeof fetch = fetch): Promise<SourceAdminSession> {
-  const response = await sourceRequest("/api/admin/login", {
-    method: "POST", headers: { "content-type": "application/json", Accept: "application/json" }, body: JSON.stringify({ password }),
-  }, fetchImpl);
-  if (!response.ok) throw new SourceAdminError(response.status, "Source administrator login failed");
-  const body = asRecord(await response.json());
-  const token = stringValue(body.token);
-  const exp = numberValue(body.exp);
-  if (!token || !exp) throw new SourceAdminError(502, "Source administrator session was incomplete");
-  return { token, exp };
-}
-
-export async function readSourceAdminData(fetchImpl: typeof fetch = fetch): Promise<unknown> {
-  const response = await sourceRequest("/api/data", { method: "GET", headers: { Accept: "application/json" } }, fetchImpl);
-  if (!response.ok) throw new SourceAdminError(response.status, "Source data was unavailable");
-  const payload = asRecord(await response.json());
-  return payload.data ?? payload;
-}
-
-export function isPublishableSourceData(value: unknown): value is UnknownRecord {
-  const data = asRecord(value);
-  const categories = Array.isArray(data.cats) || Array.isArray(data.categories);
-  return Object.keys(data).length > 0 && Object.keys(asRecord(data.settings)).length > 0 && Array.isArray(data.slides) && categories && Array.isArray(data.products) && Array.isArray(data.reviews);
-}
-
-export async function publishToSourceAdmin(token: string, data: UnknownRecord, fetchImpl: typeof fetch = fetch): Promise<{ updatedAt: string | null }> {
-  const response = await sourceRequest("/api/data", {
-    method: "PUT", headers: { "content-type": "application/json", Accept: "application/json", authorization: `Bearer ${token}` }, body: JSON.stringify(data),
-  }, fetchImpl);
-  if (!response.ok) throw new SourceAdminError(response.status, "Source content publish failed");
-  const body = asRecord(await response.json());
-  return { updatedAt: stringValue(body.updatedAt) || null };
-}
-
-export async function uploadToSourceAdmin(token: string, contentType: string, imageBase64: string, fetchImpl: typeof fetch = fetch): Promise<{ url: string }> {
-  const bytes = Buffer.from(imageBase64, "base64");
-  if (!bytes.byteLength || bytes.byteLength > 5 * 1024 * 1024) throw new SourceAdminError(413, "Source image was too large");
-  const response = await sourceRequest("/api/upload", {
-    method: "POST", headers: { "content-type": contentType, Accept: "application/json", authorization: `Bearer ${token}` }, body: bytes,
-  }, fetchImpl);
-  if (!response.ok) throw new SourceAdminError(response.status, "Source image upload failed");
-  const body = asRecord(await response.json());
-  const relativeUrl = stringValue(body.url);
-  if (!relativeUrl) throw new SourceAdminError(502, "Source image upload response was incomplete");
-  return { url: sourceAssetUrl(relativeUrl, relativeUrl) };
-}
-
+/**
+ * Published content stores image paths relative to the site: `img/<id>` for a photo the
+ * admin uploaded, `assets/...` for artwork that shipped with it. They resolve against this
+ * origin now that the store is served here, so they only need a leading slash.
+ */
 export function sourceAssetUrl(path: string | null, fallback: string): string {
   if (!path) return fallback;
   if (/^https?:\/\//.test(path)) return path;
-  return `${SOURCE_ORIGIN}/${path.replace(/^\/+/, "")}`;
+  return `/${path.replace(/^\/+/, "")}`;
 }

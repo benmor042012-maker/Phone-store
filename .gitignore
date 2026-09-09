@@ -115,3 +115,6 @@ client/public/__manus__/version.json
 
 # Wrangler local dev state
 .wrangler/
+
+# Local-only Worker secrets for wrangler dev
+.dev.vars

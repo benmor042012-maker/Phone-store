@@ -10,6 +10,7 @@
     "check": "tsc --noEmit",
     "format": "prettier --write .",
     "test": "vitest run",
+    "check:preview": "node scripts/check-link-preview.mjs",
     "db:push": "drizzle-kit generate && drizzle-kit migrate",
     "build:worker": "vite build",
     "cf:check": "pnpm build:worker && wrangler deploy --dry-run",

@@ -35,3 +35,10 @@ export const decodeOAuthState = (state: string): OAuthState => {
   }
   return { redirectUri: decoded };
 };
+
+/**
+ * The social share card: a 1200x630 PNG, the ratio WhatsApp, Facebook and iMessage render
+ * as a large preview. The 1200x466 logo is too wide for that slot and gets dropped, which
+ * is why the store's own banner is not reused here.
+ */
+export const SHARE_IMAGE = { path: "/images/og-cover.png", width: "1200", height: "630", type: "image/png" } as const;

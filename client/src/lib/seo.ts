@@ -1,4 +1,5 @@
 /** Search-engine metadata for the storefront: document meta tags plus schema.org structured data. */
+import { SHARE_IMAGE } from "@shared/const";
 import { socialLinks, STORE, storeFaq } from "./storefrontState";
 
 function upsertMeta(selector: string, attribute: "name" | "property", key: string, content: string) {
@@ -35,7 +36,9 @@ export function applyPageSeo({ title, description, path, image, imageAlt, type =
   if (typeof document === "undefined") return;
   const origin = typeof window !== "undefined" && window.location.origin.startsWith("http") ? window.location.origin : STORE.site;
   const url = `${origin}${path}`;
-  const banner = image ? (image.startsWith("http") ? image : `${origin}${image}`) : `${origin}${STORE.logo}`;
+  // Falls back to the 1200x630 share card, not the logo: the same image the static
+  // document hands preview crawlers, so a card never changes when React takes over.
+  const banner = image ? (image.startsWith("http") ? image : `${origin}${image}`) : `${origin}${SHARE_IMAGE.path}`;
   document.title = title;
   document.documentElement.lang = "he";
   upsertMeta('meta[name="description"]', "name", "description", description);
@@ -44,7 +47,19 @@ export function applyPageSeo({ title, description, path, image, imageAlt, type =
   upsertMeta('meta[property="og:description"]', "property", "og:description", description);
   upsertMeta('meta[property="og:url"]', "property", "og:url", url);
   upsertMeta('meta[property="og:image"]', "property", "og:image", banner);
+  upsertMeta('meta[property="og:image:secure_url"]', "property", "og:image:secure_url", banner);
   upsertMeta('meta[property="og:image:alt"]', "property", "og:image:alt", imageAlt ?? `${STORE.name} ${STORE.city}`);
+  // Declared dimensions only ever describe the share card; a product photo is a different
+  // shape, and a mismatched og:image:width makes WhatsApp skip the image entirely.
+  if (image) {
+    removeMeta('meta[property="og:image:width"]');
+    removeMeta('meta[property="og:image:height"]');
+    removeMeta('meta[property="og:image:type"]');
+  } else {
+    upsertMeta('meta[property="og:image:width"]', "property", "og:image:width", SHARE_IMAGE.width);
+    upsertMeta('meta[property="og:image:height"]', "property", "og:image:height", SHARE_IMAGE.height);
+    upsertMeta('meta[property="og:image:type"]', "property", "og:image:type", SHARE_IMAGE.type);
+  }
   upsertMeta('meta[property="og:type"]', "property", "og:type", type === "product" ? "product" : "website");
   if (type === "product" && typeof price === "number") {
     upsertMeta('meta[property="product:price:amount"]', "property", "product:price:amount", String(price));
@@ -58,6 +73,7 @@ export function applyPageSeo({ title, description, path, image, imageAlt, type =
   upsertMeta('meta[name="twitter:title"]', "name", "twitter:title", title);
   upsertMeta('meta[name="twitter:description"]', "name", "twitter:description", description);
   upsertMeta('meta[name="twitter:image"]', "name", "twitter:image", banner);
+  upsertMeta('meta[name="twitter:image:alt"]', "name", "twitter:image:alt", imageAlt ?? `${STORE.name} ${STORE.city}`);
 }
 
 /** Writes (or clears, when data is null) a named JSON-LD block in the document head. */

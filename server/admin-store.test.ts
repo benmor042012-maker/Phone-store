@@ -126,9 +126,15 @@ describe("publish", () => {
   it("refuses content the storefront could not boot from", async () => {
     const env = envWith();
     const token = await tokenFor(env);
-    for (const bad of [null, [], { settings: {} }, { settings: null, cats: [], products: [] }, { cats: [], products: [] }]) {
+    for (const bad of [null, [], "text", { settings: null }, { settings: [] }, { cats: [], products: [] }, { settings: {}, slides: "not an array" }]) {
       expect((await admin.publish(env, token, bad)).status).toBe("invalid_data");
     }
+  });
+
+  it("accepts content without the legacy cats and products the storefront no longer reads", async () => {
+    const env = envWith();
+    const token = await tokenFor(env);
+    expect((await admin.publish(env, token, { settings: { name: "Phone Store" }, slides: [], reviews: [] })).status).toBe("ok");
   });
 
   it("never stores a legacy plaintext password carried in an old backup", async () => {
@@ -164,6 +170,51 @@ describe("images", () => {
     for (const id of ["", "../secret", "nope", "site:data:v1"]) {
       expect(await admin.readImage(env, id)).toBeNull();
     }
+  });
+});
+
+describe("catalog overrides", () => {
+  async function tokenFor(env: admin.AdminEnv) {
+    const session = await admin.login(env, "correct horse", noDelay);
+    if (session.status !== "ok") throw new Error("login should have succeeded");
+    return session.session.token;
+  }
+
+  it("starts empty and round-trips what the owner saved", async () => {
+    const env = envWith();
+    expect(await admin.readOverrides(env)).toMatchObject({ hidden: [], edits: {}, added: [] });
+    const result = await admin.saveOverrides(env, await tokenFor(env), { hidden: ["a"], edits: { b: { price: 89 } }, added: [] });
+    expect(result.status).toBe("ok");
+    expect(await admin.readOverrides(env)).toMatchObject({ hidden: ["a"], edits: { b: { price: 89 } } });
+  });
+
+  it("normalizes before storing, so a bad field never reaches the storefront", async () => {
+    const env = envWith();
+    await admin.saveOverrides(env, await tokenFor(env), { hidden: ["a"], edits: { a: { price: -5, junk: true } }, added: [{ name: "no id" }] });
+    const stored = await admin.readOverrides(env);
+    expect(stored.edits).toEqual({});
+    expect(stored.added).toEqual([]);
+    expect(stored.updatedAt).toBeTruthy();
+  });
+
+  it("refuses a token it did not issue, and writes nothing", async () => {
+    const env = envWith();
+    expect(await admin.saveOverrides(env, "forged.token", { hidden: ["a"] })).toEqual({ status: "expired" });
+    expect(await admin.readOverrides(env)).toMatchObject({ hidden: [] });
+  });
+
+  it("keeps the replaced set so a save can be undone", async () => {
+    const env = envWith();
+    const token = await tokenFor(env);
+    await admin.saveOverrides(env, token, { hidden: ["a"] });
+    await admin.saveOverrides(env, token, { hidden: ["b"] });
+    expect(JSON.parse(env.STORE.values.get("site:catalog:overrides:v1:prev") as string).hidden).toEqual(["a"]);
+  });
+
+  it("survives a stored value that is not valid JSON", async () => {
+    const env = envWith();
+    await env.STORE.put("site:catalog:overrides:v1", "{not json");
+    expect(await admin.readOverrides(env)).toMatchObject({ hidden: [], edits: {}, added: [] });
   });
 });
 

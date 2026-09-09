@@ -1,5 +1,6 @@
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
-import { readImage, type AdminEnv } from "../server/admin-store";
+import { readImage, readOverrides, type AdminEnv } from "../server/admin-store";
+import { applyOverrides, type CatalogProduct } from "@shared/catalog-overrides";
 import { buildProductSocialMeta, findProduct, productIdFromPath, type SocialCatalog } from "../server/social-meta";
 import { appRouter } from "../server/routers";
 import { buildSitemapXml, type SitemapCatalog } from "../server/sitemap";
@@ -17,7 +18,10 @@ async function buildSitemapResponse(origin: string, env: Env, request: Request):
     const catalogResponse = await env.ASSETS.fetch(new Request(new URL("/catalog.json", request.url), { headers: { Accept: "application/json" } }));
     if (!catalogResponse.ok) return null;
     const catalog = (await catalogResponse.json()) as SitemapCatalog;
-    return new Response(buildSitemapXml(origin, catalog), {
+    // A product the owner hid must not stay listed, and one they added should appear.
+    const overrides = await readOverrides(env);
+    const listed = applyOverrides((catalog.products ?? []) as unknown as CatalogProduct[], overrides);
+    return new Response(buildSitemapXml(origin, { ...catalog, products: listed }), {
       headers: { "content-type": "application/xml; charset=utf-8", "cache-control": "public, max-age=3600" },
     });
   } catch (error) {
@@ -44,7 +48,12 @@ async function productDocument(url: URL, env: Env, request: Request): Promise<Re
   if (!id) return null;
   try {
     const catalog = await readCatalog(env, request);
-    const product = catalog && findProduct(catalog, id);
+    if (!catalog) return null;
+    // Merge the owner's changes first, so the card quotes the price the page shows and a
+    // hidden product never gets a card advertising it.
+    const overrides = await readOverrides(env);
+    const listed = applyOverrides((catalog.products ?? []) as unknown as CatalogProduct[], overrides);
+    const product = findProduct({ products: listed }, id);
     if (!product) return null;
     const document = await env.ASSETS.fetch(request);
     if (!document.ok || !(document.headers.get("content-type") ?? "").includes("text/html")) return null;

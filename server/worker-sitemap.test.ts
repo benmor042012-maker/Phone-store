@@ -24,6 +24,21 @@ describe("worker sitemap route", () => {
     expect(xml).toContain("<loc>https://shop.example/products/33767</loc>");
   });
 
+  it("leaves out a product the owner hid and lists one they added", async () => {
+    const env = envWith(new Response(JSON.stringify({ products: [{ id: "keep" }, { id: "gone" }] }), { headers: { "content-type": "application/json" } }));
+    (env as { STORE?: unknown }).STORE = {
+      get: async (key: string, type?: string) => {
+        if (key !== "site:catalog:overrides:v1") return null;
+        const value = { hidden: ["gone"], edits: {}, added: [{ id: "own-1", name: "שלי", price: 10 }] };
+        return type === "json" ? value : JSON.stringify(value);
+      },
+    };
+    const xml = await (await worker.fetch(new Request("https://shop.example/sitemap.xml"), env, {} as never)).text();
+    expect(xml).toContain("<loc>https://shop.example/products/keep</loc>");
+    expect(xml).toContain("<loc>https://shop.example/products/own-1</loc>");
+    expect(xml).not.toContain("/products/gone");
+  });
+
   it("falls back to the static asset when the catalog cannot be read", async () => {
     const env = envWith(new Response("missing", { status: 404 }));
     const response = await worker.fetch(new Request("https://shop.example/sitemap.xml"), env, {} as never);

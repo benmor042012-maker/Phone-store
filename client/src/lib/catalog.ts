@@ -2,8 +2,10 @@
  * The store inventory. Accessories come from `public/catalog.json`, which ships with the
  * site, and the phones Eli sells are listed here until the shop's own photos replace them.
  */
-import { useEffect, useState } from "react";
+import { applyOverrides, EMPTY_OVERRIDES, normalizeOverrides, visibleCategories } from "@shared/catalog-overrides";
+import { useEffect, useMemo, useState } from "react";
 import { productImage } from "./images";
+import { trpc } from "./trpc";
 
 export type Product = {
   id: string;
@@ -40,11 +42,13 @@ export const storePhones: Product[] = [
   { id: "watch-8", awaitingPhoto: true, brand: "Samsung", name: "Samsung Galaxy Watch 7", category: "אביזרים לשעונים", price: 1299, image: productImage("8"), badge: "חדש", facts: [["מסך", "44 מ״מ"], ["סוללה", "עד 40 שעות"]] },
 ];
 
-/** Loads the shipped catalog once and merges the shop's own handsets in front of it. */
-export function useInventory() {
+const FALLBACK_CATEGORIES = [PHONES_CATEGORY, "טאבלטים", "אביזרים לשעונים"];
+
+/** Loads the shipped catalog once, without the shop owner's changes applied. */
+export function useBaseInventory() {
   const [state, setState] = useState<{ products: Product[]; categories: string[]; ready: boolean }>({
     products: storePhones,
-    categories: [PHONES_CATEGORY, "טאבלטים", "אביזרים לשעונים"],
+    categories: FALLBACK_CATEGORIES,
     ready: false,
   });
 
@@ -57,10 +61,11 @@ export function useInventory() {
       })
       .then((catalog) => {
         if (cancelled || !Array.isArray(catalog.products)) return;
-        const products = [...storePhones, ...catalog.products];
-        const categories = Array.from(new Set([PHONES_CATEGORY, ...catalog.categories]))
-          .filter((category) => products.some((product) => product.category === category));
-        setState({ products, categories, ready: true });
+        setState({
+          products: [...storePhones, ...catalog.products],
+          categories: Array.from(new Set([PHONES_CATEGORY, ...catalog.categories])),
+          ready: true,
+        });
       })
       .catch((error) => {
         // The shop's own handsets stay listed even if the catalog file cannot be read.
@@ -71,6 +76,26 @@ export function useInventory() {
   }, []);
 
   return state;
+}
+
+/**
+ * What customers see: the shipped catalog with the owner's edits applied, hidden items
+ * gone, and their own products in front. Overrides come from the content store; a failure
+ * there leaves the catalog showing exactly as it shipped rather than showing nothing.
+ */
+export function useInventory() {
+  const base = useBaseInventory();
+  const overridesQuery = trpc.storefront.catalogOverrides.useQuery(undefined, { staleTime: 60_000, retry: 1, refetchOnWindowFocus: false });
+  const overrides = useMemo(() => normalizeOverrides(overridesQuery.data ?? EMPTY_OVERRIDES), [overridesQuery.data]);
+
+  return useMemo(() => {
+    const products = applyOverrides(base.products, overrides);
+    return {
+      products,
+      categories: visibleCategories(products, base.categories),
+      ready: base.ready && !overridesQuery.isLoading,
+    };
+  }, [base.categories, base.products, base.ready, overrides, overridesQuery.isLoading]);
 }
 
 /** Category tiles borrow the first picture in the category, so every tile shows real stock. */

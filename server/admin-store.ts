@@ -28,8 +28,12 @@ export type KVLike = {
   delete(key: string): Promise<void>;
 };
 
+import { normalizeOverrides, type CatalogOverrides } from "@shared/catalog-overrides";
+
 const TOKEN_TTL_SECONDS = 60 * 60 * 8; // one working day
 const DATA_KEY = "site:data:v1";
+const OVERRIDES_KEY = "site:catalog:overrides:v1";
+const OVERRIDES_PREV_KEY = "site:catalog:overrides:v1:prev";
 const PREV_KEY = "site:data:v1:prev"; // the envelope replaced by the last publish: one-step undo
 const SCHEMA = 1;
 const MAX_BODY_BYTES = 512 * 1024;
@@ -144,12 +148,19 @@ export async function readEnvelope(env: AdminEnv): Promise<Envelope | null> {
   }
 }
 
-/** The shape check mirrors what the storefront needs to boot; content stays plain text. */
+/**
+ * The shape check mirrors what the storefront needs to boot; content stays plain text.
+ * `cats` and `products` are no longer required: the inventory comes from the shipped
+ * catalog and the product overrides, so demanding them here only blocked valid content.
+ */
 export function isPublishableAdminData(value: unknown): value is Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const data = value as Record<string, unknown>;
-  const settings = data.settings;
-  return Array.isArray(data.products) && Array.isArray(data.cats) && typeof settings === "object" && settings !== null;
+  if (typeof data.settings !== "object" || data.settings === null || Array.isArray(data.settings)) return false;
+  for (const key of ["slides", "reviews", "cats", "products"]) {
+    if (key in data && !Array.isArray(data[key])) return false;
+  }
+  return true;
 }
 
 export type PublishResult = { status: "ok"; updatedAt: string } | { status: "expired" } | { status: "no_store" } | { status: "too_large" } | { status: "invalid_data" };
@@ -205,4 +216,35 @@ export async function readImage(env: AdminEnv, id: string): Promise<{ body: Arra
   const stored = await env.STORE.getWithMetadata(IMG_PREFIX + id, "arrayBuffer");
   if (!stored.value) return null;
   return { body: stored.value, contentType: stored.metadata?.ct ?? "application/octet-stream" };
+}
+
+/** The owner's catalog changes, or an empty set when nothing has been changed yet. */
+export async function readOverrides(env: AdminEnv): Promise<CatalogOverrides> {
+  if (!env.STORE) return normalizeOverrides(null);
+  try {
+    return normalizeOverrides(await env.STORE.get(OVERRIDES_KEY, "json"));
+  } catch {
+    return normalizeOverrides(null);
+  }
+}
+
+export type SaveOverridesResult = { status: "ok"; updatedAt: string } | { status: "expired" } | { status: "no_store" } | { status: "too_large" };
+
+/**
+ * Replaces the owner's catalog changes, keeping the previous set for a one-step undo.
+ * The value is normalized before it is stored, so a malformed field never reaches the
+ * storefront and the same repair does not have to run on every read.
+ */
+export async function saveOverrides(env: AdminEnv, token: string, overrides: unknown): Promise<SaveOverridesResult> {
+  if (!env.STORE) return { status: "no_store" };
+  if (!(await verifyToken(env, token))) return { status: "expired" };
+
+  const clean = { ...normalizeOverrides(overrides), updatedAt: new Date().toISOString() };
+  const serialized = JSON.stringify(clean);
+  if (serialized.length > MAX_BODY_BYTES) return { status: "too_large" };
+
+  const previous = await env.STORE.get(OVERRIDES_KEY);
+  if (previous) await env.STORE.put(OVERRIDES_PREV_KEY, previous);
+  await env.STORE.put(OVERRIDES_KEY, serialized);
+  return { status: "ok", updatedAt: clean.updatedAt as string };
 }

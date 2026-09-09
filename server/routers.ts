@@ -1,6 +1,7 @@
 /** Public tRPC contract for the storefront and its content administration. */
 import { COOKIE_NAME } from "@shared/const";
 import * as admin from "./admin-store";
+import { EMPTY_OVERRIDES } from "@shared/catalog-overrides";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
@@ -21,6 +22,16 @@ export const appRouter = router({
     }),
   }),
   storefront: router({
+    // Public: the browser merges these into the shipped catalog before rendering.
+    catalogOverrides: publicProcedure.query(async ({ ctx }) => {
+      if (!ctx.env) return EMPTY_OVERRIDES;
+      try {
+        return await admin.readOverrides(ctx.env);
+      } catch (error) {
+        console.warn("[catalog] Overrides could not be read", error);
+        return EMPTY_OVERRIDES;
+      }
+    }),
     sourceData: publicProcedure.query(async ({ ctx }) => {
       try {
         const envelope = ctx.env ? await admin.readEnvelope(ctx.env) : null;
@@ -55,6 +66,12 @@ export const appRouter = router({
       const result = await admin.publish(ctx.env, input.token, input.data);
       if (result.status === "ok") return { status: "ok" as const, updatedAt: result.updatedAt };
       if (result.status === "no_store") console.warn("[admin] Publish attempted with no content store bound");
+      return { status: result.status, updatedAt: null };
+    }),
+    saveCatalog: publicProcedure.input(z.object({ token: z.string().min(16).max(4096), overrides: z.unknown() })).mutation(async ({ ctx, input }) => {
+      if (!ctx.env) return { status: "unavailable" as const, updatedAt: null };
+      const result = await admin.saveOverrides(ctx.env, input.token, input.overrides);
+      if (result.status === "ok") return { status: "ok" as const, updatedAt: result.updatedAt };
       return { status: result.status, updatedAt: null };
     }),
     upload: publicProcedure.input(z.object({ token: z.string().min(16).max(4096), contentType: z.enum(["image/jpeg", "image/png", "image/webp"]), imageBase64: z.string().min(8).max(7_000_000) })).mutation(async ({ ctx, input }) => {

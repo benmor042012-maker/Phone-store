@@ -1,8 +1,21 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, Download, ImageUp, LockKeyhole, LogOut, Save, ShieldCheck } from "lucide-react";
+import { ArrowRight, Download, ImageUp, LockKeyhole, LogOut, Package, Save, ShieldCheck, Store } from "lucide-react";
+import AdminProducts from "@/components/AdminProducts";
 import { trpc } from "@/lib/trpc";
 
 type AdminData = Record<string, unknown>;
+
+/**
+ * The published envelope also carries `cats` and `products` left over from the previous
+ * site. Neither is rendered anywhere — the storefront takes its inventory from the shipped
+ * catalog and the Products tab — so editing them here changed nothing and only misled.
+ * They are hidden from the editor and carried through untouched on publish.
+ */
+const EDITABLE_KEYS = ["settings", "slides", "reviews"] as const;
+
+function editableContent(data: AdminData): AdminData {
+  return Object.fromEntries(EDITABLE_KEYS.filter((key) => key in data).map((key) => [key, data[key]]));
+}
 
 const DRAFT_KEY = "phone-store.admin-draft.v1";
 const panelStyle = { background: "#0d0d0c", border: "1px solid rgba(213,169,69,.30)", boxShadow: "0 24px 80px rgba(0,0,0,.35)" };
@@ -15,6 +28,7 @@ export default function Admin() {
   const [notice, setNotice] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState("");
+  const [tab, setTab] = useState<"products" | "content">("products");
   const login = trpc.sourceAdmin.login.useMutation();
   const content = trpc.sourceAdmin.load.useQuery({ token: token ?? "pending-session-token" }, { enabled: Boolean(token), retry: 0 });
   const publish = trpc.sourceAdmin.publish.useMutation();
@@ -23,7 +37,7 @@ export default function Admin() {
   useEffect(() => {
     if (content.data?.status === "ok" && content.data.data && !loaded) {
       const saved = localStorage.getItem(DRAFT_KEY);
-      setDraft(saved || JSON.stringify(content.data.data as AdminData, null, 2));
+      setDraft(saved || JSON.stringify(editableContent(content.data.data as AdminData), null, 2));
       setLoaded(true);
     }
     if (content.data?.status === "expired") { setToken(null); setLoaded(false); setNotice("פג תוקף החיבור. הזינו את הסיסמה שוב."); }
@@ -52,7 +66,7 @@ export default function Admin() {
   const restorePublished = () => {
     if (!content.data?.data || !window.confirm("להחליף את הטיוטה בתוכן שפורסם?")) return;
     localStorage.removeItem(DRAFT_KEY);
-    setDraft(JSON.stringify(content.data.data as AdminData, null, 2));
+    setDraft(JSON.stringify(editableContent(content.data.data as AdminData), null, 2));
     setNotice("התוכן שפורסם נטען מחדש.");
   };
 
@@ -86,7 +100,9 @@ export default function Admin() {
     try { data = JSON.parse(draft) as AdminData; } catch { setNotice("קובץ ה־JSON אינו תקין. לא בוצע פרסום."); return; }
     if (!window.confirm("לפרסם את השינויים? פעולה זו תעדכן את תוכן החנות החי.")) return;
     setNotice("");
-    const result = await publish.mutateAsync({ token, data });
+    // Fields the editor hides are carried through, so publishing never drops them.
+    const stored = (content.data?.data ?? {}) as AdminData;
+    const result = await publish.mutateAsync({ token, data: { ...stored, ...data } });
     if (result.status === "ok") { localStorage.removeItem(DRAFT_KEY); setNotice("התוכן פורסם בהצלחה."); content.refetch(); return; }
     if (result.status === "expired") { setToken(null); setDraft(""); setLoaded(false); setNotice("פג תוקף החיבור. הזינו את הסיסמה שוב."); return; }
     if (result.status === "invalid_data") { setNotice("מבנה התוכן אינו תקין. דרושים settings, cats ו־products. לא בוצע פרסום."); return; }
@@ -96,5 +112,5 @@ export default function Admin() {
 
   if (!token) return <main dir="rtl" style={{ minHeight: "100vh", background: "#080807", color: "#f3eee2", display: "grid", placeItems: "center", padding: 24 }}><section style={{ ...panelStyle, width: "min(440px, 100%)", padding: 34 }}><a href="/" style={{ color: "#d5a945", display: "inline-flex", gap: 8, alignItems: "center", textDecoration: "none", fontSize: 14 }}><ArrowRight size={16} /> חזרה לחנות</a><div style={{ marginTop: 34, width: 48, height: 48, display: "grid", placeItems: "center", border: "1px solid #d5a945", color: "#d5a945" }}><LockKeyhole size={22} /></div><p style={{ color: "#d5a945", letterSpacing: ".11em", fontSize: 12, marginTop: 22 }}>PHONE STORE</p><h1 style={{ fontSize: 32, margin: "8px 0 10px" }}>ניהול תוכן</h1><p style={{ color: "#b6afa4", lineHeight: 1.7, marginBottom: 24 }}>הזינו את סיסמת הניהול. הסיסמה נבדקת מול סוד השמור ב־Cloudflare ואינה נשמרת בדפדפן.</p><form onSubmit={submitPassword}><label style={{ display: "grid", gap: 8, fontSize: 14 }}>סיסמת ניהול<input autoFocus type="password" value={password} onChange={(event) => setPassword(event.target.value)} style={{ background: "#171614", color: "#fff", border: "1px solid #50452d", padding: "13px 14px", fontSize: 16 }} /></label><button disabled={!password || login.isPending} type="submit" style={{ width: "100%", border: 0, cursor: "pointer", background: "#d5a945", color: "#15120a", fontWeight: 800, padding: 14, marginTop: 16 }}>{login.isPending ? "בודק…" : "כניסה לניהול"}</button></form>{notice && <p role="alert" style={{ color: "#e7b4a8", marginTop: 16 }}>{notice}</p>}</section></main>;
 
-  return <main dir="rtl" style={{ minHeight: "100vh", background: "#080807", color: "#f3eee2", padding: "28px clamp(18px, 5vw, 72px)" }}><header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 20, margin: "0 auto 26px", maxWidth: 1260 }}><div><p style={{ color: "#d5a945", letterSpacing: ".11em", fontSize: 12, margin: 0 }}>PHONE STORE</p><h1 style={{ margin: "7px 0 0", fontSize: 28 }}>ניהול תוכן</h1></div><div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}><a href="/" style={{ color: "#d5a945", textDecoration: "none", padding: "10px 12px", border: "1px solid rgba(213,169,69,.4)" }}>צפייה בחנות</a><button onClick={() => { setToken(null); setDraft(""); setLoaded(false); }} style={actionStyle}><LogOut size={15} /> יציאה</button></div></header><section style={{ ...panelStyle, maxWidth: 1260, margin: "0 auto", padding: "clamp(18px, 3vw, 32px)" }}><div style={{ display: "flex", flexWrap: "wrap", gap: 14, justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}><div><h2 style={{ margin: 0, fontSize: 21 }}>תוכן החנות</h2><p style={{ color: "#b6afa4", margin: "7px 0 0" }}>עריכה של ההגדרות, ה־Hero, הקטגוריות, המוצרים והביקורות של החנות.</p></div><span style={{ color: "#d5a945", display: "inline-flex", alignItems: "center", gap: 7 }}><ShieldCheck size={17} /> חיבור זמני ומאובטח</span></div>{content.isLoading ? <p>טוען את תוכן החנות…</p> : <><textarea aria-label="נתוני תוכן החנות" value={draft} onChange={(event) => setDraft(event.target.value)} spellCheck={false} style={{ width: "100%", minHeight: "55vh", resize: "vertical", boxSizing: "border-box", background: "#12110f", color: "#ece4d7", border: "1px solid #403a30", padding: 16, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 13, lineHeight: 1.6, direction: "ltr", textAlign: "left" }} /><div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 16 }}><button onClick={publishDraft} disabled={!draft || publish.isPending} style={{ border: 0, cursor: "pointer", background: "#d5a945", color: "#15120a", fontWeight: 800, padding: "13px 18px", display: "inline-flex", gap: 8, alignItems: "center" }}><Save size={17} /> {publish.isPending ? "מפרסם…" : "פרסום לחנות"}</button><button onClick={saveLocalDraft} disabled={!draft} style={actionStyle}><Save size={16} /> שמירת טיוטה</button><button onClick={restorePublished} style={actionStyle}>ביטול טיוטה</button><button onClick={exportDraft} disabled={!draft} style={actionStyle}><Download size={16} /> ייצוא JSON</button><label style={actionStyle}><ImageUp size={16} /> {upload.isPending ? "מעלה…" : "העלאת תמונה"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={uploadImage} hidden /></label></div>{uploadedUrl && <p style={{ color: "#d5a945", overflowWrap: "anywhere" }}>כתובת תמונה: <code>{uploadedUrl}</code></p>}{notice && <p role="status" style={{ color: notice.includes("בהצלחה") ? "#a8d7ac" : "#e7b4a8" }}>{notice}</p>}</>}</section></main>;
+  return <main dir="rtl" style={{ minHeight: "100vh", background: "#080807", color: "#f3eee2", padding: "28px clamp(18px, 5vw, 72px)" }}><header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 20, margin: "0 auto 26px", maxWidth: 1260 }}><div><p style={{ color: "#d5a945", letterSpacing: ".11em", fontSize: 12, margin: 0 }}>PHONE STORE</p><h1 style={{ margin: "7px 0 0", fontSize: 28 }}>ניהול תוכן</h1></div><div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}><a href="/" style={{ color: "#d5a945", textDecoration: "none", padding: "10px 12px", border: "1px solid rgba(213,169,69,.4)" }}>צפייה בחנות</a><button onClick={() => { setToken(null); setDraft(""); setLoaded(false); }} style={actionStyle}><LogOut size={15} /> יציאה</button></div></header><nav aria-label="אזורי ניהול" style={{ display: "flex", gap: 10, maxWidth: 1260, margin: "0 auto 16px", flexWrap: "wrap" }}>{([["products", "מוצרים", Package], ["content", "פרטי החנות", Store]] as const).map(([id, label, Icon]) => <button key={id} onClick={() => setTab(id)} aria-current={tab === id} style={{ ...actionStyle, borderColor: tab === id ? "#d5a945" : "#464039", color: tab === id ? "#d5a945" : "#d4cec2" }}><Icon size={16} /> {label}</button>)}</nav>{tab === "products" ? <section style={{ ...panelStyle, maxWidth: 1260, margin: "0 auto", padding: "clamp(18px, 3vw, 32px)" }}><div style={{ marginBottom: 18 }}><h2 style={{ margin: 0, fontSize: 21 }}>מוצרים</h2><p style={{ color: "#b6afa4", margin: "7px 0 0" }}>שינוי מחיר, סימון מבצע, הסתרה, עריכה והוספה. השינויים נשמרים בטיוטה עד שלוחצים פרסום.</p></div><AdminProducts token={token} onNotice={setNotice} />{notice && <p role="status" style={{ color: notice.includes("פורסמו") || notice.includes("עלתה") ? "#a8d7ac" : "#e7b4a8" }}>{notice}</p>}</section> : <section style={{ ...panelStyle, maxWidth: 1260, margin: "0 auto", padding: "clamp(18px, 3vw, 32px)" }}><div style={{ display: "flex", flexWrap: "wrap", gap: 14, justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}><div><h2 style={{ margin: 0, fontSize: 21 }}>תוכן החנות</h2><p style={{ color: "#b6afa4", margin: "7px 0 0" }}>שם החנות, פרטי הקשר, טקסטים של הבאנר וביקורות הלקוחות. המוצרים נמצאים בלשונית מוצרים.</p></div><span style={{ color: "#d5a945", display: "inline-flex", alignItems: "center", gap: 7 }}><ShieldCheck size={17} /> חיבור זמני ומאובטח</span></div>{content.isLoading ? <p>טוען את תוכן החנות…</p> : <><textarea aria-label="נתוני תוכן החנות" value={draft} onChange={(event) => setDraft(event.target.value)} spellCheck={false} style={{ width: "100%", minHeight: "55vh", resize: "vertical", boxSizing: "border-box", background: "#12110f", color: "#ece4d7", border: "1px solid #403a30", padding: 16, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 13, lineHeight: 1.6, direction: "ltr", textAlign: "left" }} /><div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 16 }}><button onClick={publishDraft} disabled={!draft || publish.isPending} style={{ border: 0, cursor: "pointer", background: "#d5a945", color: "#15120a", fontWeight: 800, padding: "13px 18px", display: "inline-flex", gap: 8, alignItems: "center" }}><Save size={17} /> {publish.isPending ? "מפרסם…" : "פרסום לחנות"}</button><button onClick={saveLocalDraft} disabled={!draft} style={actionStyle}><Save size={16} /> שמירת טיוטה</button><button onClick={restorePublished} style={actionStyle}>ביטול טיוטה</button><button onClick={exportDraft} disabled={!draft} style={actionStyle}><Download size={16} /> ייצוא JSON</button><label style={actionStyle}><ImageUp size={16} /> {upload.isPending ? "מעלה…" : "העלאת תמונה"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={uploadImage} hidden /></label></div>{uploadedUrl && <p style={{ color: "#d5a945", overflowWrap: "anywhere" }}>כתובת תמונה: <code>{uploadedUrl}</code></p>}{notice && <p role="status" style={{ color: notice.includes("בהצלחה") ? "#a8d7ac" : "#e7b4a8" }}>{notice}</p>}</>}</section>}</main>;
 }

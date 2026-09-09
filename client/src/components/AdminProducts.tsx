@@ -82,6 +82,37 @@ function draftToProduct(draft: Draft): CatalogProduct {
   };
 }
 
+const NEW_VALUE = "__new__";
+
+/**
+ * A dropdown of the values already in the catalog, plus "something else" for a value that
+ * is not there yet. It replaces an `<input list>` datalist, which Chrome only opens once
+ * you start typing and which never opened at all for some of these fields.
+ */
+function PickerField({ label, value, options, placeholder, onChange }: { label: string; value: string; options: string[]; placeholder: string; onChange: (value: string) => void }) {
+  const known = options.includes(value);
+  const [free, setFree] = useState(Boolean(value) && !known);
+  return (
+    <label style={{ display: "grid", gap: 6, fontSize: 14 }}>
+      {label}
+      <select
+        value={free ? NEW_VALUE : value}
+        onChange={(event) => {
+          if (event.target.value === NEW_VALUE) { setFree(true); onChange(""); return; }
+          setFree(false);
+          onChange(event.target.value);
+        }}
+        style={field}
+      >
+        <option value="">{placeholder}</option>
+        {options.map((option) => <option key={option} value={option}>{option}</option>)}
+        <option value={NEW_VALUE}>אחר, להקליד ידנית…</option>
+      </select>
+      {free && <input autoFocus value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} style={field} />}
+    </label>
+  );
+}
+
 export default function AdminProducts({ token, onNotice }: { token: string; onNotice: (message: string) => void }) {
   const base = useBaseInventory();
   const stored = trpc.storefront.catalogOverrides.useQuery(undefined, { retry: 0, refetchOnWindowFocus: false });
@@ -105,6 +136,8 @@ export default function AdminProducts({ token, onNotice }: { token: string; onNo
 
   /** The catalogue plus the owner's own products, before hiding, so hidden rows stay listed. */
   const everything = useMemo(() => [...overrides.added, ...base.products], [base.products, overrides.added]);
+  const brands = useMemo(() => Array.from(new Set(everything.map((product) => product.brand).filter(Boolean))).sort((a, b) => a.localeCompare(b, "he")), [everything]);
+  const categories = useMemo(() => Array.from(new Set([...base.categories, ...everything.map((product) => product.category)].filter(Boolean))).sort((a, b) => a.localeCompare(b, "he")), [base.categories, everything]);
   const hidden = useMemo(() => new Set(overrides.hidden), [overrides.hidden]);
 
   const rows = useMemo(() => {
@@ -143,7 +176,7 @@ export default function AdminProducts({ token, onNotice }: { token: string; onNo
   };
 
   const startNew = () => {
-    setDraft(toDraft({ id: `${ADDED_ID_PREFIX}${Date.now().toString(36)}`, name: "", brand: "", category: base.categories[0] ?? "", price: 0, image: "", facts: [] }, true));
+    setDraft(toDraft({ id: `${ADDED_ID_PREFIX}${Date.now().toString(36)}`, name: "", brand: "", category: "", price: 0, image: "", facts: [] }, true));
   };
 
   const applyDraft = () => {
@@ -284,11 +317,8 @@ export default function AdminProducts({ token, onNotice }: { token: string; onNo
             <div style={{ display: "grid", gap: 12 }}>
               <label style={{ display: "grid", gap: 6, fontSize: 14 }}>שם המוצר<input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} style={field} /></label>
               <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr 1fr" }}>
-                <label style={{ display: "grid", gap: 6, fontSize: 14 }}>מותג<input value={draft.brand} onChange={(event) => setDraft({ ...draft, brand: event.target.value })} style={field} /></label>
-                <label style={{ display: "grid", gap: 6, fontSize: 14 }}>קטגוריה
-                  <input list="admin-categories" value={draft.category} onChange={(event) => setDraft({ ...draft, category: event.target.value })} style={field} />
-                  <datalist id="admin-categories">{base.categories.map((category) => <option key={category} value={category} />)}</datalist>
-                </label>
+                <PickerField label="מותג" value={draft.brand} options={brands} placeholder="בחרו מותג" onChange={(brand) => setDraft({ ...draft, brand })} />
+                <PickerField label="קטגוריה" value={draft.category} options={categories} placeholder="בחרו קטגוריה" onChange={(category) => setDraft({ ...draft, category })} />
               </div>
               <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr 1fr" }}>
                 <label style={{ display: "grid", gap: 6, fontSize: 14 }}>מחיר (₪)<input inputMode="decimal" value={draft.price} onChange={(event) => setDraft({ ...draft, price: event.target.value })} style={field} /></label>

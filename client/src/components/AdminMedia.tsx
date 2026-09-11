@@ -53,15 +53,22 @@ export type AdminMediaProps = {
   selectLabel?: string;
   /** The URL currently in use, marked in the grid so the choice is visible. */
   selectedUrl?: string;
+  /**
+   * Narrows the library to one kind. A product's picture field can only render a picture,
+   * so offering a clip there only lets the owner pick something that cannot be shown.
+   */
+  kind?: "image" | "video";
 };
 
-export default function AdminMedia({ token, onNotice, onSelect, selectLabel = "שימוש", selectedUrl }: AdminMediaProps) {
+export default function AdminMedia({ token, onNotice, onSelect, selectLabel = "שימוש", selectedUrl, kind }: AdminMediaProps) {
   const library = trpc.sourceAdmin.media.useQuery({ token }, { retry: 0, refetchOnWindowFocus: false });
   const upload = trpc.sourceAdmin.upload.useMutation();
   const remove = trpc.sourceAdmin.deleteMedia.useMutation();
   const [copied, setCopied] = useState("");
 
-  const items = library.data?.status === "ok" ? library.data.items : [];
+  const all = library.data?.status === "ok" ? library.data.items : [];
+  const items = kind ? all.filter((item) => item.kind === kind) : all;
+  const accept = kind === "image" ? IMAGE_TYPES.join(",") : kind === "video" ? VIDEO_TYPES.join(",") : ACCEPT;
 
   const pick = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
@@ -69,8 +76,11 @@ export default function AdminMedia({ token, onNotice, onSelect, selectLabel = "�
     if (!files.length) return;
     let uploaded = 0;
     for (const file of files) {
-      if (!IMAGE_TYPES.includes(file.type) && !VIDEO_TYPES.includes(file.type)) {
-        onNotice(`${file.name}: ניתן להעלות JPG, PNG, WebP, MP4, WebM או MOV בלבד.`);
+      const allowed = kind === "image" ? IMAGE_TYPES : kind === "video" ? VIDEO_TYPES : [...IMAGE_TYPES, ...VIDEO_TYPES];
+      if (!allowed.includes(file.type)) {
+        onNotice(kind === "image"
+          ? `${file.name}: כאן אפשר להעלות תמונה בלבד — JPG, PNG או WebP.`
+          : `${file.name}: ניתן להעלות JPG, PNG, WebP, MP4, WebM או MOV בלבד.`);
         continue;
       }
       const isVideo = VIDEO_TYPES.includes(file.type);
@@ -113,13 +123,15 @@ export default function AdminMedia({ token, onNotice, onSelect, selectLabel = "�
     <div style={{ display: "grid", gap: 16 }}>
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
         <p style={{ margin: 0, color: "#b6afa4", fontSize: 14 }}>
-          {library.isLoading ? "טוען את ספריית המדיה…" : `${items.length} קבצים בספרייה. תמונות עד 2MB, סרטונים עד 12MB.`}
+          {library.isLoading ? "טוען את ספריית המדיה…" : kind === "image"
+            ? `${items.length} תמונות בספרייה. עד 2MB לתמונה.`
+            : `${items.length} קבצים בספרייה. תמונות עד 2MB, סרטונים עד 12MB.`}
         </p>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <button onClick={() => library.refetch()} style={action} disabled={library.isFetching}><RefreshCw size={15} /> רענון</button>
           <label style={{ ...action, borderColor: gold, color: gold }}>
-            <ImageUp size={16} /> {upload.isPending ? "מעלה…" : "העלאת תמונה או סרטון"}
-            <input type="file" accept={ACCEPT} multiple onChange={pick} hidden disabled={upload.isPending} />
+            <ImageUp size={16} /> {upload.isPending ? "מעלה…" : kind === "image" ? "העלאת תמונה" : "העלאת תמונה או סרטון"}
+            <input type="file" accept={accept} multiple onChange={pick} hidden disabled={upload.isPending} />
           </label>
         </div>
       </div>
@@ -128,7 +140,7 @@ export default function AdminMedia({ token, onNotice, onSelect, selectLabel = "�
       {library.data?.status === "expired" && <p style={{ color: "#e7b4a8", margin: 0 }}>פג תוקף החיבור. הזינו את הסיסמה שוב.</p>}
 
       {!library.isLoading && items.length === 0 && library.data?.status === "ok" && (
-        <p style={{ color: "#8e867a", margin: 0 }}>עדיין לא העליתם מדיה. כל קובץ שתעלו יופיע כאן ויישאר גם אחרי רענון הדף.</p>
+        <p style={{ color: "#8e867a", margin: 0 }}>{kind === "image" ? "אין עדיין תמונות בספרייה. כל תמונה שתעלו תופיע כאן ותישאר גם אחרי רענון הדף." : "עדיין לא העליתם מדיה. כל קובץ שתעלו יופיע כאן ויישאר גם אחרי רענון הדף."}</p>
       )}
 
       <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(172px, 1fr))" }}>

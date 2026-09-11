@@ -105,7 +105,7 @@ export default function AdminStoreDetails({ token, onNotice }: { token: string; 
       reviews: reviews.filter((review) => review.name.trim() && review.text.trim()).map((review) => ({ id: review.id, name: review.name.trim(), when: review.when.trim(), stars: review.stars, text: review.text.trim() })),
     };
     const result = await publish.mutateAsync({ token, data });
-    if (result.status === "ok") { setDirty(false); content.refetch(); onNotice("פרטי החנות פורסמו בהצלחה."); return; }
+    if (result.status === "ok") { setDirty(false); content.refetch(); onNotice("פרטי החנות פורסמו. השינוי מופיע בחנות תוך כדקה, אחרי רענון הדף."); return; }
     if (result.status === "expired") { onNotice("פג תוקף החיבור. הזינו את הסיסמה שוב."); return; }
     onNotice(result.status === "invalid_data" ? "התוכן לא תקין. לא בוצע פרסום." : "הפרסום נכשל. לא בוצע שינוי.");
   };

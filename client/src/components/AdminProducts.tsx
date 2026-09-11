@@ -210,7 +210,9 @@ export default function AdminProducts({ token, onNotice }: { token: string; onNo
     if (result.status === "ok") {
       setDirty(false);
       stored.refetch();
-      onNotice("המוצרים פורסמו. הלקוחות רואים את השינוי.");
+      // The content store serves a cached copy for up to a minute, so "published" is not
+      // the same moment as "visible"; saying so is what stops a fresh publish reading as lost.
+      onNotice("המוצרים פורסמו. השינוי מופיע בחנות תוך כדקה, אחרי רענון הדף.");
       return;
     }
     if (result.status === "expired") { onNotice("פג תוקף החיבור. הזינו את הסיסמה שוב."); return; }

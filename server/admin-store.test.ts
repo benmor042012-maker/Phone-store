@@ -149,7 +149,7 @@ describe("images", () => {
     const env = envWith();
     const session = await admin.login(env, "correct horse", noDelay);
     if (session.status !== "ok") throw new Error("login should have succeeded");
-    const result = await admin.uploadImage(env, session.session.token, "image/webp", btoa("image-bytes"));
+    const result = await admin.uploadMedia(env, session.session.token, "image/webp", btoa("image-bytes"));
     if (result.status !== "ok") throw new Error(`upload failed: ${result.status}`);
     expect(result.url).toMatch(/^\/img\/[0-9a-f]{32}$/);
     const stored = await admin.readImage(env, result.url.slice(5));
@@ -159,10 +159,47 @@ describe("images", () => {
 
   it("refuses an unsigned token and an unsupported type", async () => {
     const env = envWith();
-    expect(await admin.uploadImage(env, "forged.token", "image/webp", btoa("x"))).toEqual({ status: "expired" });
+    expect(await admin.uploadMedia(env, "forged.token", "image/webp", btoa("x"))).toEqual({ status: "expired" });
     const session = await admin.login(env, "correct horse", noDelay);
     if (session.status !== "ok") throw new Error("login should have succeeded");
-    expect(await admin.uploadImage(env, session.session.token, "image/gif", btoa("x"))).toEqual({ status: "bad_type" });
+    expect(await admin.uploadMedia(env, session.session.token, "image/gif", btoa("x"))).toEqual({ status: "bad_type" });
+  });
+
+  it("lists an upload back, previews and all, and lets it be removed", async () => {
+    const env = envWith();
+    const session = await admin.login(env, "correct horse", noDelay);
+    if (session.status !== "ok") throw new Error("login should have succeeded");
+    const token = session.session.token;
+
+    const photo = await admin.uploadMedia(env, token, "image/webp", btoa("photo-bytes"), "front.webp");
+    const clip = await admin.uploadMedia(env, token, "video/mp4", btoa("clip-bytes"), "store.mp4");
+    if (photo.status !== "ok" || clip.status !== "ok") throw new Error("uploads should have succeeded");
+
+    const listed = await admin.listMedia(env, token);
+    if (listed.status !== "ok") throw new Error(`list failed: ${listed.status}`);
+    expect(listed.items.map((item) => item.name).sort()).toEqual(["front.webp", "store.mp4"]);
+    expect(listed.items.find((item) => item.id === clip.item.id)?.kind).toBe("video");
+    expect(listed.items.find((item) => item.id === photo.item.id)?.url).toBe(photo.url);
+
+    expect(await admin.deleteMedia(env, token, photo.item.id)).toEqual({ status: "ok" });
+    const after = await admin.listMedia(env, token);
+    if (after.status !== "ok") throw new Error(`list failed: ${after.status}`);
+    expect(after.items.map((item) => item.id)).toEqual([clip.item.id]);
+    expect(await admin.readImage(env, photo.item.id)).toBeNull();
+  });
+
+  it("keeps the library to signed-in callers only", async () => {
+    const env = envWith();
+    expect(await admin.listMedia(env, "forged.token")).toEqual({ status: "expired" });
+    expect(await admin.deleteMedia(env, "forged.token", "a".repeat(32))).toEqual({ status: "expired" });
+  });
+
+  it("refuses a clip past the size limit", async () => {
+    const env = envWith();
+    const session = await admin.login(env, "correct horse", noDelay);
+    if (session.status !== "ok") throw new Error("login should have succeeded");
+    const oversized = btoa("v".repeat(13 * 1024 * 1024));
+    expect(await admin.uploadMedia(env, session.session.token, "video/mp4", oversized)).toEqual({ status: "too_large" });
   });
 
   it("returns nothing for an id that is not one it minted", async () => {

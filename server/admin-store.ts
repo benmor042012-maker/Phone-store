@@ -26,6 +26,12 @@ export type KVLike = {
   getWithMetadata(key: string, type: "arrayBuffer"): Promise<{ value: ArrayBuffer | null; metadata: { ct?: string } | null }>;
   put(key: string, value: string | ArrayBuffer, options?: { expirationTtl?: number; metadata?: Record<string, unknown> }): Promise<void>;
   delete(key: string): Promise<void>;
+  /** Cloudflare's namespace has this; it is optional here so a test double need not. */
+  list?(options?: { prefix?: string; cursor?: string; limit?: number }): Promise<{
+    keys: { name: string; metadata?: unknown }[];
+    list_complete: boolean;
+    cursor?: string;
+  }>;
 };
 
 import { normalizeOverrides, type CatalogOverrides } from "@shared/catalog-overrides";
@@ -40,6 +46,12 @@ const MAX_BODY_BYTES = 512 * 1024;
 const IMG_PREFIX = "img:";
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 const IMAGE_TYPES = ["image/webp", "image/jpeg", "image/png"];
+/** Clips are stored the same way photos are, so one player URL serves both. */
+const VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
+const MAX_VIDEO_BYTES = 12 * 1024 * 1024;
+/** The catalogue of what has been uploaded. Without it an upload could never be found again. */
+const MEDIA_KEY = "site:media:v1";
+const MEDIA_LIMIT = 400;
 
 /**
  * KV is eventually consistent and this read-modify-write is not atomic, so the counter is
@@ -189,28 +201,147 @@ export async function publish(env: AdminEnv, token: string, data: unknown): Prom
   return { status: "ok", updatedAt: envelope.updatedAt };
 }
 
-export type UploadResult = { status: "ok"; url: string } | { status: "expired" } | { status: "no_store" } | { status: "too_large" } | { status: "bad_type" };
+export type MediaKind = "image" | "video";
+
+/** One item in the media library, as the admin panel lists it. */
+export type MediaItem = {
+  id: string;
+  url: string;
+  contentType: string;
+  kind: MediaKind;
+  size: number;
+  name: string;
+  uploadedAt: string;
+};
+
+export type UploadResult = { status: "ok"; url: string; item: MediaItem } | { status: "expired" } | { status: "no_store" } | { status: "too_large" } | { status: "bad_type" };
+
+export function mediaKind(contentType: string): MediaKind | null {
+  if (IMAGE_TYPES.includes(contentType)) return "image";
+  if (VIDEO_TYPES.includes(contentType)) return "video";
+  return null;
+}
+
+function asMediaItem(value: unknown): MediaItem | null {
+  if (!value || typeof value !== "object") return null;
+  const item = value as Record<string, unknown>;
+  const id = typeof item.id === "string" ? item.id : "";
+  const contentType = typeof item.contentType === "string" ? item.contentType : "";
+  const kind = mediaKind(contentType);
+  if (!/^[0-9a-f]{32}$/.test(id) || !kind) return null;
+  return {
+    id,
+    url: `/img/${id}`,
+    contentType,
+    kind,
+    size: typeof item.size === "number" && Number.isFinite(item.size) ? item.size : 0,
+    name: typeof item.name === "string" ? item.name.slice(0, 120) : "",
+    uploadedAt: typeof item.uploadedAt === "string" ? item.uploadedAt : "",
+  };
+}
+
+async function readMediaIndex(env: AdminEnv): Promise<MediaItem[]> {
+  if (!env.STORE) return [];
+  try {
+    const stored = await env.STORE.get(MEDIA_KEY, "json");
+    return Array.isArray(stored) ? stored.map(asMediaItem).filter((item): item is MediaItem => item !== null) : [];
+  } catch {
+    return [];
+  }
+}
+
+async function writeMediaIndex(env: AdminEnv, items: MediaItem[]): Promise<void> {
+  if (!env.STORE) return;
+  await env.STORE.put(MEDIA_KEY, JSON.stringify(items.slice(0, MEDIA_LIMIT)));
+}
 
 /**
- * Stores an uploaded photo under a fresh id. The id changes on every upload, so the bytes
- * behind a given URL never do and the response can be cached forever.
+ * Uploads made before this index existed left only their `img:` key behind, so the panel
+ * had no way to list them. Walking the namespace once puts them back on the shelf; the
+ * result is merged into the index so the walk is not repeated on every visit.
  */
-export async function uploadImage(env: AdminEnv, token: string, contentType: string, imageBase64: string): Promise<UploadResult> {
+async function backfillFromNamespace(env: AdminEnv, known: MediaItem[]): Promise<MediaItem[]> {
+  if (!env.STORE?.list) return known;
+  const seen = new Set(known.map((item) => item.id));
+  const found: MediaItem[] = [];
+  let cursor: string | undefined;
+  for (let page = 0; page < 5; page++) {
+    const listing = await env.STORE.list({ prefix: IMG_PREFIX, cursor, limit: 200 });
+    for (const key of listing.keys) {
+      const id = key.name.slice(IMG_PREFIX.length);
+      if (seen.has(id) || !/^[0-9a-f]{32}$/.test(id)) continue;
+      const contentType = (key.metadata as { ct?: string } | undefined)?.ct ?? "image/jpeg";
+      const item = asMediaItem({ id, contentType, size: 0, name: "", uploadedAt: "" });
+      if (item) { found.push(item); seen.add(id); }
+    }
+    if (listing.list_complete || !listing.cursor) break;
+    cursor = listing.cursor;
+  }
+  if (!found.length) return known;
+  const merged = [...known, ...found];
+  await writeMediaIndex(env, merged);
+  return merged;
+}
+
+export type ListMediaResult = { status: "ok"; items: MediaItem[] } | { status: "expired" } | { status: "no_store" };
+
+/** Everything the owner has uploaded, newest first. */
+export async function listMedia(env: AdminEnv, token: string): Promise<ListMediaResult> {
   if (!env.STORE) return { status: "no_store" };
   if (!(await verifyToken(env, token))) return { status: "expired" };
-  if (!IMAGE_TYPES.includes(contentType)) return { status: "bad_type" };
+  const items = await backfillFromNamespace(env, await readMediaIndex(env));
+  const sorted = [...items].sort((a, b) => (b.uploadedAt || "").localeCompare(a.uploadedAt || ""));
+  return { status: "ok", items: sorted };
+}
 
-  const binary = atob(imageBase64);
+/**
+ * Stores an uploaded photo or clip under a fresh id and records it in the media index.
+ * The id changes on every upload, so the bytes behind a given URL never do and the
+ * response can be cached forever. The index is what lets the panel show it again later.
+ */
+export async function uploadMedia(env: AdminEnv, token: string, contentType: string, dataBase64: string, name = ""): Promise<UploadResult> {
+  if (!env.STORE) return { status: "no_store" };
+  if (!(await verifyToken(env, token))) return { status: "expired" };
+  const kind = mediaKind(contentType);
+  if (!kind) return { status: "bad_type" };
+
+  let binary: string;
+  try {
+    binary = atob(dataBase64);
+  } catch {
+    return { status: "bad_type" };
+  }
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  if (!bytes.byteLength || bytes.byteLength > MAX_IMAGE_BYTES) return { status: "too_large" };
+  const limit = kind === "video" ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+  if (!bytes.byteLength || bytes.byteLength > limit) return { status: "too_large" };
 
   const id = crypto.randomUUID().replace(/-/g, "");
   await env.STORE.put(IMG_PREFIX + id, bytes.buffer, { metadata: { ct: contentType } });
-  return { status: "ok", url: `/img/${id}` };
+
+  const item: MediaItem = { id, url: `/img/${id}`, contentType, kind, size: bytes.byteLength, name: name.slice(0, 120), uploadedAt: new Date().toISOString() };
+  // A failed index write must not lose the upload itself, which is already stored and served.
+  try {
+    await writeMediaIndex(env, [item, ...(await readMediaIndex(env)).filter((entry) => entry.id !== id)]);
+  } catch (error) {
+    console.warn("[admin] Media index could not be updated", error);
+  }
+  return { status: "ok", url: item.url, item };
 }
 
-/** Reads back an uploaded photo. Returns null for an unknown id or an unbound namespace. */
+export type DeleteMediaResult = { status: "ok" } | { status: "expired" } | { status: "no_store" } | { status: "not_found" };
+
+/** Removes an upload and its index entry. The bytes go; nothing else does. */
+export async function deleteMedia(env: AdminEnv, token: string, id: string): Promise<DeleteMediaResult> {
+  if (!env.STORE) return { status: "no_store" };
+  if (!(await verifyToken(env, token))) return { status: "expired" };
+  if (!/^[0-9a-f]{32}$/.test(id)) return { status: "not_found" };
+  await env.STORE.delete(IMG_PREFIX + id);
+  await writeMediaIndex(env, (await readMediaIndex(env)).filter((entry) => entry.id !== id));
+  return { status: "ok" };
+}
+
+/** Reads back an uploaded photo or clip. Returns null for an unknown id or an unbound namespace. */
 export async function readImage(env: AdminEnv, id: string): Promise<{ body: ArrayBuffer; contentType: string } | null> {
   if (!env.STORE || !/^[0-9a-f]{32}$/.test(id)) return null;
   const stored = await env.STORE.getWithMetadata(IMG_PREFIX + id, "arrayBuffer");

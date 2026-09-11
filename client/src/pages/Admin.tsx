@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { ArrowRight, LockKeyhole, LogOut, Package, ShieldCheck, Store } from "lucide-react";
+import { ArrowRight, Images, LockKeyhole, LogOut, Package, ShieldCheck, Store } from "lucide-react";
 import AdminProducts from "@/components/AdminProducts";
+import AdminMedia from "@/components/AdminMedia";
 import AdminStoreDetails from "@/components/AdminStoreDetails";
 import { trpc } from "@/lib/trpc";
 
@@ -11,18 +12,19 @@ const sectionStyle = { ...panelStyle, maxWidth: 1260, margin: "0 auto", padding:
 const TABS = [
   { id: "products", label: "מוצרים", icon: Package, title: "מוצרים", blurb: "שינוי מחיר, סימון מבצע, הסתרה, עריכה והוספה. השינויים נשמרים בטיוטה עד שלוחצים פרסום." },
   { id: "content", label: "פרטי החנות", icon: Store, title: "פרטי החנות", blurb: "שם החנות, פרטי הקשר, הכותרות בראש הדף וביקורות הלקוחות. המוצרים נמצאים בלשונית מוצרים." },
+  { id: "media", label: "מדיה", icon: Images, title: "ספריית המדיה", blurb: "כל התמונות והסרטונים שהעליתם, עם תצוגה מקדימה. אפשר להעלות חדשים, להעתיק כתובת ולמחוק. מדיה נשמרת מיד ונשארת גם אחרי רענון." },
 ] as const;
 
 /** A notice is good news when it reports something completed rather than something refused. */
 function noticeColour(notice: string) {
-  return /בהצלחה|פורסמו|עלתה|הוחזר|נשמר/.test(notice) ? "#a8d7ac" : "#e7b4a8";
+  return /בהצלחה|פורסמו|עלתה|עלו|הוחזר|נשמר|נמחק/.test(notice) ? "#a8d7ac" : "#e7b4a8";
 }
 
 export default function Admin() {
   const [password, setPassword] = useState("");
   const [token, setToken] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
-  const [tab, setTab] = useState<"products" | "content">("products");
+  const [tab, setTab] = useState<"products" | "content" | "media">("products");
   const login = trpc.sourceAdmin.login.useMutation();
 
   const submitPassword = async (event: React.FormEvent) => {
@@ -93,9 +95,9 @@ export default function Admin() {
           </div>
           <span style={{ color: "#d5a945", display: "inline-flex", alignItems: "center", gap: 7 }}><ShieldCheck size={17} /> חיבור זמני ומאובטח</span>
         </div>
-        {tab === "products"
-          ? <AdminProducts token={token} onNotice={setNotice} />
-          : <AdminStoreDetails token={token} onNotice={setNotice} />}
+        {tab === "products" && <AdminProducts token={token} onNotice={setNotice} />}
+        {tab === "content" && <AdminStoreDetails token={token} onNotice={setNotice} />}
+        {tab === "media" && <AdminMedia token={token} onNotice={setNotice} />}
         {notice && <p role="status" style={{ color: noticeColour(notice), marginTop: 16 }}>{notice}</p>}
       </section>
     </main>

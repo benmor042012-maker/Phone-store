@@ -11,19 +11,13 @@ import { categoryThumbnails, useInventory, type Product } from "@/lib/catalog";
 import { applyJsonLd, applyPageSeo, buildBreadcrumbJsonLd, buildCatalogJsonLd, buildFaqJsonLd, buildProductJsonLd, buildStoreJsonLd, type SeoProduct } from "@/lib/seo";
 import { useLocation } from "wouter";
 import {
-  Accessibility, ArrowLeft, ChevronLeft, ChevronRight, Eye, Facebook, Heart, Instagram, MapPin, Menu, MessageCircle,
+  Accessibility, ArrowLeft, Eye, Facebook, Heart, Instagram, MapPin, Menu, MessageCircle,
   Minus, Music2, Phone, Search, Share2, ShoppingBag, SlidersHorizontal, Star, Truck, X, Youtube, Zap,
 } from "lucide-react";
 
 const socialIcons: Record<string, typeof Facebook> = {
   whatsapp: MessageCircle, facebook: Facebook, instagram: Instagram, tiktok: Music2, youtube: Youtube, waze: MapPin,
 };
-
-const fallbackHeroSlides = [
-  ["טלפון חדש", "מתחיל בשיחה.", "אלי חזות מוכר סלולר בשד׳ בן גוריון כבר שנים. שולחים הודעה בוואטסאפ, מקבלים המלצה אמיתית ומחיר סופי."],
-  ["מכשירים שבוחרים", "עם מענה אישי.", "נשארים איתכם גם אחרי הקנייה — עם שירות ברור, אחריות ומשלוח מהיר מנתניה."],
-  ["הבחירה הנכונה", "לא צריכה לקחת זמן.", "כתבו לנו מה חשוב לכם, ונעזור לצמצם את האפשרויות לדגם שבאמת מתאים."],
-];
 
 /**
  * The inventory is far too large to put in the DOM at once, so the grid pages through it.
@@ -35,7 +29,6 @@ function money(value: number) { return `₪${value.toLocaleString("he-IL")}`; }
 
 export default function Home() {
   const [location, setLocation] = useLocation();
-  const [activeSlide, setActiveSlide] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [cart, setCart] = useState<Product[]>([]);
@@ -62,7 +55,6 @@ export default function Home() {
     const fromInventory = Array.from(new Set(products.map((product) => product.brand).filter(Boolean)));
     return fromInventory.sort((a, b) => a.localeCompare(b, "he"));
   }, [products]);
-  const heroSlides = useMemo(() => liveStorefront?.slides.length ? liveStorefront.slides.map((slide) => [slide.title, slide.accent, slide.lead]) : fallbackHeroSlides, [liveStorefront]);
   const storeSettings = liveStorefront?.settings;
   const reviews = liveStorefront?.reviews ?? [];
   const priceCeiling = useMemo(() => Math.ceil(Math.max(1000, ...products.map((product) => product.price)) / 100) * 100, [products]);
@@ -86,7 +78,6 @@ export default function Home() {
   const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
   useEffect(() => { setVisibleCount(PAGE_SIZE); }, [priceLimit, products, query, selectedBrands, selectedCats, sort]);
 
-  const hero = heroSlides[activeSlide] ?? heroSlides[0];
   const navCopy = navigationCopy[locale];
   const cartTotal = cart.reduce((sum, item) => sum + item.price, 0);
   const whatsappNumber = storeSettings?.wa?.replace(/\D/g, "") || STORE.whatsapp;
@@ -160,11 +151,11 @@ export default function Home() {
       </header>
 
       <main>
-      <section className="hero-original" id="top">
-        <div className="hero-product"><video autoPlay muted loop playsInline preload="metadata" aria-hidden="true" style={{ width: "100%", height: "100%", objectFit: "cover", transform: "scale(1.08)", filter: "contrast(1.1) saturate(.68)" }}><source src="/hero-phone-store-iphone17.mp4" type="video/mp4" /></video></div><div className="hero-haze" /><div aria-hidden="true" style={{ position: "absolute", zIndex: -1, left: "6%", top: "-42%", width: "22%", height: "172%", transform: "rotate(20deg)", border: "1px solid rgba(213,169,69,.22)", pointerEvents: "none" }} /><div aria-hidden="true" style={{ position: "absolute", zIndex: -1, right: "6%", top: "-42%", width: "22%", height: "172%", transform: "rotate(-20deg)", border: "1px solid rgba(213,169,69,.22)", pointerEvents: "none" }} />
-        <div className="hero-inner"><p className="hero-label">חנות סלולר בנתניה · PHONE STORE</p><h1>{hero[0]}<em>{hero[1]}</em></h1><p>{hero[2]}</p><div className="hero-buttons"><a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noreferrer" className="btn-gold">דברו עם אלי ב־WhatsApp <ArrowLeft size={17} /></a><a href="#catalog" className="btn-outline">לצפייה במלאי</a></div></div>
-        <div className="live-stock"><span /><strong>{products.length.toLocaleString("he-IL")} פריטים</strong><small>{sourceQuery.data?.status === "live" ? "מלאי מסונכרן · משלוח מהיר" : "זמינים עכשיו · משלוח מהיר"}</small></div>
-        <div className="hero-controls"><button onClick={() => setActiveSlide((activeSlide + heroSlides.length - 1) % heroSlides.length)} aria-label="השקופית הקודמת"><ChevronRight size={19} /></button>{heroSlides.map((_, index) => <button key={index} className={index === activeSlide ? "dot active" : "dot"} onClick={() => setActiveSlide(index)} aria-label={`מעבר לשקופית ${index + 1}`} />)}<button onClick={() => setActiveSlide((activeSlide + 1) % heroSlides.length)} aria-label="השקופית הבאה"><ChevronLeft size={19} /></button></div>
+      {/* One clean slide: the store video, with nothing laid over it. The heading stays for
+          search engines and screen readers, which still need a level-one heading. */}
+      <section className="hero-original hero-video" id="top">
+        <div className="hero-product"><video autoPlay muted loop playsInline preload="metadata" aria-hidden="true"><source src="/hero-phone-store-iphone17.mp4" type="video/mp4" /></video></div>
+        <h1 className="visually-hidden">PHONE STORE — חנות סלולר בנתניה</h1>
       </section>
 
       <section className="service-numbers"><div><strong>24 שע׳</strong><span>משלוח עד הבית</span></div><div><strong>36</strong><span>תשלומים ללא ריבית</span></div><div><strong>30 יום</strong><span>החזרה ללא עלות</span></div><div><strong>₪299</strong><span>מעל זה, משלוח חינם</span></div></section>

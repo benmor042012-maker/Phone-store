@@ -74,11 +74,28 @@ export const appRouter = router({
       if (result.status === "ok") return { status: "ok" as const, updatedAt: result.updatedAt };
       return { status: result.status, updatedAt: null };
     }),
-    upload: publicProcedure.input(z.object({ token: z.string().min(16).max(4096), contentType: z.enum(["image/jpeg", "image/png", "image/webp"]), imageBase64: z.string().min(8).max(7_000_000) })).mutation(async ({ ctx, input }) => {
-      if (!ctx.env) return { status: "unavailable" as const, url: null };
-      const result = await admin.uploadImage(ctx.env, input.token, input.contentType, input.imageBase64);
-      if (result.status === "ok") return { status: "ok" as const, url: result.url };
-      return { status: result.status, url: null };
+    // Photos and short clips share one store, one URL shape and one library listing.
+    upload: publicProcedure.input(z.object({
+      token: z.string().min(16).max(4096),
+      contentType: z.enum(["image/jpeg", "image/png", "image/webp", "video/mp4", "video/webm", "video/quicktime"]),
+      imageBase64: z.string().min(8).max(17_000_000),
+      name: z.string().max(120).optional(),
+    })).mutation(async ({ ctx, input }) => {
+      if (!ctx.env) return { status: "unavailable" as const, url: null, item: null };
+      const result = await admin.uploadMedia(ctx.env, input.token, input.contentType, input.imageBase64, input.name ?? "");
+      if (result.status === "ok") return { status: "ok" as const, url: result.url, item: result.item };
+      return { status: result.status, url: null, item: null };
+    }),
+    // What the owner has already uploaded, so the panel can show it instead of losing it.
+    media: publicProcedure.input(z.object({ token: z.string().min(16).max(4096) })).query(async ({ ctx, input }) => {
+      if (!ctx.env) return { status: "unavailable" as const, items: [] };
+      const result = await admin.listMedia(ctx.env, input.token);
+      if (result.status === "ok") return { status: "ok" as const, items: result.items };
+      return { status: result.status, items: [] };
+    }),
+    deleteMedia: publicProcedure.input(z.object({ token: z.string().min(16).max(4096), id: z.string().min(1).max(64) })).mutation(async ({ ctx, input }) => {
+      if (!ctx.env) return { status: "unavailable" as const };
+      return { status: (await admin.deleteMedia(ctx.env, input.token, input.id)).status };
     }),
   }),
 });

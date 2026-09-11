@@ -87,19 +87,34 @@ export default {
       });
     }
 
-    // Photos the admin uploaded live in KV, not in the asset bundle.
+    // Photos and clips the admin uploaded live in KV, not in the asset bundle.
     const image = /^\/img\/([^/]+)$/.exec(url.pathname);
     if (image) {
       const stored = await readImage(env, image[1]);
       if (!stored) return new Response("not found", { status: 404 });
-      return new Response(stored.body, {
-        headers: {
-          "content-type": stored.contentType,
-          // The id changes on every upload, so the bytes behind it never do.
-          "cache-control": "public, max-age=31536000, immutable",
-          "x-content-type-options": "nosniff",
-        },
-      });
+      const headers = {
+        "content-type": stored.contentType,
+        // The id changes on every upload, so the bytes behind it never do.
+        "cache-control": "public, max-age=31536000, immutable",
+        "x-content-type-options": "nosniff",
+        "accept-ranges": "bytes",
+      };
+      // Safari on iOS will not start a video until the server answers a range request,
+      // so an uploaded clip stays blank on an iPhone without this.
+      const range = /^bytes=(\d*)-(\d*)$/.exec(request.headers.get("range") ?? "");
+      if (range && stored.contentType.startsWith("video/")) {
+        const total = stored.body.byteLength;
+        const start = range[1] ? Number(range[1]) : Math.max(0, total - Number(range[2] || 0));
+        const end = range[1] && range[2] ? Math.min(Number(range[2]), total - 1) : total - 1;
+        if (!Number.isFinite(start) || start >= total || end < start) {
+          return new Response(null, { status: 416, headers: { ...headers, "content-range": `bytes */${total}` } });
+        }
+        return new Response(stored.body.slice(start, end + 1), {
+          status: 206,
+          headers: { ...headers, "content-range": `bytes ${start}-${end}/${total}` },
+        });
+      }
+      return new Response(stored.body, { headers });
     }
 
     if (url.pathname === "/sitemap.xml") {

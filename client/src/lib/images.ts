@@ -17,6 +17,15 @@ export const IMAGE_FALLBACK =
     </svg>`,
   );
 
+/**
+ * The picture to render for a product. A product saved without one carries an empty string,
+ * and an empty `src` never fails, so `onImageError` is never reached and the card is left
+ * with a blank hole where the photo belongs. Resolving it here is what fills that hole.
+ */
+export function productPicture(src: string | undefined): string {
+  return src && src.trim() ? src : IMAGE_FALLBACK;
+}
+
 /** Swaps in the placeholder once; the guard stops a broken fallback from looping. */
 export function onImageError(event: { currentTarget: HTMLImageElement }) {
   const image = event.currentTarget;

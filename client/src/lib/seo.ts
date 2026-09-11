@@ -151,7 +151,9 @@ export function buildProductJsonLd(origin: string, product: SeoProduct) {
     sku: product.id,
     category: product.category,
     description: product.description,
-    image: product.image.startsWith("http") ? product.image : `${origin}${product.image}`,
+    // A product with no picture of its own is described by the store's share card, not by
+    // the origin on its own, which is what an empty path would resolve to.
+    image: product.image ? (product.image.startsWith("http") ? product.image : `${origin}${product.image}`) : `${origin}${SHARE_IMAGE.path}`,
     brand: { "@type": "Brand", name: product.brand },
     offers: {
       "@type": "Offer",

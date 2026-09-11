@@ -329,7 +329,7 @@ export default function AdminProducts({ token, onNotice }: { token: string; onNo
                 {/* The same library as the מדיה tab: an upload lands here and stays pickable. */}
                 {libraryOpen && (
                   <div style={{ ...panel, padding: 12 }}>
-                    <AdminMedia token={token} onNotice={onNotice} selectedUrl={draft.image} selectLabel="בחירה למוצר" onSelect={(url) => setDraft((current) => (current ? { ...current, image: url } : current))} />
+                    <AdminMedia token={token} onNotice={onNotice} kind="image" selectedUrl={draft.image} selectLabel="בחירה למוצר" onSelect={(url) => setDraft((current) => (current ? { ...current, image: url } : current))} />
                   </div>
                 )}
                 <input value={draft.image} onChange={(event) => setDraft({ ...draft, image: event.target.value })} placeholder="או כתובת תמונה" style={{ ...field, direction: "ltr", textAlign: "left" }} />

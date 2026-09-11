@@ -151,6 +151,26 @@ function vitePluginManusDebugCollector(): Plugin {
 }
 
 /**
+ * Keeps the debug collector out of what gets published.
+ *
+ * The script records console output, network calls and UI events — clicks, typing, scrolls —
+ * and posts them to /__manus__/logs, which in development is a middleware in this file that
+ * writes them to .manus-logs on the machine doing the developing. Nothing loads it in a
+ * production build and nothing there answers that path, but it sits in `client/public`, so
+ * it was still being copied out and served as a public file. It is removed from the output
+ * instead, because a session recorder that nobody can explain is worse than 25KB.
+ */
+function stripDebugCollectorFromBuild(): Plugin {
+  return {
+    name: "strip-debug-collector",
+    apply: "build",
+    closeBundle() {
+      fs.rmSync(path.resolve(import.meta.dirname, "dist", "public", "__manus__"), { recursive: true, force: true });
+    },
+  };
+}
+
+/**
  * The editor integrations belong to the preview, not to the shop.
  *
  * All three were running in the production build as well: the runtime inlined ~100KB into
@@ -162,7 +182,7 @@ function vitePluginManusDebugCollector(): Plugin {
 const devOnlyPlugins = [jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
 
 export default defineConfig(({ command }) => ({
-  plugins: [react(), tailwindcss(), ...(command === "serve" ? devOnlyPlugins : [])],
+  plugins: [react(), tailwindcss(), stripDebugCollectorFromBuild(), ...(command === "serve" ? devOnlyPlugins : [])],
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),

@@ -155,9 +155,11 @@ export default function Home() {
   }, [products, selectedProduct, storeSettings]);
   useEffect(() => {
     const origin = typeof window !== "undefined" ? window.location.origin : STORE.site;
-    applyJsonLd("ld-store", buildStoreJsonLd(origin));
+    // The rating is carried by the same reviews the customers section shows, so the stars a
+    // search result may display are always ones a visitor can read on the page.
+    applyJsonLd("ld-store", buildStoreJsonLd(origin, reviews));
     applyJsonLd("ld-faq", buildFaqJsonLd());
-  }, []);
+  }, [reviews]);
   const shareProduct = async (product: Product) => {
     const text = `${product.name} — ${money(product.price)} | PHONE STORE`;
     try {
@@ -168,11 +170,11 @@ export default function Home() {
 
   return (
     <div className={`store-page ${highContrast ? "high-contrast" : ""}`} dir="rtl" style={largeText ? { fontSize: "112%" } : undefined}>
-      <div className="top-strip"><span>{storeSettings?.addr || "שד׳ בן גוריון 2, נתניה"}</span><i /> <span>משלוח חינם מעל ₪{storeSettings?.ship || 299}</span><i /><span>תשלום בביט ובפייבוקס</span><i /><span>עד {storeSettings?.pay36 || 36} תשלומים</span></div>
+      <aside className="top-strip" aria-label="מידע על החנות"><span>{storeSettings?.addr || "שד׳ בן גוריון 2, נתניה"}</span><i /> <span>משלוח חינם מעל ₪{storeSettings?.ship || 299}</span><i /><span>תשלום בביט ובפייבוקס</span><i /><span>עד {storeSettings?.pay36 || 36} תשלומים</span></aside>
       <header className="store-header">
         <a href="#top" className="logo-link" aria-label="Phone Store"><img src={STORE.logo} alt="PHONE STORE — חנות סלולר בנתניה" width={340} height={126} onError={onImageError} /></a>
         <nav className={menuOpen ? "nav-links open" : "nav-links"} aria-label="ניווט ראשי"><a href="#catalog" onClick={() => setMenuOpen(false)}>{navCopy.inventory}</a><a href="#categories" onClick={() => setMenuOpen(false)}>{navCopy.categories}</a><a href="#how" onClick={() => setMenuOpen(false)}>{navCopy.how}</a><a href="#customers" onClick={() => setMenuOpen(false)}>{navCopy.customers}</a><a href="#contact" onClick={() => setMenuOpen(false)}>{navCopy.contact}</a></nav>
-        <div className="header-tools"><select aria-label="שפה" value={locale} onChange={(event) => setLocale(event.target.value === "en" ? "en" : "he")}><option value="he">עברית</option><option value="en">English</option></select><button className="round-tool" onClick={() => setAccessibilityOpen(!accessibilityOpen)} aria-label="כלי נגישות"><Accessibility size={18} /></button><button className="round-tool" onClick={openSearch} aria-label="חיפוש במלאי"><Search size={18} /></button><button className="round-tool cart-trigger" onClick={() => setCartOpen(true)} aria-label="עגלת קניות"><ShoppingBag size={18} /><b>{cart.length}</b></button><button className="round-tool mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label="תפריט">{menuOpen ? <X size={21} /> : <Menu size={21} />}</button></div>
+        <div className="header-tools"><select aria-label="שפה" value={locale} onChange={(event) => setLocale(event.target.value === "en" ? "en" : "he")}><option value="he">עברית</option><option value="en">English</option></select><button className="round-tool" onClick={() => setAccessibilityOpen(!accessibilityOpen)} aria-label="כלי נגישות"><Accessibility size={18} /></button><button className="round-tool" onClick={openSearch} aria-label="חיפוש במלאי"><Search size={18} /></button><button className="round-tool cart-trigger" onClick={() => setCartOpen(true)} aria-label={`עגלת קניות, ${cart.length} פריטים`}><ShoppingBag size={18} /><b>{cart.length}</b></button><button className="round-tool mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label="תפריט">{menuOpen ? <X size={21} /> : <Menu size={21} />}</button></div>
       </header>
 
       <main>

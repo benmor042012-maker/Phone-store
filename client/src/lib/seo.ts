@@ -88,7 +88,37 @@ export function applyJsonLd(id: string, data: unknown) {
   if (!script.isConnected) document.head.appendChild(script);
 }
 
-export function buildStoreJsonLd(origin: string) {
+/** A review as the customers section renders it, which is the only kind Google may be shown. */
+export type StoreReview = { name: string; stars: number; text: string; when?: string };
+
+/**
+ * Star ratings only appear in a search result when the page carries the rating in its
+ * structured data, and Google only credits a rating a visitor can actually read on the
+ * page. So this is built from the very reviews the customers section renders, and when
+ * there are none the fields are left out entirely rather than invented.
+ */
+function ratingFor(reviews: StoreReview[]) {
+  const rated = reviews.filter((review) => review.stars >= 1 && review.stars <= 5 && review.text.trim() && review.name.trim());
+  if (!rated.length) return {};
+  const average = rated.reduce((sum, review) => sum + review.stars, 0) / rated.length;
+  return {
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: Math.round(average * 10) / 10,
+      reviewCount: rated.length,
+      bestRating: 5,
+      worstRating: 1,
+    },
+    review: rated.slice(0, 10).map((review) => ({
+      "@type": "Review",
+      author: { "@type": "Person", name: review.name },
+      reviewRating: { "@type": "Rating", ratingValue: review.stars, bestRating: 5, worstRating: 1 },
+      reviewBody: review.text,
+    })),
+  };
+}
+
+export function buildStoreJsonLd(origin: string, reviews: StoreReview[] = []) {
   return {
     "@context": "https://schema.org",
     "@type": "MobilePhoneStore",
@@ -124,6 +154,7 @@ export function buildStoreJsonLd(origin: string) {
       { "@type": "OpeningHoursSpecification", dayOfWeek: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"], opens: "09:00", closes: "19:00" },
       { "@type": "OpeningHoursSpecification", dayOfWeek: "Friday", opens: "09:00", closes: "14:00" },
     ],
+    ...ratingFor(reviews),
   };
 }
 

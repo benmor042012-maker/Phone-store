@@ -1,0 +1,11 @@
+# Cloudflare serves the hashed bundles under /assets/ with a long cache already. These two
+# are referenced by a stable name, so without a lifetime here the browser re-validates the
+# 2MB hero clip on every visit.
+/hero-phone-store-iphone17.mp4
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+/images/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+/catalog.json
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400

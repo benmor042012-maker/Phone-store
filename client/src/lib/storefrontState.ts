@@ -45,7 +45,9 @@ export const STORE = {
   longitude: 34.8532,
   email: "info@phonestore.co.il",
   site: "https://phonestore.co.il",
-  logo: "/images/logo.png",
+  // 680px wide, which covers the header at twice the pixel density it is drawn at. The PNG
+  // it was cut from is 1200px and 135KB, for a mark that never renders above 340.
+  logo: "/images/logo.webp",
 } as const;
 
 /**

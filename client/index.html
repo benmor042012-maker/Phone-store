@@ -20,8 +20,8 @@
     <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
     <meta name="application-name" content="Phone Store" />
     <meta name="apple-mobile-web-app-title" content="Phone Store" />
-    <link rel="icon" href="/images/logo.png" />
-    <link rel="apple-touch-icon" href="/images/logo.png" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/images/favicon-64.png" />
+    <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
 
     <meta name="geo.region" content="IL-M" />
     <meta name="geo.placename" content="נתניה" />
@@ -55,11 +55,19 @@
     <meta name="twitter:image" content="https://phonestore.co.il/images/og-cover.png" />
     <meta name="twitter:image:alt" content="Phone Store נתניה — חנות סלולר של אלי חזות" />
 
-    <link rel="preload" as="image" href="/images/logo.png" fetchpriority="high" />
+    <link rel="preload" as="image" href="/images/logo.webp" fetchpriority="high" />
     <link rel="dns-prefetch" href="https://wa.me" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Heebo:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <!--
+      The brand faces, loaded without holding up the first paint. As a plain stylesheet this
+      one request blocked rendering for most of a second on a phone; fetched as print and
+      promoted once it arrives, the page paints immediately in the fallback stack and swaps
+      when the faces land. The noscript copy keeps them for browsers without JavaScript.
+    -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Heebo:wght@500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Heebo:wght@500;600;700;800&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Heebo:wght@500;600;700;800&display=swap" /></noscript>
 
     <script type="application/ld+json">
       {
@@ -73,6 +81,68 @@
           "target": "https://phonestore.co.il/?q={search_term_string}",
           "query-input": "required name=search_term_string"
         }
+      }
+    </script>
+
+    <!--
+      The shop itself, in the served HTML rather than only after React mounts. Google renders
+      JavaScript but not every crawler does, and a local listing is exactly what the ones that
+      do not are looking for. The id is the one the app writes to, so once React is running it
+      replaces this block with the same record plus the live reviews and rating.
+    -->
+    <script type="application/ld+json" id="ld-store">
+      {
+        "@context": "https://schema.org",
+        "@type": "MobilePhoneStore",
+        "@id": "https://phonestore.co.il/#store",
+        "name": "Phone Store",
+        "legalName": "Phone Store · אלי חזות",
+        "description": "Phone Store נתניה — מכירת טלפונים סלולריים, טאבלטים, שעונים חכמים ואביזרים, עם ייעוץ אישי של אלי חזות.",
+        "url": "https://phonestore.co.il/",
+        "image": "https://phonestore.co.il/images/logo.webp",
+        "logo": "https://phonestore.co.il/images/logo.webp",
+        "telephone": "050-477-7470",
+        "email": "info@phonestore.co.il",
+        "priceRange": "₪₪",
+        "currenciesAccepted": "ILS",
+        "paymentAccepted": "ביט, פייבוקס, כרטיס אשראי, מזומן",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "שדרות בן גוריון 2",
+          "addressLocality": "נתניה",
+          "postalCode": "4250452",
+          "addressCountry": "IL"
+        },
+        "geo": { "@type": "GeoCoordinates", "latitude": 32.3215, "longitude": 34.8532 },
+        "location": {
+          "@type": "Place",
+          "name": "PHONE STORE",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "שדרות בן גוריון 2",
+            "addressLocality": "נתניה",
+            "postalCode": "4250452",
+            "addressCountry": "IL"
+          },
+          "geo": { "@type": "GeoCoordinates", "latitude": 32.3215, "longitude": 34.8532 }
+        },
+        "areaServed": [
+          { "@type": "City", "name": "נתניה" },
+          { "@type": "Country", "name": "ישראל" }
+        ],
+        "sameAs": [
+          "https://wa.me/972504777470",
+          "https://www.instagram.com/phone_store_2010"
+        ],
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"],
+            "opens": "09:00",
+            "closes": "19:00"
+          },
+          { "@type": "OpeningHoursSpecification", "dayOfWeek": "Friday", "opens": "09:00", "closes": "14:00" }
+        ]
       }
     </script>
   </head>

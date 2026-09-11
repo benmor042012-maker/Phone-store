@@ -7,8 +7,9 @@
  * original is never overwritten.
  */
 import { applyOverrides, normalizeOverrides, type CatalogOverrides, type CatalogProduct, type ProductEdit, ADDED_ID_PREFIX, EMPTY_OVERRIDES } from "@shared/catalog-overrides";
-import { Eye, EyeOff, ImageUp, Plus, RotateCcw, Save, Search, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Images, Plus, RotateCcw, Save, Search, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import AdminMedia from "@/components/AdminMedia";
 import { useBaseInventory } from "@/lib/catalog";
 import { trpc } from "@/lib/trpc";
 
@@ -117,7 +118,6 @@ export default function AdminProducts({ token, onNotice }: { token: string; onNo
   const base = useBaseInventory();
   const stored = trpc.storefront.catalogOverrides.useQuery(undefined, { retry: 0, refetchOnWindowFocus: false });
   const save = trpc.sourceAdmin.saveCatalog.useMutation();
-  const upload = trpc.sourceAdmin.upload.useMutation();
 
   const [overrides, setOverrides] = useState<CatalogOverrides>(EMPTY_OVERRIDES);
   const [loaded, setLoaded] = useState(false);
@@ -126,6 +126,7 @@ export default function AdminProducts({ token, onNotice }: { token: string; onNo
   const [filter, setFilter] = useState<Filter>("all");
   const [count, setCount] = useState(PAGE);
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [libraryOpen, setLibraryOpen] = useState(false);
 
   useEffect(() => {
     if (stored.data && !loaded) {
@@ -202,21 +203,6 @@ export default function AdminProducts({ token, onNotice }: { token: string; onNo
     }
     setDraft(null);
     onNotice("השינוי נשמר בטיוטה. לחצו פרסום כדי שיופיע באתר.");
-  };
-
-  const pickImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file || !draft) return;
-    if (!(["image/jpeg", "image/png", "image/webp"] as string[]).includes(file.type)) { onNotice("ניתן להעלות JPG, PNG או WebP בלבד."); return; }
-    if (file.size > 2 * 1024 * 1024) { onNotice("התמונה גדולה מדי. הגבול הוא 2MB."); return; }
-    const buffer = await file.arrayBuffer();
-    let binary = "";
-    const bytes = new Uint8Array(buffer);
-    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-    const result = await upload.mutateAsync({ token, contentType: file.type as "image/jpeg" | "image/png" | "image/webp", imageBase64: btoa(binary) });
-    if (result.status === "ok" && result.url) { setDraft({ ...draft, image: result.url }); onNotice("התמונה עלתה."); return; }
-    onNotice(result.status === "expired" ? "פג תוקף החיבור. הזינו את הסיסמה שוב." : "העלאת התמונה נכשלה.");
   };
 
   const publish = async () => {
@@ -336,8 +322,14 @@ export default function AdminProducts({ token, onNotice }: { token: string; onNo
                 תמונה
                 <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
                   <img src={draft.image || "/images/logo.png"} alt="" width={64} height={64} onError={(event) => { event.currentTarget.src = "/images/logo.png"; }} style={{ width: 64, height: 64, objectFit: "cover", background: "#000" }} />
-                  <label style={action}><ImageUp size={16} /> {upload.isPending ? "מעלה…" : "העלאת תמונה"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={pickImage} hidden /></label>
+                  <button type="button" onClick={() => setLibraryOpen(!libraryOpen)} style={action}><Images size={16} /> {libraryOpen ? "סגירת ספריית המדיה" : "העלאה או בחירה מספריית המדיה"}</button>
                 </div>
+                {/* The same library as the מדיה tab: an upload lands here and stays pickable. */}
+                {libraryOpen && (
+                  <div style={{ ...panel, padding: 12 }}>
+                    <AdminMedia token={token} onNotice={onNotice} selectedUrl={draft.image} selectLabel="בחירה למוצר" onSelect={(url) => setDraft((current) => (current ? { ...current, image: url } : current))} />
+                  </div>
+                )}
                 <input value={draft.image} onChange={(event) => setDraft({ ...draft, image: event.target.value })} placeholder="או כתובת תמונה" style={{ ...field, direction: "ltr", textAlign: "left" }} />
               </div>
             </div>

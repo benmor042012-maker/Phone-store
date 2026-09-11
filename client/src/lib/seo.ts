@@ -106,6 +106,14 @@ export function buildStoreJsonLd(origin: string) {
     paymentAccepted: "ביט, פייבוקס, כרטיס אשראי, מזומן",
     address: { "@type": "PostalAddress", streetAddress: STORE.street, addressLocality: STORE.city, postalCode: STORE.postalCode, addressCountry: STORE.country },
     geo: { "@type": "GeoCoordinates", latitude: STORE.latitude, longitude: STORE.longitude },
+    // The place is named after the shop, not after the street, so anything that quotes a
+    // location name shows PHONE STORE. The postal address above is untouched.
+    location: {
+      "@type": "Place",
+      name: STORE.locationName,
+      address: { "@type": "PostalAddress", streetAddress: STORE.street, addressLocality: STORE.city, postalCode: STORE.postalCode, addressCountry: STORE.country },
+      geo: { "@type": "GeoCoordinates", latitude: STORE.latitude, longitude: STORE.longitude },
+    },
     areaServed: [{ "@type": "City", name: "נתניה" }, { "@type": "Country", name: "ישראל" }],
     sameAs: socialLinks.map((link) => link.href),
     hasMap: socialLinks.find((link) => link.id === "waze")?.href,

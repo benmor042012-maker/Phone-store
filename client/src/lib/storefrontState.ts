@@ -32,6 +32,12 @@ export const STORE = {
   phoneHref: "tel:0504777470",
   whatsapp: "972504777470",
   street: "שדרות בן גוריון 2",
+  /**
+   * What a location tag is called. The street address stays the address — it is still what
+   * the contact block, the footer and the postal data show — but anywhere the site names the
+   * place rather than states where it is, the name is the shop, not the street.
+   */
+  locationName: "PHONE STORE",
   city: "נתניה",
   country: "IL",
   postalCode: "4250452",
@@ -49,7 +55,9 @@ export const STORE = {
 export const socialLinks = [
   { id: "whatsapp", label: "WhatsApp", href: `https://wa.me/${STORE.whatsapp}` },
   { id: "instagram", label: "Instagram", href: "https://www.instagram.com/phone_store_2010" },
-  { id: "waze", label: "Waze", href: "https://waze.com/ul?q=%D7%A9%D7%93%D7%A8%D7%95%D7%AA%20%D7%91%D7%9F%20%D7%92%D7%95%D7%A8%D7%99%D7%95%D7%9F%202%20%D7%A0%D7%AA%D7%A0%D7%99%D7%94" },
+  // Navigates to the shop's own coordinates, so the destination reads "PHONE STORE" rather
+  // than the street it sits on. The address itself is unchanged everywhere it is needed.
+  { id: "waze", label: "Waze", href: `https://waze.com/ul?ll=${STORE.latitude}%2C${STORE.longitude}&q=${encodeURIComponent(STORE.locationName)}&navigate=yes` },
 ] as const;
 
 /**

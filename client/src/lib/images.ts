@@ -26,6 +26,37 @@ export function productPicture(src: string | undefined): string {
   return src && src.trim() ? src : IMAGE_FALLBACK;
 }
 
+/**
+ * The 480px copy of a catalogue photo that `pnpm thumbs` writes beside the original, or
+ * null for anything else — an admin upload under /img/ has no second size, and neither
+ * does the inline placeholder.
+ */
+export function catalogThumb(src: string): string | null {
+  return src.startsWith("/images/catalog/") && !src.startsWith("/images/catalog/sm/")
+    ? src.replace("/images/catalog/", "/images/catalog/sm/")
+    : null;
+}
+
+/**
+ * Both sizes of a catalogue photo for one `srcset`, or nothing when there is only one.
+ * `sizes` is the width the photo is actually painted at, which for the grid is set by the
+ * box height and `object-fit`, not by the width of the element around it.
+ */
+export function pictureSources(src: string, sizes: string): { srcSet?: string; sizes?: string } {
+  const small = catalogThumb(src);
+  return small ? { srcSet: `${small} 480w, ${src} 800w`, sizes } : {};
+}
+
+/**
+ * The photo behind a category tile. It is cropped, drawn under the label at 40% opacity and
+ * never wider than about 234px, so it takes the grid copy outright rather than offering the
+ * 800px original that a dense phone screen would otherwise reach for.
+ */
+export function categoryPicture(src: string | undefined): string {
+  const picture = productPicture(src);
+  return catalogThumb(picture) ?? picture;
+}
+
 /** Swaps in the placeholder once; the guard stops a broken fallback from looping. */
 export function onImageError(event: { currentTarget: HTMLImageElement }) {
   const image = event.currentTarget;

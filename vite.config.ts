@@ -150,10 +150,19 @@ function vitePluginManusDebugCollector(): Plugin {
   };
 }
 
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
+/**
+ * The editor integrations belong to the preview, not to the shop.
+ *
+ * All three were running in the production build as well: the runtime inlined ~100KB into
+ * index.html and registered an `unload` listener, which is deprecated and on its own stops
+ * the browser from restoring the page from the back/forward cache, and the loc plugin
+ * stamped a `data-loc` source path onto every element in the page. None of it does anything
+ * for a visitor, so it is loaded only while developing.
+ */
+const devOnlyPlugins = [jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
 
-export default defineConfig({
-  plugins,
+export default defineConfig(({ command }) => ({
+  plugins: [react(), tailwindcss(), ...(command === "serve" ? devOnlyPlugins : [])],
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
@@ -184,4 +193,4 @@ export default defineConfig({
       deny: ["**/.*"],
     },
   },
-});
+}));

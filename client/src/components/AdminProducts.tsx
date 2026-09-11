@@ -264,7 +264,7 @@ export default function AdminProducts({ token, onNotice }: { token: string; onNo
           const isEdited = Boolean(overrides.edits[product.id]);
           return (
             <li key={product.id} style={{ ...panel, padding: 12, display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap", opacity: isHidden ? 0.55 : 1 }}>
-              <img src={shown.image || "/images/logo.png"} alt="" width={56} height={56} loading="lazy" onError={(event) => { event.currentTarget.src = "/images/logo.png"; }} style={{ width: 56, height: 56, objectFit: "cover", background: "#000", flexShrink: 0 }} />
+              <img src={shown.image || "/images/logo.webp"} alt="" width={56} height={56} loading="lazy" onError={(event) => { event.currentTarget.src = "/images/logo.webp"; }} style={{ width: 56, height: 56, objectFit: "cover", background: "#000", flexShrink: 0 }} />
               <div style={{ flex: "1 1 260px", minWidth: 0 }}>
                 <p style={{ margin: 0, fontSize: 15, overflowWrap: "anywhere" }}>{shown.name}</p>
                 <p style={{ margin: "4px 0 0", color: "#b6afa4", fontSize: 13 }}>
@@ -323,7 +323,7 @@ export default function AdminProducts({ token, onNotice }: { token: string; onNo
               <div style={{ display: "grid", gap: 8, fontSize: 14 }}>
                 תמונה
                 <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-                  <img src={draft.image || "/images/logo.png"} alt="" width={64} height={64} onError={(event) => { event.currentTarget.src = "/images/logo.png"; }} style={{ width: 64, height: 64, objectFit: "cover", background: "#000" }} />
+                  <img src={draft.image || "/images/logo.webp"} alt="" width={64} height={64} onError={(event) => { event.currentTarget.src = "/images/logo.webp"; }} style={{ width: 64, height: 64, objectFit: "cover", background: "#000" }} />
                   <button type="button" onClick={() => setLibraryOpen(!libraryOpen)} style={action}><Images size={16} /> {libraryOpen ? "סגירת ספריית המדיה" : "העלאה או בחירה מספריית המדיה"}</button>
                 </div>
                 {/* The same library as the מדיה tab: an upload lands here and stays pickable. */}

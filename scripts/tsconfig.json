@@ -1,0 +1,7 @@
+{
+  // For `tsx scripts/*.tsx`: the app's config keeps JSX for Vite to compile, which leaves a
+  // script run directly under Node with raw JSX and no React in scope.
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "jsx": "react-jsx", "noEmit": true },
+  "include": ["./*.tsx", "../client/src/**/*", "../shared/**/*", "../server/**/*"]
+}

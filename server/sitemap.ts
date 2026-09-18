@@ -1,4 +1,5 @@
-/** Sitemap for the storefront: the home page plus one entry per product in the shipped catalog. */
+/** Sitemap for the storefront: the home page, the landing pages, and one entry per product in the shipped catalog. */
+import { STATIC_PAGES } from "../shared/pages";
 
 export type SitemapProduct = { id: string; image?: string };
 export type SitemapCatalog = { capturedAt?: string; products?: SitemapProduct[] };
@@ -24,6 +25,7 @@ export function buildSitemapXml(origin: string, catalog: SitemapCatalog): string
   });
   const entries = [
     `  <url>\n    <loc>${base}/</loc>\n${lastmod ? `    <lastmod>${lastmod}</lastmod>\n` : ""}    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>`,
+    ...STATIC_PAGES.map((page) => `  <url>\n    <loc>${base}${page.path}</loc>\n${lastmod ? `    <lastmod>${lastmod}</lastmod>\n` : ""}    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`),
     ...products.map((product) => {
       const loc = `${base}/products/${encodeURIComponent(product.id)}`;
       const image = product.image ? (product.image.startsWith("http") ? product.image : `${base}${product.image}`) : undefined;

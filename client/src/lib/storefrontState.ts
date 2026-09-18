@@ -19,8 +19,8 @@ export function buildProductShareText(name: string, formattedPrice: string, url:
 }
 
 export const navigationCopy = {
-  he: { inventory: "המלאי", categories: "קטגוריות", how: "איך זה עובד", customers: "לקוחות", contact: "צור קשר" },
-  en: { inventory: "Inventory", categories: "Categories", how: "How it works", customers: "Customers", contact: "Contact" },
+  he: { inventory: "המלאי", categories: "קטגוריות", repairs: "תיקונים", iphone: "אייפון", how: "איך זה עובד", customers: "לקוחות", contact: "צור קשר" },
+  en: { inventory: "Inventory", categories: "Categories", repairs: "Repairs", iphone: "iPhone", how: "How it works", customers: "Customers", contact: "Contact" },
 } as const;
 
 /** Single source of truth for the store identity used by the storefront copy and the structured data. */
@@ -45,6 +45,10 @@ export const STORE = {
   longitude: 34.8532,
   email: "info@phonestore.co.il",
   site: "https://phonestore.co.il",
+  /** The shop's Google Business Profile: the listing that a local search shows on the map. */
+  googleProfile: "https://maps.app.goo.gl/eVKQ3FN6G9mfKSjp7",
+  /** The year the shop opened on the boulevard. */
+  founded: "2010",
   // 680px wide, which covers the header at twice the pixel density it is drawn at. The PNG
   // it was cut from is 1200px and 135KB, for a mark that never renders above 340.
   logo: "/images/logo.webp",
@@ -57,6 +61,7 @@ export const STORE = {
 export const socialLinks = [
   { id: "whatsapp", label: "WhatsApp", href: `https://wa.me/${STORE.whatsapp}` },
   { id: "instagram", label: "Instagram", href: "https://www.instagram.com/phone_store_2010" },
+  { id: "google", label: "Google Maps", href: STORE.googleProfile },
   // Navigates to the shop's own coordinates, so the destination reads "PHONE STORE" rather
   // than the street it sits on. The address itself is unchanged everywhere it is needed.
   { id: "waze", label: "Waze", href: `https://waze.com/ul?ll=${STORE.latitude}%2C${STORE.longitude}&q=${encodeURIComponent(STORE.locationName)}&navigate=yes` },
@@ -91,6 +96,26 @@ export const storeFaq: { question: string; answer: string }[] = [
   {
     question: "אפשר להזמין מוצר שלא מופיע במלאי באתר?",
     answer: "כן. שלחו הודעה בוואטסאפ עם הדגם שאתם מחפשים; רוב הפריטים שאינם מוצגים באתר מגיעים לחנות תוך יום עסקים אחד.",
+  },
+  {
+    question: "מתקנים סלולרי בחנות בנתניה?",
+    answer: "כן. במעבדה בחנות בשדרות בן גוריון 2 מחליפים מסכים וסוללות, מתקנים שקעי טעינה, רמקולים ומיקרופונים ומטפלים בנזקי מים ובתקלות תוכנה, לאייפון, סמסונג ואנדרואיד. שלחו בוואטסאפ את הדגם ואת התקלה ותקבלו מחיר לפני העבודה.",
+  },
+  {
+    question: "כמה זמן לוקח תיקון סלולרי?",
+    answer: "החלפת מסך או סוללה לדגמים הנפוצים נעשית בדרך כלל באותו יום, בזמן שאתם ממתינים או כשאתם חוזרים לאסוף. תיקון שדורש חלק שאינו במלאי מתואם מראש, ותקבלו זמן משוער לפני שמתחילים.",
+  },
+  {
+    question: "יש אחריות על התיקון?",
+    answer: "כן. כל תיקון שנעשה בחנות מגיע עם אחריות על החלק ועל העבודה. אם אותה תקלה חוזרת בתקופת האחריות, מתקנים שוב בלי תשלום.",
+  },
+  {
+    question: "איפה החנות ואיך מגיעים אליה?",
+    answer: "Phone Store נמצאת בשדרות בן גוריון 2 בנתניה, במרחק הליכה ממרכז העיר. יש חניה ברחוב, והכניסה מהשדרה. בוויז מחפשים PHONE STORE נתניה, או לוחצים על קישור הניווט באתר.",
+  },
+  {
+    question: "אפשר לקנות אייפון בתשלומים?",
+    answer: "כן. אייפון וכל מכשיר אחר בחנות אפשר לרכוש בכרטיס אשראי עד 36 תשלומים ללא ריבית, או לשלם בביט, בפייבוקס או במזומן. המכשירים מגיעים עם אחריות יבואן רשמי ל־12 חודשים.",
   },
 ];
 

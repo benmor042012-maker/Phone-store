@@ -7,6 +7,8 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import Landing from "./pages/Landing";
+import { STATIC_PAGES } from "@shared/pages";
 
 /**
  * Content administration is the shop owner's screen, not the shop's. Loading it on demand
@@ -17,7 +19,7 @@ const Admin = lazy(() => import("./pages/Admin"));
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
-  return <Switch><Route path="/" component={Home} /><Route path="/products/:id" component={Home} /><Route path="/admin">{() => <Suspense fallback={<main dir="rtl" style={{ minHeight: "100vh", background: "#080807", color: "#b6afa4", display: "grid", placeItems: "center" }}>טוען את ניהול התוכן…</main>}><Admin /></Suspense>}</Route><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>;
+  return <Switch><Route path="/" component={Home} /><Route path="/products/:id" component={Home} /><Route path="/admin">{() => <Suspense fallback={<main dir="rtl" style={{ minHeight: "100vh", background: "#080807", color: "#b6afa4", display: "grid", placeItems: "center" }}>טוען את ניהול התוכן…</main>}><Admin /></Suspense>}</Route>{STATIC_PAGES.map((page) => <Route key={page.path} path={page.path} component={Landing} />)}<Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>;
 }
 
 export default function App() {

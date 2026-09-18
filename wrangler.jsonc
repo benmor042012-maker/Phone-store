@@ -13,11 +13,12 @@
     "directory": "./dist/public",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    // Without this the asset router answers these paths itself and the Worker never runs.
-    // /sitemap.xml has a static file next to it, which was being served instead of the
-    // generated one, so search engines only ever saw the home page. Anything not listed
-    // is still served straight from the CDN.
-    "run_worker_first": ["/api/*", "/img/*", "/sitemap.xml"]
+    // The Worker sees every request. It used to run only for the API, the uploads and the
+    // sitemap, with the CDN answering everything else itself; but the www → apex redirect
+    // and the 404 status for a path that is not a page have to happen before an asset is
+    // served, and there is no path pattern that names "every request on the www host".
+    // The Worker still hands each asset straight to the CDN, so the cost is one hop.
+    "run_worker_first": true
   },
   "observability": {
     "enabled": true

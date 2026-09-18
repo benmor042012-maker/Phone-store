@@ -1,52 +1,35 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle, Home } from "lucide-react";
-import { useLocation } from "wouter";
+/** The page for a path that does not exist: in the shop's language and colours, with a way back. */
+import { ArrowLeft } from "lucide-react";
+import { useEffect } from "react";
+import { SiteHeader } from "@/components/storefront/SiteHeader";
+import { SiteFooter, WHATSAPP_URL } from "@/components/storefront/StaticSections";
+import { applyJsonLd, applyPageSeo } from "@/lib/seo";
 
 export default function NotFound() {
-  const [, setLocation] = useLocation();
-
-  const handleGoHome = () => {
-    setLocation("/");
-  };
+  useEffect(() => {
+    applyPageSeo({ title: "העמוד לא נמצא | Phone Store נתניה", description: "הכתובת שהגעתם אליה לא קיימת באתר של Phone Store נתניה. המלאי, התיקונים ופרטי החנות נמצאים בעמוד הבית.", path: "/404", robots: "noindex" });
+    applyJsonLd("ld-product", null);
+    applyJsonLd("ld-breadcrumb", null);
+    applyJsonLd("ld-catalog", null);
+  }, []);
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-      <Card className="w-full max-w-lg mx-4 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-        <CardContent className="pt-8 pb-8 text-center">
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              <div className="absolute inset-0 bg-red-100 rounded-full animate-pulse" />
-              <AlertCircle className="relative h-16 w-16 text-red-500" />
-            </div>
+    <div className="store-page landing-page" dir="rtl">
+      <SiteHeader />
+      <main>
+        <section className="section-shell landing-article not-found" aria-labelledby="not-found-heading">
+          <p className="section-kicker"><span>404</span></p>
+          <h1 id="not-found-heading">העמוד לא נמצא</h1>
+          <p className="landing-intro">הכתובת הזו לא קיימת באתר, או שהמוצר הוסר מהמלאי. כל מה שיש בחנות עדיין כאן.</p>
+          <div className="hero-buttons landing-cta">
+            <a href="/" className="btn-gold">לעמוד הבית <ArrowLeft size={17} /></a>
+            <a href="/#catalog" className="btn-outline">למלאי</a>
+            <a href="/repairs" className="btn-outline">תיקון סלולרי</a>
+            <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="btn-outline">שאלה בוואטסאפ</a>
           </div>
-
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">404</h1>
-
-          <h2 className="text-xl font-semibold text-slate-700 mb-4">
-            Page Not Found
-          </h2>
-
-          <p className="text-slate-600 mb-8 leading-relaxed">
-            Sorry, the page you are looking for doesn't exist.
-            <br />
-            It may have been moved or deleted.
-          </p>
-
-          <div
-            id="not-found-button-group"
-            className="flex flex-col sm:flex-row gap-3 justify-center"
-          >
-            <Button
-              onClick={handleGoHome}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-            >
-              <Home className="w-4 h-4 mr-2" />
-              Go Home
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        </section>
+      </main>
+      <SiteFooter />
     </div>
   );
 }

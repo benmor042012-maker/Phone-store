@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { STATIC_PAGES } from "../shared/pages";
 import { buildSitemapXml } from "./sitemap";
 
 describe("buildSitemapXml", () => {
@@ -13,7 +14,8 @@ describe("buildSitemapXml", () => {
     expect(xml).toContain("<image:loc>https://example.test/images/catalog/a.webp</image:loc>");
     expect(xml).toContain("<loc>https://example.test/products/phone%201</loc>");
     expect(xml).toContain("<lastmod>2026-08-21</lastmod>");
-    expect(xml.match(/<url>/g)).toHaveLength(3);
+    expect(xml.match(/<url>/g)).toHaveLength(3 + STATIC_PAGES.length);
+    expect(xml.indexOf("<loc>https://example.test/repairs</loc>")).toBeLessThan(xml.indexOf("<loc>https://example.test/products/33767</loc>"));
     expect(xml).not.toContain("#");
   });
 

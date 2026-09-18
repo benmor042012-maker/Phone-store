@@ -1,5 +1,6 @@
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { readImage, readOverrides, type AdminEnv } from "../server/admin-store";
+import { findStaticPage, isAppRoute } from "../shared/pages";
 import { applyOverrides, type CatalogProduct } from "@shared/catalog-overrides";
 import { buildProductSocialMeta, findProduct, productIdFromPath, type SocialCatalog } from "../server/social-meta";
 import { appRouter } from "../server/routers";
@@ -11,6 +12,31 @@ export interface Env extends AdminEnv {
 }
 
 const endpoint = "/api/trpc";
+
+/**
+ * One address per page. The site is `phonestore.co.il`; `www.` is a second host that
+ * would otherwise serve a full copy, and search engines split a page's standing between
+ * the two. A static page also drops a trailing slash, so `/repairs/` is `/repairs`.
+ * Returns null when the URL is already the canonical one.
+ */
+export function canonicalRedirect(url: URL): Response | null {
+  const target = new URL(url.toString());
+  if (target.hostname.startsWith("www.")) target.hostname = target.hostname.slice(4);
+  if (target.pathname.length > 1 && target.pathname.endsWith("/") && findStaticPage(target.pathname)) {
+    target.pathname = target.pathname.replace(/\/+$/, "");
+  }
+  if (target.toString() === url.toString()) return null;
+  return Response.redirect(target.toString(), 301);
+}
+
+/**
+ * The status an HTML document should carry. The asset router answers every unknown path
+ * with index.html and a 200, which tells a crawler that `/anything` is a real page. The app
+ * renders its not-found page there, and this is the status that goes with it.
+ */
+export function statusForDocument(pathname: string): 200 | 404 {
+  return isAppRoute(pathname) ? 200 : 404;
+}
 
 /** Lists every product page from the shipped catalog; falls back to the static sitemap asset when the catalog is unreadable. */
 async function buildSitemapResponse(origin: string, env: Env, request: Request): Promise<Response | null> {
@@ -67,6 +93,8 @@ async function productDocument(url: URL, env: Env, request: Request): Promise<Re
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    const redirect = canonicalRedirect(url);
+    if (redirect) return redirect;
     if (url.pathname === endpoint || url.pathname.startsWith(`${endpoint}/`)) {
       return fetchRequestHandler({
         endpoint,
@@ -127,6 +155,11 @@ export default {
       if (product) return product;
     }
 
-    return env.ASSETS.fetch(request);
+    const response = await env.ASSETS.fetch(request);
+    const status = statusForDocument(url.pathname);
+    if (status === 404 && response.status === 200 && (response.headers.get("content-type") ?? "").includes("text/html")) {
+      return new Response(response.body, { status, headers: response.headers });
+    }
+    return response;
   },
 } satisfies ExportedHandler<Env>;

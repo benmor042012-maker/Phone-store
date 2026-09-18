@@ -1,5 +1,6 @@
 /** Search-engine metadata for the storefront: document meta tags plus schema.org structured data. */
 import { SHARE_IMAGE } from "@shared/const";
+import type { StaticPage } from "@shared/pages";
 import { socialLinks, STORE, storeFaq } from "./storefrontState";
 
 function upsertMeta(selector: string, attribute: "name" | "property", key: string, content: string) {
@@ -29,10 +30,12 @@ function removeMeta(selector: string) {
   document.head.querySelector(selector)?.remove();
 }
 
-export type PageSeo = { title: string; description: string; path: string; image?: string; imageAlt?: string; type?: "website" | "product"; price?: number };
+export type PageSeo = { title: string; description: string; path: string; image?: string; imageAlt?: string; type?: "website" | "product"; price?: number; robots?: "noindex" };
+
+const INDEXABLE = "index, follow, max-image-preview:large, max-snippet:-1";
 
 /** Applies the canonical URL, the description and the Open Graph / Twitter cards for the current view. */
-export function applyPageSeo({ title, description, path, image, imageAlt, type = "website", price }: PageSeo) {
+export function applyPageSeo({ title, description, path, image, imageAlt, type = "website", price, robots }: PageSeo) {
   if (typeof document === "undefined") return;
   const origin = typeof window !== "undefined" && window.location.origin.startsWith("http") ? window.location.origin : STORE.site;
   const url = `${origin}${path}`;
@@ -42,6 +45,9 @@ export function applyPageSeo({ title, description, path, image, imageAlt, type =
   document.title = title;
   document.documentElement.lang = "he";
   upsertMeta('meta[name="description"]', "name", "description", description);
+  // A missing page must not be indexed under the home page's tags, and the flag must not
+  // linger once the visitor navigates on to a real page.
+  upsertMeta('meta[name="robots"]', "name", "robots", robots === "noindex" ? "noindex, follow" : INDEXABLE);
   upsertLink("canonical", url);
   upsertMeta('meta[property="og:title"]', "property", "og:title", title);
   upsertMeta('meta[property="og:description"]', "property", "og:description", description);
@@ -144,9 +150,22 @@ export function buildStoreJsonLd(origin: string, reviews: StoreReview[] = []) {
       address: { "@type": "PostalAddress", streetAddress: STORE.street, addressLocality: STORE.city, postalCode: STORE.postalCode, addressCountry: STORE.country },
       geo: { "@type": "GeoCoordinates", latitude: STORE.latitude, longitude: STORE.longitude },
     },
+    foundingDate: STORE.founded,
+    founder: { "@type": "Person", name: STORE.owner },
     areaServed: [{ "@type": "City", name: "נתניה" }, { "@type": "Country", name: "ישראל" }],
     sameAs: socialLinks.map((link) => link.href),
-    hasMap: socialLinks.find((link) => link.id === "waze")?.href,
+    hasMap: STORE.googleProfile,
+    knowsAbout: ["טלפונים סלולריים", "אייפון", "סמסונג גלקסי", "תיקון סלולרי", "אביזרים לסלולר"],
+    // What the shop does, in the words people search for; each one is a page of the site.
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "מה יש ב־Phone Store נתניה",
+      itemListElement: [
+        { "@type": "Offer", itemOffered: { "@type": "Service", name: "תיקון סלולרי בנתניה", url: `${origin}/repairs`, serviceType: "תיקון טלפונים סלולריים", areaServed: { "@type": "City", name: "נתניה" } } },
+        { "@type": "Offer", itemOffered: { "@type": "Product", name: "אייפון בנתניה", url: `${origin}/iphone` } },
+        { "@type": "Offer", itemOffered: { "@type": "Product", name: "אביזרים לסלולר בנתניה", url: `${origin}/accessories` } },
+      ],
+    },
     contactPoint: [
       { "@type": "ContactPoint", contactType: "sales", telephone: STORE.phone, url: `https://wa.me/${STORE.whatsapp}`, availableLanguage: ["he", "en"] },
     ],
@@ -158,16 +177,33 @@ export function buildStoreJsonLd(origin: string, reviews: StoreReview[] = []) {
   };
 }
 
-/** Mirrors the FAQ section rendered on the page, which is what makes it eligible for rich results. */
-export function buildFaqJsonLd() {
+/** FAQPage markup for a list of questions that the page shows verbatim. */
+export function buildQuestionsJsonLd(items: { question: string; answer: string }[]) {
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: storeFaq.map((entry) => ({
+    mainEntity: items.map((entry) => ({
       "@type": "Question",
       name: entry.question,
       acceptedAnswer: { "@type": "Answer", text: entry.answer },
     })),
+  };
+}
+
+/** Mirrors the FAQ section rendered on the page, which is what makes it eligible for rich results. */
+export function buildFaqJsonLd() {
+  return buildQuestionsJsonLd(storeFaq);
+}
+
+/** Home → landing page, for the path shown under a landing page's search result. */
+export function buildLandingBreadcrumbJsonLd(origin: string, page: Pick<StaticPage, "path" | "h1">) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: `${STORE.name} ${STORE.city}`, item: `${origin}/` },
+      { "@type": "ListItem", position: 2, name: page.h1, item: `${origin}${page.path}` },
+    ],
   };
 }
 

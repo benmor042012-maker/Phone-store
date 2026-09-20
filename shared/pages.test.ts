@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findStaticPage, HOME_SEO, isAppRoute, STATIC_PAGES } from "./pages";
+import { childPages, findStaticPage, HOME_SEO, isAppRoute, pageTrail, STATIC_PAGES } from "./pages";
 
 describe("STATIC_PAGES", () => {
   it("gives every page a distinct path, file and title, with the search phrase leading the title", () => {
@@ -8,8 +8,9 @@ describe("STATIC_PAGES", () => {
     expect(new Set(STATIC_PAGES.map((page) => page.file)).size).toBe(paths.length);
     expect(new Set(STATIC_PAGES.map((page) => page.title)).size).toBe(paths.length);
     for (const page of STATIC_PAGES) {
-      expect(page.path).toMatch(/^\/[a-z-]+$/);
+      expect(page.path).toMatch(/^\/[a-z-]+(\/[a-z-]+)?$/);
       expect(page.file).toBe(`${page.path.slice(1)}.html`);
+      if (page.parent) expect(page.path.startsWith(`${page.parent}/`), page.path).toBe(true);
       expect(page.title).toContain(page.keyword.split(" ")[0]);
       expect(page.h1.length).toBeGreaterThan(8);
     }
@@ -50,6 +51,25 @@ describe("isAppRoute", () => {
   it("rejects everything else", () => {
     for (const path of ["/nope", "/products", "/products/", "/products/1/2", "/images/x.png", "/repairs/x", "/admin/x"]) {
       expect(isAppRoute(path), path).toBe(false);
+    }
+  });
+});
+
+describe("the page tree", () => {
+  it("knows which pages sit under another one", () => {
+    expect(childPages("/repairs").map((page) => page.path)).toEqual(["/repairs/screen", "/repairs/battery"]);
+    expect(childPages("/about")).toEqual([]);
+  });
+
+  it("gives a sub-page a two-step trail and a top page a one-step trail", () => {
+    const screen = findStaticPage("/repairs/screen");
+    expect(pageTrail(screen!).map((page) => page.path)).toEqual(["/repairs", "/repairs/screen"]);
+    expect(pageTrail(findStaticPage("/about")!).map((page) => page.path)).toEqual(["/about"]);
+  });
+
+  it("every parent named is a page that exists", () => {
+    for (const page of STATIC_PAGES) {
+      if (page.parent) expect(findStaticPage(page.parent), page.path).not.toBeNull();
     }
   });
 });

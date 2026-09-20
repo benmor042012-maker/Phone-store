@@ -1,6 +1,6 @@
 /** Search-engine metadata for the storefront: document meta tags plus schema.org structured data. */
 import { SHARE_IMAGE } from "@shared/const";
-import type { StaticPage } from "@shared/pages";
+import { pageTrail, type StaticPage } from "@shared/pages";
 import { socialLinks, STORE, storeFaq } from "./storefrontState";
 
 function upsertMeta(selector: string, attribute: "name" | "property", key: string, content: string) {
@@ -195,14 +195,14 @@ export function buildFaqJsonLd() {
   return buildQuestionsJsonLd(storeFaq);
 }
 
-/** Home → landing page, for the path shown under a landing page's search result. */
-export function buildLandingBreadcrumbJsonLd(origin: string, page: Pick<StaticPage, "path" | "h1">) {
+/** Home → (parent →) landing page, for the path shown under a landing page's search result. */
+export function buildLandingBreadcrumbJsonLd(origin: string, page: StaticPage) {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: `${STORE.name} ${STORE.city}`, item: `${origin}/` },
-      { "@type": "ListItem", position: 2, name: page.h1, item: `${origin}${page.path}` },
+      ...pageTrail(page).map((step, index) => ({ "@type": "ListItem", position: index + 2, name: step.h1, item: `${origin}${step.path}` })),
     ],
   };
 }

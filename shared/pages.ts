@@ -8,11 +8,15 @@
  * copy, not on the path.
  */
 
+export type StaticPagePath = "/repairs" | "/iphone" | "/samsung" | "/accessories" | "/about" | "/repairs/screen" | "/repairs/battery";
+
 export type StaticPage = {
   /** The route, with a leading slash and no trailing one. */
-  path: "/repairs" | "/iphone" | "/accessories" | "/about";
+  path: StaticPagePath;
   /** The asset written next to index.html; Cloudflare serves `repairs.html` at `/repairs`. */
   file: string;
+  /** The page this one sits under, for the breadcrumb and the internal links. */
+  parent?: StaticPagePath;
   /** Document title: the search phrase first, the brand last. */
   title: string;
   /** Meta description, a sentence someone would click. */
@@ -47,6 +51,28 @@ export const STATIC_PAGES: readonly StaticPage[] = [
     navLabel: "תיקונים",
   },
   {
+    path: "/repairs/screen",
+    file: "repairs/screen.html",
+    parent: "/repairs",
+    keyword: "החלפת מסך בנתניה",
+    title: `החלפת מסך לאייפון ולסמסונג בנתניה | ${BRAND}`,
+    description:
+      "החלפת מסך בנתניה לאייפון, לגלקסי ולאנדרואיד, במעבדה שבחנות בשדרות בן גוריון 2. מחיר לדגם לפני העבודה, ברוב המקרים באותו יום, ואחריות על החלק ועל העבודה.",
+    h1: "החלפת מסך לטלפון בנתניה",
+    navLabel: "החלפת מסך",
+  },
+  {
+    path: "/repairs/battery",
+    file: "repairs/battery.html",
+    parent: "/repairs",
+    keyword: "החלפת סוללה בנתניה",
+    title: `החלפת סוללה לטלפון בנתניה | ${BRAND} · אלי חזות`,
+    description:
+      "החלפת סוללה בנתניה לאייפון, לסמסונג ולאנדרואיד: סוללה שנגמרת מהר, מתנפחת או מכבה את המכשיר. מעבדה בשדרות בן גוריון 2, מחיר מראש ואחריות על התיקון.",
+    h1: "החלפת סוללה לטלפון בנתניה",
+    navLabel: "החלפת סוללה",
+  },
+  {
     path: "/iphone",
     file: "iphone.html",
     keyword: "אייפון בנתניה",
@@ -55,6 +81,16 @@ export const STATIC_PAGES: readonly StaticPage[] = [
       "אייפון בנתניה במחירי חנות: iPhone 17, 16 ו־15 עם אחריות יבואן רשמי, עד 36 תשלומים, תשלום בביט או בפייבוקס ומשלוח חינם מעל ₪299. ייעוץ אישי של אלי חזות.",
     h1: "אייפון בנתניה במחירי חנות",
     navLabel: "אייפון",
+  },
+  {
+    path: "/samsung",
+    file: "samsung.html",
+    keyword: "סמסונג בנתניה",
+    title: `סמסונג בנתניה — גלקסי, אביזרים ותיקונים | ${BRAND}`,
+    description:
+      "סמסונג בנתניה: מכשירי גלקסי בהזמנה עם אחריות יבואן, מאות כיסויים ומגני מסך במלאי, והחלפת מסך או סוללה במעבדה שבחנות בשדרות בן גוריון 2.",
+    h1: "סמסונג גלקסי בנתניה",
+    navLabel: "סמסונג",
   },
   {
     path: "/accessories",
@@ -99,4 +135,15 @@ export function isAppRoute(pathname: string): boolean {
   if (path === "/" || path === "/admin" || path === "/404") return true;
   if (/^\/products\/[^/]+$/.test(path)) return true;
   return findStaticPage(path) !== null;
+}
+
+/** The pages under `parent`, in the order they are listed. */
+export function childPages(parent: StaticPagePath): StaticPage[] {
+  return STATIC_PAGES.filter((page) => page.parent === parent);
+}
+
+/** A page and everything above it, home excluded: the breadcrumb trail. */
+export function pageTrail(page: StaticPage): StaticPage[] {
+  const parent = page.parent ? findStaticPage(page.parent) : null;
+  return parent ? [parent, page] : [page];
 }

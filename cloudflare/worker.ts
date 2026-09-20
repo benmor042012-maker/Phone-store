@@ -5,6 +5,9 @@ import { applyOverrides, type CatalogProduct } from "@shared/catalog-overrides";
 import { buildProductSocialMeta, findProduct, productIdFromPath, type SocialCatalog } from "../server/social-meta";
 import { appRouter } from "../server/routers";
 import { buildSitemapXml, type SitemapCatalog } from "../server/sitemap";
+import { buildProductBodyHtml } from "../server/product-page";
+import { buildBreadcrumbJsonLd, buildProductJsonLd } from "../client/src/lib/seo";
+import { STORE } from "../client/src/lib/storefrontState";
 import { rewriteSocialHead } from "./social-head";
 
 export interface Env extends AdminEnv {
@@ -30,12 +33,55 @@ export function canonicalRedirect(url: URL): Response | null {
 }
 
 /**
- * The status an HTML document should carry. The asset router answers every unknown path
- * with index.html and a 200, which tells a crawler that `/anything` is a real page. The app
- * renders its not-found page there, and this is the status that goes with it.
+ * Whether a document the asset router just served is really the not-found page.
+ *
+ * The router answers every unmatched path with index.html and a 200, which tells a crawler
+ * that `/anything` is a real page. But a file that genuinely exists — a search-engine
+ * verification token, anything the owner drops into `client/public` — is served the same
+ * way, and calling that a 404 breaks it. The two are told apart by the ETag: the fallback
+ * carries the ETag of index.html, a real file carries its own. Without both ETags the
+ * answer is "not missing", because a wrong 404 costs far more than a missed one.
  */
-export function statusForDocument(pathname: string): 200 | 404 {
-  return isAppRoute(pathname) ? 200 : 404;
+export function isMissingDocument(pathname: string, response: { status: number; contentType: string | null; etag: string | null }, fallbackEtag: string | null): boolean {
+  if (response.status !== 200) return false;
+  if (!(response.contentType ?? "").includes("text/html")) return false;
+  if (isAppRoute(pathname)) return false;
+  if (!response.etag || !fallbackEtag) return false;
+  return response.etag === fallbackEtag;
+}
+
+/**
+ * The ETag of the document the asset router hands out for a path it does not have. It is
+ * index.html, so `/` names it, and it never changes for the life of a deployment — one
+ * lookup per isolate. `null` means "could not tell", which keeps every document at 200.
+ */
+let fallbackEtag: string | null | undefined;
+async function spaFallbackEtag(env: Env, request: Request): Promise<string | null> {
+  if (fallbackEtag !== undefined) return fallbackEtag;
+  try {
+    const response = await env.ASSETS.fetch(new Request(new URL("/", request.url), { method: "GET" }));
+    fallbackEtag = response.ok ? response.headers.get("etag") : null;
+  } catch {
+    fallbackEtag = null;
+  }
+  return fallbackEtag;
+}
+
+/**
+ * Where a request for `<name>.html` should go.
+ *
+ * The asset router's own answer is a redirect to the extensionless twin, which is right
+ * for the shop's own pages — one address each — and wrong for a verification token, which
+ * has to answer 200 at the exact URL the search engine was given. So a page of ours
+ * redirects, and any other HTML file is fetched from its clean path and served where it
+ * was asked for.
+ */
+export function htmlFileTarget(pathname: string): { redirectTo: string } | { serveFrom: string } | null {
+  const match = /^(\/.+)\.html$/.exec(pathname);
+  if (!match) return null;
+  const clean = match[1] === "/index" ? "/" : match[1];
+  if (clean === "/" || findStaticPage(clean)) return { redirectTo: clean };
+  return { serveFrom: clean };
 }
 
 /** Lists every product page from the shipped catalog; falls back to the static sitemap asset when the catalog is unreadable. */
@@ -83,7 +129,24 @@ async function productDocument(url: URL, env: Env, request: Request): Promise<Re
     if (!product) return null;
     const document = await env.ASSETS.fetch(request);
     if (!document.ok || !(document.headers.get("content-type") ?? "").includes("text/html")) return null;
-    return rewriteSocialHead(document, buildProductSocialMeta(url.origin, product));
+    // The shipped document carries the home page's markup, so without a body of its own
+    // every product URL would be one more copy of the home page.
+    const seoProduct = {
+      id: product.id,
+      name: product.name ?? "",
+      brand: product.brand ?? "",
+      category: product.category ?? "",
+      price: typeof product.price === "number" ? product.price : 0,
+      image: product.image ?? "",
+      description: product.description ?? "",
+    };
+    return rewriteSocialHead(document, buildProductSocialMeta(url.origin, product), {
+      html: buildProductBodyHtml(url.origin, product, { whatsapp: STORE.whatsapp, storeName: STORE.name, city: STORE.city }),
+      jsonLd: [
+        { id: "ld-product", data: buildProductJsonLd(url.origin, seoProduct) },
+        { id: "ld-breadcrumb", data: buildBreadcrumbJsonLd(url.origin, seoProduct) },
+      ],
+    });
   } catch (error) {
     console.error(`[social-head] ${error instanceof Error ? error.message : String(error)}`);
     return null;
@@ -155,11 +218,28 @@ export default {
       if (product) return product;
     }
 
-    const response = await env.ASSETS.fetch(request);
-    const status = statusForDocument(url.pathname);
-    if (status === 404 && response.status === 200 && (response.headers.get("content-type") ?? "").includes("text/html")) {
-      return new Response(response.body, { status, headers: response.headers });
+    // `<name>.html`: the shop's own pages keep one address, every other file is served
+    // where it was asked for rather than redirected.
+    const html = htmlFileTarget(url.pathname);
+    let assetRequest = request;
+    let servedPath = url.pathname;
+    if (html) {
+      if ("redirectTo" in html) {
+        const target = new URL(url.toString());
+        target.pathname = html.redirectTo;
+        return Response.redirect(target.toString(), 301);
+      }
+      servedPath = html.serveFrom;
+      assetRequest = new Request(new URL(`${html.serveFrom}${url.search}`, url), request);
     }
+
+    const response = await env.ASSETS.fetch(assetRequest);
+    const missing = isMissingDocument(servedPath, {
+      status: response.status,
+      contentType: response.headers.get("content-type"),
+      etag: response.headers.get("etag"),
+    }, await spaFallbackEtag(env, request));
+    if (missing) return new Response(response.body, { status: 404, headers: response.headers });
     return response;
   },
 } satisfies ExportedHandler<Env>;

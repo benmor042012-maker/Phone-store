@@ -13,9 +13,11 @@
     "check:preview": "node scripts/check-link-preview.mjs",
     "thumbs": "node scripts/build-catalog-thumbnails.mjs",
     "db:push": "drizzle-kit generate && drizzle-kit migrate",
-    "build:worker": "vite build && tsx --tsconfig scripts/tsconfig.json scripts/prerender-pages.tsx",
-    "cf:check": "pnpm build:worker && wrangler deploy --dry-run",
-    "cf:deploy": "pnpm build:worker && wrangler deploy"
+    "build:assets": "vite build && tsx --tsconfig scripts/tsconfig.json scripts/prerender-pages.tsx",
+    "build:worker": "pnpm build:assets",
+    "check:prerender": "node scripts/check-prerender.mjs",
+    "cf:check": "wrangler deploy --dry-run",
+    "cf:deploy": "wrangler deploy"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.693.0",

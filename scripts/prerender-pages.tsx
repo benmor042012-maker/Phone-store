@@ -9,7 +9,7 @@
  *
  * Run: tsx scripts/prerender-pages.tsx   (part of `pnpm build:worker`)
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { renderToString } from "react-dom/server";
 import { SHARE_IMAGE } from "../shared/const";
@@ -49,6 +49,9 @@ for (const page of STATIC_PAGES) {
   ];
   html = withJsonLd(html, extra);
   html = injectIntoRoot(html, renderToString(<LandingPage page={page} content={content} />));
-  writeFileSync(path.join(outDir, page.file), html);
+  const target = path.join(outDir, page.file);
+  // A page under another one (repairs/screen.html) needs its folder to exist first.
+  mkdirSync(path.dirname(target), { recursive: true });
+  writeFileSync(target, html);
   console.log(`[prerender] ${page.file}: ${page.path} (${page.title})`);
 }

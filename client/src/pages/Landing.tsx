@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { LandingPage } from "@/components/storefront/LandingPage";
 import { landingContent } from "@/content/landing";
-import { applyJsonLd, applyPageSeo, buildLandingBreadcrumbJsonLd, buildQuestionsJsonLd } from "@/lib/seo";
+import { applyJsonLd, applyPageSeo, buildLandingBreadcrumbJsonLd, buildQuestionsJsonLd, buildServiceJsonLd } from "@/lib/seo";
 import { STORE } from "@/lib/storefrontState";
 import NotFound from "./NotFound";
 
@@ -19,12 +19,14 @@ export default function Landing() {
     applyPageSeo({ title: page.title, description: page.description, path: page.path });
     applyJsonLd("ld-breadcrumb", buildLandingBreadcrumbJsonLd(origin, page));
     applyJsonLd("ld-page-faq", buildQuestionsJsonLd(content.faq));
+    applyJsonLd("ld-service", buildServiceJsonLd(origin, page));
     applyJsonLd("ld-product", null);
     applyJsonLd("ld-catalog", null);
     // Straight to the top: a client-side navigation keeps the previous scroll position.
     window.scrollTo(0, 0);
     return () => {
       applyJsonLd("ld-page-faq", null);
+      applyJsonLd("ld-service", null);
     };
   }, [page, content]);
 

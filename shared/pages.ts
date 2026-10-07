@@ -27,6 +27,14 @@ export type StaticPage = {
   keyword: string;
   /** Short label for the navigation and the footer. */
   navLabel: string;
+  /**
+   * The day this page's content last changed, as YYYY-MM-DD, for the sitemap's `lastmod`.
+   *
+   * Edited by hand when the page's copy is edited. It used to be the catalogue's capture
+   * date, shared by every URL, which told search engines that a page written today had not
+   * changed in months — the opposite of what was true, on exactly the pages that were new.
+   */
+  updated: string;
   /** Set on a page that describes one service the shop performs, for its structured data. */
   serviceType?: string;
 };
@@ -51,6 +59,7 @@ export const STATIC_PAGES: readonly StaticPage[] = [
       "תיקון סלולרי בנתניה, שדרות בן גוריון 2: החלפת מסך וסוללה, שקע טעינה, רמקול ונזקי מים לאייפון, סמסונג ואנדרואיד. אחריות על התיקון ומחיר לפני העבודה.",
     h1: "תיקון סלולרי בנתניה",
     navLabel: "תיקונים",
+    updated: "2026-10-07",
     serviceType: "תיקון טלפונים סלולריים",
   },
   {
@@ -63,6 +72,7 @@ export const STATIC_PAGES: readonly StaticPage[] = [
       "החלפת מסך בנתניה לאייפון, לגלקסי ולאנדרואיד, במעבדה שבחנות בשדרות בן גוריון 2. מחיר לדגם לפני העבודה, ברוב המקרים באותו יום, ואחריות על החלק ועל העבודה.",
     h1: "החלפת מסך לטלפון בנתניה",
     navLabel: "החלפת מסך",
+    updated: "2026-10-07",
     serviceType: "החלפת מסך לטלפון סלולרי",
   },
   {
@@ -75,6 +85,7 @@ export const STATIC_PAGES: readonly StaticPage[] = [
       "החלפת סוללה בנתניה לאייפון, לסמסונג ולאנדרואיד: סוללה שנגמרת מהר, מתנפחת או מכבה את המכשיר. מעבדה בשדרות בן גוריון 2, מחיר מראש ואחריות על התיקון.",
     h1: "החלפת סוללה לטלפון בנתניה",
     navLabel: "החלפת סוללה",
+    updated: "2026-10-07",
     serviceType: "החלפת סוללה לטלפון סלולרי",
   },
   {
@@ -86,6 +97,7 @@ export const STATIC_PAGES: readonly StaticPage[] = [
       "אייפון בנתניה במחירי חנות: iPhone 17, 16 ו־15 עם אחריות יבואן רשמי, עד 36 תשלומים, תשלום בביט או בפייבוקס ומשלוח חינם מעל ₪299. ייעוץ אישי של אלי חזות.",
     h1: "אייפון בנתניה במחירי חנות",
     navLabel: "אייפון",
+    updated: "2026-10-07",
   },
   {
     path: "/samsung",
@@ -96,6 +108,7 @@ export const STATIC_PAGES: readonly StaticPage[] = [
       "סמסונג בנתניה: מכשירי גלקסי בהזמנה עם אחריות יבואן, מאות כיסויים ומגני מסך במלאי, והחלפת מסך או סוללה במעבדה שבחנות בשדרות בן גוריון 2.",
     h1: "סמסונג גלקסי בנתניה",
     navLabel: "סמסונג",
+    updated: "2026-10-07",
   },
   {
     path: "/accessories",
@@ -106,6 +119,7 @@ export const STATIC_PAGES: readonly StaticPage[] = [
       "אביזרים לסלולר בנתניה: מעל 1,800 כיסויים, מגני מסך, מטענים, כבלים ואוזניות לאייפון, סמסונג ואנדרואיד. חנות בשדרות בן גוריון 2, הזמנה בוואטסאפ ומשלוח מהיר.",
     h1: "אביזרים לסלולר בנתניה",
     navLabel: "אביזרים",
+    updated: "2026-10-07",
   },
   {
     path: "/about",
@@ -116,6 +130,7 @@ export const STATIC_PAGES: readonly StaticPage[] = [
       "Phone Store היא חנות סלולר עצמאית בנתניה מאז 2010, בשדרות בן גוריון 2. אלי חזות מוכר, מייעץ ומתקן בעצמו: טלפונים, טאבלטים ואביזרים, עם אחריות ושירות אישי.",
     h1: "חנות הסלולר של אלי חזות בנתניה",
     navLabel: "על החנות",
+    updated: "2026-10-07",
   },
 ];
 

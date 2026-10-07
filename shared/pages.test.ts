@@ -73,3 +73,17 @@ describe("the page tree", () => {
     }
   });
 });
+
+describe("the date each page carries", () => {
+  it("is a real day, written the way a sitemap wants it", () => {
+    for (const page of STATIC_PAGES) {
+      expect(page.updated, page.path).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(Number.isNaN(Date.parse(page.updated)), page.path).toBe(false);
+    }
+  });
+
+  it("is never in the future, because a crawler reads it as a claim", () => {
+    const today = new Date().toISOString().slice(0, 10);
+    for (const page of STATIC_PAGES) expect(page.updated <= today, `${page.path}: ${page.updated}`).toBe(true);
+  });
+});

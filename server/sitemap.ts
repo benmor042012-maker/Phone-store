@@ -25,7 +25,9 @@ export function buildSitemapXml(origin: string, catalog: SitemapCatalog): string
   });
   const entries = [
     `  <url>\n    <loc>${base}/</loc>\n${lastmod ? `    <lastmod>${lastmod}</lastmod>\n` : ""}    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>`,
-    ...STATIC_PAGES.map((page) => `  <url>\n    <loc>${base}${page.path}</loc>\n${lastmod ? `    <lastmod>${lastmod}</lastmod>\n` : ""}    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`),
+    // A landing page carries its own date. The catalogue's capture date belongs to the
+    // inventory, and using it here claimed a page written today had not changed in months.
+    ...STATIC_PAGES.map((page) => `  <url>\n    <loc>${base}${page.path}</loc>\n${page.updated ? `    <lastmod>${page.updated}</lastmod>\n` : ""}    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`),
     ...products.map((product) => {
       const loc = `${base}/products/${encodeURIComponent(product.id)}`;
       const image = product.image ? (product.image.startsWith("http") ? product.image : `${base}${product.image}`) : undefined;

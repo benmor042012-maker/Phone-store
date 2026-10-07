@@ -27,6 +27,8 @@ export type StaticPage = {
   keyword: string;
   /** Short label for the navigation and the footer. */
   navLabel: string;
+  /** Set on a page that describes one service the shop performs, for its structured data. */
+  serviceType?: string;
 };
 
 const BRAND = "Phone Store";
@@ -49,6 +51,7 @@ export const STATIC_PAGES: readonly StaticPage[] = [
       "תיקון סלולרי בנתניה, שדרות בן גוריון 2: החלפת מסך וסוללה, שקע טעינה, רמקול ונזקי מים לאייפון, סמסונג ואנדרואיד. אחריות על התיקון ומחיר לפני העבודה.",
     h1: "תיקון סלולרי בנתניה",
     navLabel: "תיקונים",
+    serviceType: "תיקון טלפונים סלולריים",
   },
   {
     path: "/repairs/screen",
@@ -60,6 +63,7 @@ export const STATIC_PAGES: readonly StaticPage[] = [
       "החלפת מסך בנתניה לאייפון, לגלקסי ולאנדרואיד, במעבדה שבחנות בשדרות בן גוריון 2. מחיר לדגם לפני העבודה, ברוב המקרים באותו יום, ואחריות על החלק ועל העבודה.",
     h1: "החלפת מסך לטלפון בנתניה",
     navLabel: "החלפת מסך",
+    serviceType: "החלפת מסך לטלפון סלולרי",
   },
   {
     path: "/repairs/battery",
@@ -71,6 +75,7 @@ export const STATIC_PAGES: readonly StaticPage[] = [
       "החלפת סוללה בנתניה לאייפון, לסמסונג ולאנדרואיד: סוללה שנגמרת מהר, מתנפחת או מכבה את המכשיר. מעבדה בשדרות בן גוריון 2, מחיר מראש ואחריות על התיקון.",
     h1: "החלפת סוללה לטלפון בנתניה",
     navLabel: "החלפת סוללה",
+    serviceType: "החלפת סוללה לטלפון סלולרי",
   },
   {
     path: "/iphone",

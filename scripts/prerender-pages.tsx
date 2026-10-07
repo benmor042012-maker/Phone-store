@@ -18,7 +18,7 @@ import { applyStaticHead, buildPageSocialMeta, injectIntoRoot } from "../server/
 import { LandingPage } from "../client/src/components/storefront/LandingPage";
 import { StaticHome } from "../client/src/components/storefront/StaticHome";
 import { landingContent } from "../client/src/content/landing";
-import { buildFaqJsonLd, buildLandingBreadcrumbJsonLd, buildQuestionsJsonLd } from "../client/src/lib/seo";
+import { buildFaqJsonLd, buildLandingBreadcrumbJsonLd, buildQuestionsJsonLd, buildServiceJsonLd } from "../client/src/lib/seo";
 import { STORE } from "../client/src/lib/storefrontState";
 
 const outDir = path.resolve(import.meta.dirname, "..", "dist", "public");
@@ -43,9 +43,11 @@ for (const page of STATIC_PAGES) {
   const content = landingContent[page.path];
   const meta = buildPageSocialMeta(STORE.site, page, SHARE_IMAGE);
   let html = applyStaticHead(shipped, meta);
+  const service = buildServiceJsonLd(STORE.site, page);
   const extra = [
     jsonLd("ld-breadcrumb", buildLandingBreadcrumbJsonLd(STORE.site, page)),
     jsonLd("ld-page-faq", buildQuestionsJsonLd(content.faq)),
+    ...(service ? [jsonLd("ld-service", service)] : []),
   ];
   html = withJsonLd(html, extra);
   html = injectIntoRoot(html, renderToString(<LandingPage page={page} content={content} />));

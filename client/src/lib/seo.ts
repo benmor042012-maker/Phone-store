@@ -195,6 +195,37 @@ export function buildFaqJsonLd() {
   return buildQuestionsJsonLd(storeFaq);
 }
 
+/**
+ * What the shop does, for a page that describes one service.
+ *
+ * A search for "תיקון סלולרי נתניה" is a search for a service in a place, and this is how
+ * the page says which service and which place, tied to the shop's own record.
+ */
+export function buildServiceJsonLd(origin: string, page: StaticPage) {
+  if (!page.serviceType) return null;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "@id": `${origin}${page.path}#service`,
+    name: page.h1,
+    serviceType: page.serviceType,
+    description: page.description,
+    url: `${origin}${page.path}`,
+    areaServed: [{ "@type": "City", name: STORE.city }],
+    provider: { "@id": `${origin}/#store` },
+    availableChannel: {
+      "@type": "ServiceChannel",
+      serviceLocation: {
+        "@type": "Place",
+        name: STORE.locationName,
+        address: { "@type": "PostalAddress", streetAddress: STORE.street, addressLocality: STORE.city, postalCode: STORE.postalCode, addressCountry: STORE.country },
+      },
+      servicePhone: STORE.phone,
+      serviceUrl: `https://wa.me/${STORE.whatsapp}`,
+    },
+  };
+}
+
 /** Home → (parent →) landing page, for the path shown under a landing page's search result. */
 export function buildLandingBreadcrumbJsonLd(origin: string, page: StaticPage) {
   return {

@@ -8,7 +8,7 @@
  * Links are ordinary anchors for the same reason.
  */
 import { HOME_SEO, STATIC_PAGES } from "@shared/pages";
-import { ArrowLeft, Instagram, MapPin, MessageCircle, Phone, Truck, Wrench, Zap } from "lucide-react";
+import { ArrowLeft, Instagram, MapPin, MessageCircle, Phone, Star, Truck, Wrench, Zap } from "lucide-react";
 import { socialLinks, STORE, storeFaq } from "@/lib/storefrontState";
 
 const socialIcons: Record<string, typeof Instagram> = { whatsapp: MessageCircle, instagram: Instagram, waze: MapPin, google: MapPin };
@@ -115,6 +115,21 @@ export function RepairsSection({ kicker = "04" }: { kicker?: string }) {
   );
 }
 
+/**
+ * A way to leave a review, which the site never asked for before.
+ *
+ * What a local search shows first is the map, and what decides the order there is the
+ * shop's reviews. The site cannot write them, but it is where the shop's customers already
+ * are, so this is the one place that can ask.
+ */
+export function ReviewInvite({ className = "review-invite" }: { className?: string }) {
+  return (
+    <a className={className} href={STORE.googleProfile} target="_blank" rel="noreferrer noopener">
+      <Star size={16} /> קנית אצלנו? נשמח לביקורת ב־Google
+    </a>
+  );
+}
+
 /** The questions people ask, mirrored one-to-one into the FAQPage structured data. */
 export function FaqSection({ kicker = "08", items = storeFaq }: { kicker?: string; items?: { question: string; answer: string }[] }) {
   return (
@@ -162,6 +177,7 @@ export function SiteFooter({ whatsapp = STORE.whatsapp, phoneHref = STORE.phoneH
         <img src={STORE.logo} alt="PHONE STORE — חנות סלולרי בנתניה" width={290} height={210} loading="lazy" decoding="async" />
         <p>חנות סלולרי עצמאית בנתניה מאז {STORE.founded}. מכירה, ייעוץ, אביזרים ותיקונים, עם שירות אישי של אלי חזות.</p>
         <SocialRow />
+        <ReviewInvite className="review-invite footer-review" />
       </div>
       <div><b>קטגוריות</b><a href="/#catalog">טלפונים סלולריים</a><a href="/iphone">אייפון</a><a href="/#catalog">טאבלטים</a><a href="/#catalog">שעונים חכמים</a><a href="/accessories">אביזרים לסלולר</a></div>
       <div><b>שירות</b><a href="/repairs">תיקון סלולרי</a><a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer">וואטסאפ</a><a href={phoneHref}>טלפון</a><a href="/#contact">שעות פתיחה</a><a href="/#catalog">תשלום בביט ובפייבוקס</a></div>

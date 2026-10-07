@@ -114,3 +114,4 @@
 .not-found{min-height:50vh}
 @media(max-width:820px){.hero-inner .hero-slide-title{font-size:47px}.hero-title-band{padding:40px 0 34px}.about-section{padding:70px 0 20px}.about-layout,.repairs-layout{grid-template-columns:1fr;gap:34px}.about-points li{grid-template-columns:96px 1fr}.repairs-section{padding:70px 0}.repairs-layout>div>.btn-outline,.repairs-layout>div>.btn-gold{display:flex;margin:14px 0 0}.landing-article{padding:38px 0 30px}.landing-cta{display:grid;grid-template-columns:1fr;max-width:300px}.header-whatsapp{display:none}}
 @media(max-width:820px){.nav-inline{position:static;display:flex;flex-direction:row;flex-wrap:wrap;gap:10px 14px;padding:0;background:transparent;border:0}.nav-inline a{font-size:13px}.store-header:has(.nav-inline){height:auto;min-height:118px;flex-wrap:wrap;padding:10px 13px}}
+.product-hero-image{display:block;width:min(100%,420px);height:auto;margin:26px 0 0;background:#111;border:1px solid var(--line);object-fit:contain}

@@ -77,12 +77,12 @@ export function AboutSection({ kicker = "01" }: { kicker?: string }) {
   );
 }
 
-export const repairServices = [
-  { name: "החלפת מסך", detail: "מסך שבור, פסים או מגע שלא מגיב, לאייפון, סמסונג ואנדרואיד" },
-  { name: "החלפת סוללה", detail: "סוללה שנגמרת מהר, מתנפחת או מכבה את המכשיר" },
+export const repairServices: { name: string; detail: string; href?: string }[] = [
+  { name: "החלפת מסך", detail: "מסך שבור, פסים או מגע שלא מגיב, לאייפון, סמסונג ואנדרואיד", href: "/repairs/screen" },
+  { name: "החלפת סוללה", detail: "סוללה שנגמרת מהר, מתנפחת או מכבה את המכשיר", href: "/repairs/battery" },
   { name: "שקע טעינה, רמקול ומיקרופון", detail: "מכשיר שלא נטען, לא נשמע או לא שומעים אתכם" },
   { name: "נזקי מים ותקלות תוכנה", detail: "מכשיר שנרטב, נתקע, לא נדלק או צריך שחזור נתונים" },
-] as const;
+];
 
 /** What the lab in the shop fixes. Written from the owner's own list, not a template. */
 export function RepairsSection({ kicker = "04" }: { kicker?: string }) {
@@ -101,7 +101,13 @@ export function RepairsSection({ kicker = "04" }: { kicker?: string }) {
         </div>
         <ul className="repairs-list">
           {repairServices.map((service) => (
-            <li key={service.name}><Wrench size={17} /><span><strong>{service.name}</strong><small>{service.detail}</small></span></li>
+            <li key={service.name}>
+              <Wrench size={17} />
+              <span>
+                <strong>{service.href ? <a href={service.href}>{service.name}</a> : service.name}</strong>
+                <small>{service.detail}</small>
+              </span>
+            </li>
           ))}
         </ul>
       </div>

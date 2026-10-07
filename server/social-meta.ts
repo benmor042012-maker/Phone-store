@@ -8,6 +8,7 @@
  */
 
 import { SHARE_IMAGE } from "@shared/const";
+import { clampText, productTitle } from "@shared/text";
 
 export type SocialProduct = {
   id: string;
@@ -38,13 +39,7 @@ const STORE_NAME = "Phone Store";
 const STORE_CITY = "נתניה";
 
 /** WhatsApp truncates the card at roughly this length; cutting on a word keeps it readable. */
-function clamp(text: string, limit: number) {
-  const collapsed = text.replace(/\s+/g, " ").trim();
-  if (collapsed.length <= limit) return collapsed;
-  const cut = collapsed.slice(0, limit);
-  const lastSpace = cut.lastIndexOf(" ");
-  return `${(lastSpace > limit * 0.6 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
-}
+const clamp = clampText;
 
 function absolute(origin: string, value: string) {
   return value.startsWith("http") ? value : `${origin.replace(/\/+$/, "")}${value}`;
@@ -76,7 +71,7 @@ export function buildProductSocialMeta(origin: string, product: SocialProduct): 
   const lead = priced ? `${shekels(product.price as number)} · ` : "";
   const detail = (product.description ?? "").trim() || `${product.category ?? "אביזר"} ${product.brand ?? ""}`.trim();
   return {
-    title: clamp(`${name} | ${STORE_NAME} ${STORE_CITY}`, 90),
+    title: productTitle(name, ` | ${STORE_NAME} ${STORE_CITY}`),
     description: clamp(`${lead}${detail} — הזמנה בוואטסאפ מ${STORE_NAME} ${STORE_CITY}, תשלום בביט או בפייבוקס, משלוח חינם מעל ₪299.`, 200),
     canonical: `${base}/products/${encodeURIComponent(product.id)}`,
     image: product.image ? absolute(base, product.image) : `${base}${SHARE_IMAGE.path}`,

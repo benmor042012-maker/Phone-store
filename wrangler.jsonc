@@ -9,6 +9,12 @@
   "kv_namespaces": [
     { "binding": "STORE", "id": "f22b4b9676244f19bc4d7e02a173d96a" }
   ],
+  // Every `wrangler deploy` (including the one Cloudflare's Git build runs) builds the
+  // assets first, so the prerendered landing pages and the home page's static sections can
+  // never be left out by a build command configured somewhere else.
+  "build": {
+    "command": "pnpm run build:assets"
+  },
   "assets": {
     "directory": "./dist/public",
     "binding": "ASSETS",

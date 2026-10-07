@@ -156,14 +156,22 @@ export function buildStoreJsonLd(origin: string, reviews: StoreReview[] = []) {
     sameAs: socialLinks.map((link) => link.href),
     hasMap: STORE.googleProfile,
     knowsAbout: ["טלפונים סלולריים", "אייפון", "סמסונג גלקסי", "תיקון סלולרי", "אביזרים לסלולר"],
-    // What the shop does, in the words people search for; each one is a page of the site.
+    /**
+     * The services the shop performs, each one a page of the site.
+     *
+     * Only services belong here. A `Product` node needs a price, a rating or a review to
+     * be valid, and a catalogue page is none of those: listing "אייפון" as a bare product
+     * made Search Console report two invalid product snippets on every page carrying this
+     * record. What the shop sells is said by `knowsAbout` above and by the product pages,
+     * which carry a real price each.
+     */
     hasOfferCatalog: {
       "@type": "OfferCatalog",
-      name: "מה יש ב־Phone Store נתניה",
+      name: `השירותים של ${STORE.name} ${STORE.city}`,
       itemListElement: [
-        { "@type": "Offer", itemOffered: { "@type": "Service", name: "תיקון סלולרי בנתניה", url: `${origin}/repairs`, serviceType: "תיקון טלפונים סלולריים", areaServed: { "@type": "City", name: "נתניה" } } },
-        { "@type": "Offer", itemOffered: { "@type": "Product", name: "אייפון בנתניה", url: `${origin}/iphone` } },
-        { "@type": "Offer", itemOffered: { "@type": "Product", name: "אביזרים לסלולר בנתניה", url: `${origin}/accessories` } },
+        { "@type": "Offer", itemOffered: { "@type": "Service", name: "תיקון סלולרי בנתניה", url: `${origin}/repairs`, serviceType: "תיקון טלפונים סלולריים", areaServed: { "@type": "City", name: STORE.city } } },
+        { "@type": "Offer", itemOffered: { "@type": "Service", name: "החלפת מסך בנתניה", url: `${origin}/repairs/screen`, serviceType: "החלפת מסך לטלפון סלולרי", areaServed: { "@type": "City", name: STORE.city } } },
+        { "@type": "Offer", itemOffered: { "@type": "Service", name: "החלפת סוללה בנתניה", url: `${origin}/repairs/battery`, serviceType: "החלפת סוללה לטלפון סלולרי", areaServed: { "@type": "City", name: STORE.city } } },
       ],
     },
     contactPoint: [

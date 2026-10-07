@@ -23,6 +23,22 @@ export type CatalogProduct = {
   awaitingPhoto?: boolean;
 };
 
+/**
+ * The categories worth offering to a search engine.
+ *
+ * The catalogue is ~1,800 items and all but a handful are accessories — 1,100 of them
+ * phone cases that differ by a model name. Those pages are real and stay served and
+ * linked, but listing every one in the sitemap spends a small site's crawl budget on
+ * pages that cannot rank, against the landing pages that can. A device is what someone
+ * searches for; a case is what they add once they are in the shop.
+ */
+export const INDEXED_CATEGORIES = ["טלפונים סלולריים", "טאבלטים"];
+
+/** Whether a product is one of those, tolerating the stray spaces the catalogue carries. */
+export function isIndexedCategory(category: string | undefined): boolean {
+  return INDEXED_CATEGORIES.includes((category ?? "").trim());
+}
+
 /** The fields the admin panel may change on a catalogued product. */
 export type ProductEdit = Partial<Pick<CatalogProduct, "brand" | "name" | "category" | "price" | "oldPrice" | "image" | "badge" | "description">>;
 

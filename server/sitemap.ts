@@ -1,7 +1,16 @@
-/** Sitemap for the storefront: the home page, the landing pages, and one entry per product in the shipped catalog. */
+/**
+ * Sitemap for the storefront: the home page, the landing pages, and the devices.
+ *
+ * Accessories are left out on purpose. They are perfectly good pages — served with their
+ * own markup, linked from the catalogue, indexable — but there are ~1,800 of them and
+ * 1,100 are cases that differ by a model name. Offering all of them spent a small site's
+ * crawl budget on pages that cannot rank: of 1,831 URLs submitted, Google indexed 3. What
+ * is listed here is what the shop is searched for.
+ */
+import { isIndexedCategory } from "../shared/catalog-overrides";
 import { STATIC_PAGES } from "../shared/pages";
 
-export type SitemapProduct = { id: string; image?: string };
+export type SitemapProduct = { id: string; image?: string; category?: string };
 export type SitemapCatalog = { capturedAt?: string; products?: SitemapProduct[] };
 
 function escapeXml(value: string) {
@@ -20,6 +29,7 @@ export function buildSitemapXml(origin: string, catalog: SitemapCatalog): string
   const seen = new Set<string>();
   const products = (catalog.products ?? []).filter((product) => {
     if (!product || typeof product.id !== "string" || !product.id.trim() || seen.has(product.id)) return false;
+    if (!isIndexedCategory(product.category)) return false;
     seen.add(product.id);
     return true;
   });
@@ -31,7 +41,9 @@ export function buildSitemapXml(origin: string, catalog: SitemapCatalog): string
     ...products.map((product) => {
       const loc = `${base}/products/${encodeURIComponent(product.id)}`;
       const image = product.image ? (product.image.startsWith("http") ? product.image : `${base}${product.image}`) : undefined;
-      return `  <url>\n    <loc>${escapeXml(loc)}</loc>\n${lastmod ? `    <lastmod>${lastmod}</lastmod>\n` : ""}    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n${image ? `    <image:image>\n      <image:loc>${escapeXml(image)}</image:loc>\n    </image:image>\n` : ""}  </url>`;
+      // Below the landing pages: a device page sells one item, a landing page is what the
+      // shop is found by. With a short sitemap the ordering is readable again.
+      return `  <url>\n    <loc>${escapeXml(loc)}</loc>\n${lastmod ? `    <lastmod>${lastmod}</lastmod>\n` : ""}    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n${image ? `    <image:image>\n      <image:loc>${escapeXml(image)}</image:loc>\n    </image:image>\n` : ""}  </url>`;
     }),
   ];
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n${entries.join("\n")}\n</urlset>\n`;

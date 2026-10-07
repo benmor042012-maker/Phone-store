@@ -16,7 +16,7 @@ function envWith(catalog: Response | (() => Response)) {
 
 describe("worker sitemap route", () => {
   it("builds the sitemap from catalog.json with the request origin", async () => {
-    const env = envWith(new Response(JSON.stringify({ capturedAt: "2026-08-21T09:51:17.911Z", products: [{ id: "33767", image: "/images/catalog/a.webp" }] }), { headers: { "content-type": "application/json" } }));
+    const env = envWith(new Response(JSON.stringify({ capturedAt: "2026-08-21T09:51:17.911Z", products: [{ id: "33767", image: "/images/catalog/a.webp", category: "טלפונים סלולריים" }] }), { headers: { "content-type": "application/json" } }));
     const response = await worker.fetch(new Request("https://shop.example/sitemap.xml"), env, {} as never);
     expect(response.headers.get("content-type")).toContain("application/xml");
     const xml = await response.text();
@@ -24,12 +24,14 @@ describe("worker sitemap route", () => {
     expect(xml).toContain("<loc>https://shop.example/products/33767</loc>");
   });
 
+  // The owner's own products reach the sitemap the same way the catalogue's do, which
+  // means by category: one they add under a device category is offered, an accessory is not.
   it("leaves out a product the owner hid and lists one they added", async () => {
-    const env = envWith(new Response(JSON.stringify({ products: [{ id: "keep" }, { id: "gone" }] }), { headers: { "content-type": "application/json" } }));
+    const env = envWith(new Response(JSON.stringify({ products: [{ id: "keep", category: "טלפונים סלולריים" }, { id: "gone", category: "טלפונים סלולריים" }] }), { headers: { "content-type": "application/json" } }));
     (env as { STORE?: unknown }).STORE = {
       get: async (key: string, type?: string) => {
         if (key !== "site:catalog:overrides:v1") return null;
-        const value = { hidden: ["gone"], edits: {}, added: [{ id: "own-1", name: "שלי", price: 10 }] };
+        const value = { hidden: ["gone"], edits: {}, added: [{ id: "own-1", name: "שלי", price: 10, category: "טלפונים סלולריים" }] };
         return type === "json" ? value : JSON.stringify(value);
       },
     };

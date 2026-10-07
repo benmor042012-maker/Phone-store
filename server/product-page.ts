@@ -10,10 +10,7 @@
  * Everything here is a pure string function so it can be tested under Node; the worker
  * streams it into the document with HTMLRewriter, which only exists inside workerd.
  */
-import type { CatalogProduct } from "../shared/catalog-overrides";
-
-/** The shop's own pages a product should point at, by what the product is. */
-const PHONE_CATEGORIES = ["טלפונים סלולריים", "טאבלטים"];
+import { isIndexedCategory, type CatalogProduct } from "../shared/catalog-overrides";
 
 /** Escapes a value for HTML text or a double-quoted attribute. */
 export function escapeHtml(value: string): string {
@@ -49,7 +46,7 @@ export function buildProductBodyHtml(origin: string, product: CatalogProduct, op
   const image = product.image ? escapeHtml(absolute(origin, product.image)) : "";
   const description = escapeHtml((product.description ?? "").trim());
   const facts = (product.facts ?? []).filter((fact) => Array.isArray(fact) && fact.length === 2);
-  const isPhone = PHONE_CATEGORIES.includes((product.category ?? "").trim());
+  const isPhone = isIndexedCategory(product.category);
   const related = isPhone ? "/iphone" : "/accessories";
   const relatedLabel = isPhone ? "אייפון וסמסונג בנתניה" : "אביזרים לסלולר בנתניה";
   const order = `היי אלי, אני מעוניין/ת ב${(product.name ?? "").trim() || `מוצר ${product.id}`}${priced ? ` (${shekels(product.price)})` : ""}. זמין?`;

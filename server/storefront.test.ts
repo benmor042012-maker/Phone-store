@@ -6,7 +6,7 @@ describe("normalizeStorefrontPayload", () => {
   it("keeps catalog content and does not create reviews that were not supplied", () => {
     const data = normalizeStorefrontPayload({
       updatedAt: "2026-08-19T00:00:00.000Z",
-      data: { settings: { name: "Phone Store", ship: 299, pay36: 36 }, categories: [{ id: "c1", name: "טלפונים" }], products: [{ id: "p1", name: "Phone", brand: "Apple", cat: "c1", price: 100, specs: { מסך: "6.1" } }], slides: [{ id: "s1", title: "כותרת", accent: "הדגשה", lead: "טקסט" }], reviews: [{ text: "ignored" }] },
+      data: { settings: { name: "Phone Store", ship: 299, pay36: 12 }, categories: [{ id: "c1", name: "טלפונים" }], products: [{ id: "p1", name: "Phone", brand: "Apple", cat: "c1", price: 100, specs: { מסך: "6.1" } }], slides: [{ id: "s1", title: "כותרת", accent: "הדגשה", lead: "טקסט" }], reviews: [{ text: "ignored" }] },
     });
     expect(data.products).toHaveLength(1);
     expect(data.products[0]).toMatchObject({ id: "p1", price: 100, specs: { מסך: "6.1" } });

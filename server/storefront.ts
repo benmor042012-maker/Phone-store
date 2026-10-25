@@ -52,7 +52,7 @@ export function normalizeStorefrontPayload(payload: unknown): SourceStorefront {
     settings: {
       name: stringValue(settingsRaw.name, "Phone Store"), sub: stringValue(settingsRaw.sub), tel: stringValue(settingsRaw.tel),
       telShow: stringValue(settingsRaw.telShow), wa: stringValue(settingsRaw.wa), mail: stringValue(settingsRaw.mail),
-      addr: stringValue(settingsRaw.addr), ship: numberValue(settingsRaw.ship, 299), pay36: numberValue(settingsRaw.pay36, 36),
+      addr: stringValue(settingsRaw.addr), ship: numberValue(settingsRaw.ship, 299), pay36: numberValue(settingsRaw.pay36, 12),
     },
     categories: rawCategories.map((entry) => {
       const item = asRecord(entry);

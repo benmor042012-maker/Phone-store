@@ -26,8 +26,8 @@ export const navigationCopy = {
 /** Single source of truth for the store identity used by the storefront copy and the structured data. */
 export const STORE = {
   name: "Phone Store",
-  legalName: "Phone Store · אלי חזות",
-  owner: "אלי חזות",
+  legalName: "Phone Store · אליהו חזות",
+  owner: "אליהו חזות",
   phone: "050-477-7470",
   phoneHref: "tel:0504777470",
   whatsapp: "972504777470",
@@ -79,11 +79,11 @@ export const storeFaq: { question: string; answer: string }[] = [
   },
   {
     question: "אפשר לשלם בביט או בפייבוקס?",
-    answer: "כן. אחרי שליחת ההזמנה בוואטסאפ תקבלו בקשת תשלום בביט או בפייבוקס למספר החנות, בלי למסור פרטי אשראי. אפשר גם לשלם בכרטיס אשראי עד 36 תשלומים ללא ריבית, או במזומן באיסוף מהחנות.",
+    answer: "כן. אחרי שליחת ההזמנה בוואטסאפ תקבלו בקשת תשלום בביט או בפייבוקס למספר החנות, בלי למסור פרטי אשראי. אפשר גם לשלם במזומן באיסוף מהחנות, או בכרטיס אשראי עד 12 תשלומים. עד 3 תשלומים ללא ריבית; מעל 3 ועד 12 תשלומים בריבית.",
   },
   {
     question: "איך מזמינים מהאתר?",
-    answer: "בוחרים פריטים מהמלאי ומוסיפים אותם לסל, בוחרים אמצעי תשלום ושולחים. נפתחת הודעת וואטסאפ מוכנה עם הפריטים, הסכום ואמצעי התשלום שבחרתם, ואלי חזות עונה אישית עם מחיר סופי וזמינות.",
+    answer: "בוחרים פריטים מהמלאי ומוסיפים אותם לסל, בוחרים אמצעי תשלום ושולחים. נפתחת הודעת וואטסאפ מוכנה עם הפריטים, הסכום ואמצעי התשלום שבחרתם, ואליהו חזות עונה אישית עם מחיר סופי וזמינות.",
   },
   {
     question: "כמה עולה המשלוח וכמה זמן הוא לוקח?",
@@ -115,7 +115,7 @@ export const storeFaq: { question: string; answer: string }[] = [
   },
   {
     question: "אפשר לקנות אייפון בתשלומים?",
-    answer: "כן. אייפון וכל מכשיר אחר בחנות אפשר לרכוש בכרטיס אשראי עד 36 תשלומים ללא ריבית, או לשלם בביט, בפייבוקס או במזומן. המכשירים מגיעים עם אחריות יבואן רשמי ל־12 חודשים.",
+    answer: "כן. אייפון וכל מכשיר אחר בחנות אפשר לרכוש בכרטיס אשראי עד 12 תשלומים. עד 3 תשלומים ללא ריבית; מעל 3 ועד 12 תשלומים בריבית. אפשר גם לשלם בביט, בפייבוקס או במזומן, והמכשירים מגיעים עם אחריות יבואן רשמי ל־12 חודשים.",
   },
 ];
 
@@ -125,7 +125,7 @@ export type PaymentMethodId = "bit" | "paybox" | "credit" | "cash";
 export const paymentMethods: { id: PaymentMethodId; label: string; note: string }[] = [
   { id: "bit", label: "ביט (Bit)", note: "העברה מיידית מהאפליקציה" },
   { id: "paybox", label: "פייבוקס (PayBox)", note: "העברה מיידית מהאפליקציה" },
-  { id: "credit", label: "אשראי עד 36 תשלומים", note: "סליקה בחנות" },
+  { id: "credit", label: "אשראי עד 12 תשלומים", note: "עד 3 ללא ריבית · סליקה בחנות" },
   { id: "cash", label: "מזומן באיסוף", note: "בשד׳ בן גוריון 2" },
 ];
 
@@ -151,7 +151,7 @@ export function buildOrderMessage(lines: OrderLine[], total: string, payment: Pa
   const settlement = payment === "bit" || payment === "paybox"
     ? `אשלם ב${method}. אשמח לקבל בקשת תשלום למספר ${phone}.`
     : `אשלם ב${method}.`;
-  return [`היי אלי, אני מעוניין/ת להזמין מ־${STORE.name}:`, items, `סה״כ: ${total}`, settlement].filter(Boolean).join("\n");
+  return [`היי אליהו, אני מעוניין/ת להזמין מ־${STORE.name}:`, items, `סה״כ: ${total}`, settlement].filter(Boolean).join("\n");
 }
 
 export function whatsappOrderUrl(message: string, whatsapp: string = STORE.whatsapp): string {

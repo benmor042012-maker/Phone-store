@@ -30,17 +30,18 @@ export function SocialRow({ size = 18 }: { size?: number }) {
 /**
  * The page's one heading. It sits under the hero, so the clean video slide stays clean,
  * and it never changes with the slides the owner edits from the admin screen.
+ *
+ * It carries the heading and nothing else. The paragraph that used to follow it now opens
+ * AboutSection: the shop asked for the categories this high up, and a reader who wants the
+ * prose can still reach it a screen down. Google reads the same words either way, because
+ * StaticHome prerenders both bands.
  */
 export function HeroTitleBand() {
   return (
     <section className="hero-title-band" aria-labelledby="store-heading">
       <div className="section-shell">
-        <p className="hero-label">PHONE STORE · אלי חזות · {STORE.street}, {STORE.city}</p>
+        <p className="hero-label">PHONE STORE · אליהו חזות · {STORE.street}, {STORE.city}</p>
         <h1 id="store-heading">{HOME_SEO.h1} <em>{HOME_SEO.h1Accent}</em></h1>
-        <p>
-          חנות סלולר עצמאית במרכז נתניה מאז {STORE.founded}: טלפונים חדשים של אפל וסמסונג, טאבלטים ושעונים חכמים, אלפי אביזרים
-          במלאי, ומעבדת תיקונים במקום. מחיר סופי בוואטסאפ, תשלום בביט או בפייבוקס, ואחריות על כל מכשיר ועל כל תיקון.
-        </p>
       </div>
     </section>
   );
@@ -53,9 +54,13 @@ export function AboutSection({ kicker = "01" }: { kicker?: string }) {
       <div className="section-kicker">{kicker} <span>החנות</span></div>
       <div className="about-layout">
         <div>
-          <h2 id="about-heading">חנות הסלולר של אלי חזות בנתניה</h2>
+          <h2 id="about-heading">חנות הסלולר של אליהו חזות בנתניה</h2>
           <p>
-            Phone Store פתוחה בשדרות בן גוריון 2 מאז {STORE.founded}. זו חנות טלפונים סלולריים של אדם אחד שעונה בעצמו: אלי חזות
+            חנות סלולר עצמאית במרכז נתניה מאז {STORE.founded}: טלפונים חדשים של אפל וסמסונג, טאבלטים ושעונים חכמים, אלפי אביזרים
+            במלאי, ומעבדת תיקונים במקום. מחיר סופי בוואטסאפ, תשלום בביט או בפייבוקס, ואחריות על כל מכשיר ועל כל תיקון.
+          </p>
+          <p>
+            Phone Store פתוחה בשדרות בן גוריון 2 מאז {STORE.founded}. זו חנות טלפונים סלולריים של אדם אחד שעונה בעצמו: אליהו חזות
             מייעץ איזה דגם באמת מתאים, סוגר מחיר סופי בוואטסאפ, ומתקן במעבדה שבחנות מה שצריך תיקון. בלי מוקד, בלי טפסים ובלי
             נציגים.
           </p>
@@ -70,7 +75,7 @@ export function AboutSection({ kicker = "01" }: { kicker?: string }) {
           <li><b>מאז {STORE.founded}</b><span>אותה חנות, אותו בעלים, אותה כתובת בשדרות בן גוריון</span></li>
           <li><b>מחיר לפני</b><span>מחיר סופי בוואטסאפ, לפני שמשלמים ולפני שמתקנים</span></li>
           <li><b>אחריות</b><span>12 חודשי אחריות יבואן על מכשיר, ואחריות על כל תיקון</span></li>
-          <li><b>תשלום נוח</b><span>ביט, פייבוקס, מזומן, או אשראי עד 36 תשלומים</span></li>
+          <li><b>תשלום נוח</b><span>ביט, פייבוקס, מזומן, או אשראי עד 12 תשלומים (עד 3 ללא ריבית)</span></li>
         </ul>
       </div>
     </section>
@@ -97,7 +102,7 @@ export function RepairsSection({ kicker = "04" }: { kicker?: string }) {
             וסוללה לדגמים המבוקשים, נגמרים באותו יום. על כל תיקון יש אחריות על החלק ועל העבודה.
           </p>
           <a href="/repairs" className="btn-outline">כל התיקונים והמחירים <ArrowLeft size={17} /></a>
-          <a href={`${WHATSAPP_URL}?text=${encodeURIComponent("היי אלי, אני צריך/ה תיקון סלולרי. הדגם והתקלה: ")}`} target="_blank" rel="noreferrer" className="btn-gold">שלחו את התקלה בוואטסאפ <ArrowLeft size={17} /></a>
+          <a href={`${WHATSAPP_URL}?text=${encodeURIComponent("היי אליהו, אני צריך/ה תיקון סלולרי. הדגם והתקלה: ")}`} target="_blank" rel="noreferrer" className="btn-gold">שלחו את התקלה בוואטסאפ <ArrowLeft size={17} /></a>
         </div>
         <ul className="repairs-list">
           {repairServices.map((service) => (
@@ -154,7 +159,7 @@ export function ContactSection({ kicker = "07", phone = STORE.phone, whatsapp = 
       <div className="section-shell contact-layout">
         <div>
           <div className="section-kicker">{kicker} <span>דברו איתנו</span></div>
-          <h2 id="contact-heading">אלי עונה בעצמו</h2>
+          <h2 id="contact-heading">אליהו עונה בעצמו</h2>
           <p>שאלה על דגם, מחיר, זמינות או תיקון. הודעה בוואטסאפ היא הדרך המהירה ביותר לקבל תשובה, וההזמנה נסגרת באותה שיחה עם תשלום בביט או בפייבוקס.</p>
           <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer" className="btn-gold">שליחת הודעה ב־WhatsApp <ArrowLeft size={17} /></a>
           <div className="contact-social"><b>עוקבים אחרינו</b><SocialRow size={19} /></div>
@@ -175,14 +180,14 @@ export function SiteFooter({ whatsapp = STORE.whatsapp, phoneHref = STORE.phoneH
     <footer className="main-footer">
       <div>
         <img src={STORE.logo} alt="PHONE STORE — חנות סלולרי בנתניה" width={290} height={210} loading="lazy" decoding="async" />
-        <p>חנות סלולרי עצמאית בנתניה מאז {STORE.founded}. מכירה, ייעוץ, אביזרים ותיקונים, עם שירות אישי של אלי חזות.</p>
+        <p>חנות סלולרי עצמאית בנתניה מאז {STORE.founded}. מכירה, ייעוץ, אביזרים ותיקונים, עם שירות אישי של אליהו חזות.</p>
         <SocialRow />
         <ReviewInvite className="review-invite footer-review" />
       </div>
       <div><b>קטגוריות</b><a href="/#catalog">טלפונים סלולריים</a><a href="/iphone">אייפון</a><a href="/#catalog">טאבלטים</a><a href="/#catalog">שעונים חכמים</a><a href="/accessories">אביזרים לסלולר</a></div>
       <div><b>שירות</b><a href="/repairs">תיקון סלולרי</a><a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer">וואטסאפ</a><a href={phoneHref}>טלפון</a><a href="/#contact">שעות פתיחה</a><a href="/#catalog">תשלום בביט ובפייבוקס</a></div>
       <div><b>החנות</b><a href="/">עמוד הבית</a><a href="/#catalog">המלאי</a>{STATIC_PAGES.map((page) => <a key={page.path} href={page.path}>{page.navLabel}</a>)}<a href="/#contact">צור קשר</a><a href="/admin" title="פתיחת מסך ניהול התוכן">ניהול תוכן</a></div>
-      <small>© 2026 Phone Store · אלי חזות · {STORE.street}, {STORE.city} · טלפון <span dir="ltr">{STORE.phone}</span></small>
+      <small>© 2026 Phone Store · אליהו חזות · {STORE.street}, {STORE.city} · טלפון <span dir="ltr">{STORE.phone}</span></small>
     </footer>
   );
 }

@@ -67,7 +67,7 @@ export default function ProductRoute() {
   const isPhone = PHONE_CATEGORIES.includes(product.category);
   const related = isPhone ? "/iphone" : "/accessories";
   const relatedLabel = isPhone ? "אייפון וסמסונג בנתניה" : "אביזרים לסלולר בנתניה";
-  const order = `היי אלי, אני מעוניין/ת ב${product.name} (${money(product.price)}). זמין?`;
+  const order = `היי אליהו, אני מעוניין/ת ב${product.name} (${money(product.price)}). זמין?`;
 
   return (
     <div className="store-page landing-page" dir="rtl">

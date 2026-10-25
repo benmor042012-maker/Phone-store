@@ -29,7 +29,7 @@ export function LandingPage({ page, content }: { page: StaticPage; content: Land
           <h1>{page.h1}</h1>
           <p className="landing-intro">{content.intro}</p>
           <div className="hero-buttons landing-cta">
-            <a href={whatsapp} target="_blank" rel="noreferrer" className="btn-gold">דברו עם אלי ב־WhatsApp <ArrowLeft size={17} /></a>
+            <a href={whatsapp} target="_blank" rel="noreferrer" className="btn-gold">דברו עם אליהו ב־WhatsApp <ArrowLeft size={17} /></a>
             <a href={STORE.phoneHref} className="btn-outline"><Phone size={16} /> <span dir="ltr">{STORE.phone}</span></a>
           </div>
           {content.sections.map((section) => (

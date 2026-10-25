@@ -49,7 +49,7 @@ export function buildProductBodyHtml(origin: string, product: CatalogProduct, op
   const isPhone = isIndexedCategory(product.category);
   const related = isPhone ? "/iphone" : "/accessories";
   const relatedLabel = isPhone ? "אייפון וסמסונג בנתניה" : "אביזרים לסלולר בנתניה";
-  const order = `היי אלי, אני מעוניין/ת ב${(product.name ?? "").trim() || `מוצר ${product.id}`}${priced ? ` (${shekels(product.price)})` : ""}. זמין?`;
+  const order = `היי אליהו, אני מעוניין/ת ב${(product.name ?? "").trim() || `מוצר ${product.id}`}${priced ? ` (${shekels(product.price)})` : ""}. זמין?`;
   const whatsapp = escapeHtml(`https://wa.me/${options.whatsapp}?text=${encodeURIComponent(order)}`);
   const store = escapeHtml(`${options.storeName} ${options.city}`);
 

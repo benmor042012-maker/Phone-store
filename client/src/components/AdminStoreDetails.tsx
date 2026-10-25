@@ -29,7 +29,7 @@ const SETTING_FIELDS: SettingField[] = [
   { key: "addr", label: "כתובת החנות" },
   { key: "lead", label: "משפט הפתיחה", kind: "long", hint: "הטקסט שמספר ללקוח מי אתם" },
   { key: "ship", label: "משלוח חינם מעל", kind: "number", hint: "בשקלים" },
-  { key: "pay36", label: "מספר תשלומים ללא ריבית", kind: "number" },
+  { key: "pay36", label: "מספר תשלומים מרבי", kind: "number" },
 ];
 
 type Slide = { id: string; title: string; accent: string; lead: string; mark?: string };
